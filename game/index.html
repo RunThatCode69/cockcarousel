@@ -50,34 +50,34 @@
   let speed, dist, loot, score = 0, best = 0, newBest = false;
   let objs, parts, gap, player, shake = 0, playT = 0;
   let duckKey = false, duckTouch = null;
-  const GOAL = 1000;                     // eggplants needed to finish a level
+  const GOAL = 200;                      // eggplants needed to finish a level
   let level = 1, msg = null, winT = 0;
   const JOKES = {
-    10: "ooh... it's growing",
-    25: "getting harder already?",
-    50: "look at you go, big guy",
-    100: "that's a big boy now",
-    150: "she's gonna feel that one",
-    200: "keep stroking, champ",
-    250: "throbbing nicely",
-    300: "don't stop now",
-    400: "harder... HARDER",
-    500: "halfway to heaven",
-    600: "you're doing amazing, sweetie",
-    700: "faster... faster...",
-    800: "you're almost there",
-    900: "oh god... oh GOD",
-    950: "wow, you're about to cum",
-    990: "hold it... hold it...",
+    3: "ooh... it's growing",
+    8: "getting harder already?",
+    15: "look at you go, big guy",
+    25: "that's a big boy now",
+    35: "she's gonna feel that one",
+    45: "keep stroking, champ",
+    55: "throbbing nicely",
+    70: "don't stop now",
+    85: "harder... HARDER",
+    100: "halfway to heaven",
+    120: "you're doing amazing, sweetie",
+    140: "faster... faster...",
+    160: "you're almost there",
+    180: "oh god... oh GOD",
+    190: "wow, you're about to cum",
+    197: "hold it... hold it...",
   };
   const FILLER = ["mmm, that's the spot", "nice girth", "is it in yet?", "so hard right now", "moan for me", "she said don't stop",
     "veiny", "ohhh yes", "right there, right there", "you absolute stallion", "getting slippery", "harder, daddy"];
-  const growth = () => 1 + Math.min(loot, GOAL) / GOAL;     // 1x at 0 eggplants, 2x at the goal
+  const growth = () => 1 + 1.6 * Math.min(loot, GOAL) / GOAL;   // 1x at 0 eggplants, 2.6x at the goal
   function say(text) { msg = { txt: text, life: 150, max: 150 }; }
   function onLoot() {
     if (loot >= GOAL) { win(); return; }
     if (JOKES[loot]) say(JOKES[loot]);
-    else if (loot % 60 === 0) say(FILLER[Math.floor(Math.random() * FILLER.length)]);
+    else if (loot % 15 === 0) say(FILLER[Math.floor(Math.random() * FILLER.length)]);
   }
   try { best = +localStorage.getItem('cc_best') || 0; } catch (e) {}
 
@@ -235,7 +235,7 @@
       objs = objs.filter(o => o.x > -150 && !o.got);
 
       const ducking = duck && p.onGround;
-      const g = growth();
+      const g = 1 + (growth() - 1) * 0.5;   // hitbox grows half as fast as the art
       const ph = ducking ? 34 : 68 * g;
       const L = PX - 20 * g, R = PX + 22 * g, T = p.y - ph, B = p.y - 2;
       for (const o of objs) {
