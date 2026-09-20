@@ -82,7 +82,7 @@
   try { best = +localStorage.getItem('cc_best') || 0; } catch (e) {}
 
   function reset() {
-    speed = 6.5; dist = 0; loot = 0; objs = []; parts = []; gap = 500; playT = 0; newBest = false; level = 1; msg = null;
+    speed = 5.5; dist = 0; loot = 0; objs = []; parts = []; gap = 500; playT = 0; newBest = false; level = 1; msg = null;
     player = { y: 0, vy: 0, jumps: 0, onGround: true, squash: 0, flip: 0, deadRot: 0, deadX: 0, winX: 0, arrived: false };
   }
   reset();
@@ -159,18 +159,19 @@
   function spawn() {
     const x = 1150;
     const pool = [['cactus', 3], ['trap', 3]];
-    if (dist > 40) pool.push(['crab', 2]);
-    if (dist > 70) pool.push(['bee', 3]);
-    if (dist > 150) pool.push(['tall', 2]);
+    if (dist > 90) pool.push(['crab', 1.5]);
+    if (dist > 140) pool.push(['bee', 2]);
+    if (dist > 260) pool.push(['tall', 1.5]);
     const type = pick(pool);
     const size = { cactus: [56, 44, 8], trap: [48, 40, 6], crab: [70, 44, 10], tall: [56, 86, 8], bee: [52, 30, 6] }[type];
     const o = { type, x, w: size[0], h: size[1], pad: size[2], y: type === 'bee' ? 42 : 0, baseY: 42, seed: Math.random() * 6 };
     objs.push(o);
-    if (type !== 'bee' && Math.random() < 0.55) {
+    if (type !== 'bee' && Math.random() < 0.8) {
       const top = o.h + 48;
       for (let i = -2; i <= 2; i++) objs.push(makeLoot(x + o.w / 2 - 9 + i * 38, top - i * i * 9));
-    } else if (Math.random() < 0.5) {
-      for (let i = 0; i < 4; i++) objs.push(makeLoot(x + 200 + i * 40, 8));
+    }
+    if (Math.random() < 0.85) {
+      for (let i = 0; i < 6; i++) objs.push(makeLoot(x + 220 + i * 40, 8));
     }
   }
 
@@ -213,7 +214,7 @@
     const p = player;
     if (state === 'playing') {
       playT++;
-      speed = Math.min(16 + (level - 1) * 2, 6.5 + (level - 1) * 2 + dist * 0.018);
+      speed = Math.min(11 + (level - 1) * 1.5, 5.5 + (level - 1) * 1.5 + dist * 0.01);
       scroll += speed; dist += speed / 30;
       const duck = duckKey || duckTouch !== null;
       p.duck = duck;
@@ -227,7 +228,7 @@
       if (p.onGround && t % 6 === 0) dust(PX - 14, 0, 1);
 
       gap -= speed;
-      if (gap <= 0) { spawn(); gap = rand(380, 650) + speed * 14; }
+      if (gap <= 0) { spawn(); gap = rand(560, 860) + speed * 18; }
       for (const o of objs) {
         o.x -= speed + (o.type === 'crab' ? 1.8 : 0);
         if (o.type === 'bee') o.y = o.baseY + Math.sin(t * 0.08 + o.seed) * 5;
@@ -235,7 +236,7 @@
       objs = objs.filter(o => o.x > -150 && !o.got);
 
       const ducking = duck && p.onGround;
-      const g = 1 + (growth() - 1) * 0.5;   // hitbox grows half as fast as the art
+      const g = 1;   // hitbox stays the same size no matter how big the art gets
       const ph = ducking ? 34 : 68 * g;
       const L = PX - 20 * g, R = PX + 22 * g, T = p.y - ph, B = p.y - 2;
       for (const o of objs) {
