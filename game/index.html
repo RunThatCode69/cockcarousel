@@ -52,6 +52,8 @@
   let duckKey = false, duckTouch = null;
   const GOAL = 200;                      // eggplants needed to finish a level
   let level = 1, msg = null, winT = 0;
+  let globs = [], splats = [];          // the money shot: globs in flight, splats stuck to the screen
+  const OVER_DELAY = 150;               // frames of splattering before GAME OVER shows
   const JOKES = {
     3: "ooh... it's growing",
     8: "getting harder already?",
@@ -113,6 +115,8 @@
       case 'land': tone(160, 90, 0.07, 'triangle', 0.1); break;
       case 'hit': tone(420, 60, 0.5, 'sawtooth', 0.1); break;
       case 'boing': tone(180, 720, 0.25, 'sine', 0.12); tone(720, 300, 0.25, 'sine', 0.1, 0.25); break;
+      case 'splat': tone(rand(200, 320), 60, 0.12, 'sine', 0.08); break;
+      case 'spurt': tone(700, 250, 0.18, 'sine', 0.1); break;
       case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.28, 'triangle', 0.12, i * 0.13)); tone(200, 60, 0.6, 'sine', 0.15, 0.55); break;
     }
   }
@@ -121,7 +125,7 @@
   function start() { reset(); state = 'playing'; sfx('boing'); }
   function jump() {
     if (state === 'title') { start(); return; }
-    if (state === 'over') { if (t - overT > 35) start(); return; }
+    if (state === 'over') { if (t - overT > OVER_DELAY + 40) start(); return; }
     if (state === 'win') { if (player.arrived && t - winT > 60) nextLevel(); return; }
     const p = player;
     if (p.jumps < 2) {
@@ -200,10 +204,9 @@
     say(`LEVEL ${level} — she wants more`);
   }
   function die() {
-    state = 'over'; overT = t; shake = 16;
-    const p = player; p.vy = -11; p.deadRot = 0; p.deadX = 0;
-    burst(PX, p.y - 35, 22);
-    sfx('hit');
+    state = 'over'; overT = t; shake = 16; globs = []; splats = []; msg = null;
+    const p = player; p.vy = 0; p.y = 0; p.deadRot = 0; p.deadX = 0; p.onGround = true;
+    sfx('spurt');
     score = Math.floor(dist) + loot * 10 + (level - 1) * GOAL * 10;
     if (score > best) { best = score; newBest = true; try { localStorage.setItem('cc_best', best); } catch (e) {} }
   }
@@ -250,7 +253,26 @@
     } else if (state === 'title') {
       scroll += 4; speed = 4;
     } else if (state === 'over') {
-      p.vy += 0.6; p.y += p.vy; p.deadRot += 0.2; p.deadX += 2;
+      const age = t - overT;
+      p.deadRot = Math.sin(age * 0.9) * 0.08 * Math.max(0, 1 - age / OVER_DELAY);   // trembling
+      p.squash = 0.35 + Math.abs(Math.sin(age * 0.45)) * 0.3;
+      if (age < OVER_DELAY - 20 && age % 3 === 0) {
+        const [tx, ty] = tipScreen();
+        for (let i = 0; i < 2; i++) globs.push({ x: tx, y: ty, vx: rand(-9, 14), vy: rand(-17, 1), r: rand(4, 9), life: rand(14, 42) });
+        if (age % 12 === 0) sfx('spurt');
+      }
+      for (const q of globs) {
+        q.x += q.vx; q.y += q.vy; q.vy += 0.3; q.r += 1.1; q.life--;
+        if (q.life <= 0) {
+          const big = rand(38, 96);
+          splats.push({ x: Math.max(0, Math.min(W, q.x)), y: Math.max(0, Math.min(H, q.y)), r: big, t0: t,
+            lobes: [0, 1, 2, 3].map(() => [rand(-0.7, 0.7) * big, rand(-0.6, 0.6) * big, rand(0.35, 0.7) * big]),
+            drips: [0, 1, 2].map(() => ({ dx: rand(-0.6, 0.6) * big, w: rand(6, 14), len: 0, max: rand(30, 140), sp: rand(0.6, 1.8) })) });
+          sfx('splat');
+        }
+      }
+      globs = globs.filter(q => q.life > 0);
+      for (const sp of splats) for (const d of sp.drips) d.len = Math.min(d.max, d.len + d.sp);
     } else if (state === 'win') {
       speed = 3; scroll += speed;
       const target = BOOTY_X - PX - 62 * growth();
@@ -275,6 +297,10 @@
     parts = parts.filter(q => q.life > 0);
   }
 
+  function tipScreen() {
+    const g = growth(), ty = -86 * g, tx = PX + 6;
+    return [tx * COS - ty * SIN, TRACK_Y + tx * SIN + ty * COS];
+  }
   const BOOTY_X = 700;   // where the prize sits on the slide during the win screen
   const JOKE_RAIN = ['ohhh', 'yes!', 'mmm', 'again?', 'wow', '♥'];
 
@@ -562,7 +588,7 @@
     }
     const gsz = state === 'title' ? 1 : growth();
     if (state === 'over') {
-      drawDick(PX + p.deadX, p.y, gsz, { rot: p.deadRot, dead: true, flap: true });
+      drawDick(PX, 0, gsz, { rot: p.deadRot, flap: true, squash: p.squash });
     } else if (state === 'win') {
       const jig = p.arrived ? Math.sin((t - winT) * 0.5) * Math.max(0, 1 - (t - winT) / 60) : 0;
       drawBooty(BOOTY_X, 0, 1.1, jig);
@@ -633,14 +659,35 @@
       txt(duckTxt, W / 2, H - 52, 22, '#ffd23f', 'center', null);
       if (best) txt(`BEST ${best}`, W - 24, 36, 26, '#fff', 'right');
     } else if (state === 'over') {
-      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 0, W, H);
-      rr(W / 2 - 230, 90, 460, 260, 26); fs('#fff6e0', INK, 4);
-      txt('OUCH!!', W / 2, 142, 62, '#ff5d8f');
-      txt(`${Math.floor(dist)} m  ·  ${loot} eggplants`, W / 2, 202, 28, INK, 'center', null);
-      txt(`SCORE ${score}`, W / 2, 245, 40, '#ffd23f');
-      txt(newBest ? '★ NEW BEST! ★' : `Best ${best}`, W / 2, 290, 26, newBest ? '#e8628b' : INK, 'center', null);
-      if (t - overT > 35 && Math.floor(t / 30) % 2 === 0)
-        txt(isTouch ? 'Tap to slide again' : 'SPACE to slide again', W / 2, 395, 30, '#fff');
+      const age = t - overT;
+      // splats stuck to the screen
+      const CUM = '#f7f4ec', CUM2 = '#e6e0d2';
+      for (const sp of splats) {
+        const k = Math.min(1, (t - sp.t0) / 6);
+        ctx.globalAlpha = 0.94;
+        for (const d of sp.drips) { if (d.len > 0) { rr(sp.x + d.dx - d.w / 2, sp.y, d.w, d.len + d.w, d.w / 2); fs(CUM, CUM2, 1.5); E(sp.x + d.dx, sp.y + d.len + d.w / 2, d.w * 0.7, d.w * 0.7); fs(CUM, CUM2, 1.5); } }
+        E(sp.x, sp.y, sp.r * k, sp.r * 0.85 * k); fs(CUM, CUM2, 2);
+        for (const [lx, ly, lr] of sp.lobes) { E(sp.x + lx * k, sp.y + ly * k, lr * k, lr * 0.9 * k); fs(CUM, CUM2, 1.5); }
+        E(sp.x - sp.r * 0.3 * k, sp.y - sp.r * 0.3 * k, sp.r * 0.25 * k, sp.r * 0.15 * k); fs('rgba(255,255,255,0.9)', null);
+        ctx.globalAlpha = 1;
+      }
+      // globs still flying at the camera
+      for (const q of globs) { E(q.x, q.y, q.r, q.r * 0.9); fs(CUM, CUM2, 1.5); }
+      if (age < 40) txt('oh no... don\'t stop...', W / 2, 110, 40, '#ffd23f');
+      else if (age < OVER_DELAY) txt('OHHHHH', W / 2, 110, 60 + Math.sin(age * 0.4) * 6, '#ffd23f');
+      if (age > OVER_DELAY) {
+        const k = Math.min(1, (age - OVER_DELAY) / 12);
+        ctx.save(); ctx.translate(W / 2, H / 2 - 50); ctx.scale(k, k); ctx.translate(-W / 2, -(H / 2 - 50));
+        rr(W / 2 - 250, 80, 500, 290, 26); fs('#fff6e0', INK, 4);
+        txt('GAME OVER', W / 2, 135, 62, '#ff5d8f');
+        txt('you came too soon', W / 2, 185, 28, INK, 'center', null);
+        txt(`${Math.floor(dist)} m  ·  ${loot} eggplants  ·  level ${level}`, W / 2, 225, 24, INK, 'center', null);
+        txt(`SCORE ${score}`, W / 2, 272, 40, '#ffd23f');
+        txt(newBest ? '★ NEW BEST! ★' : `Best ${best}`, W / 2, 320, 26, newBest ? '#e8628b' : INK, 'center', null);
+        ctx.restore();
+        if (age > OVER_DELAY + 40 && Math.floor(t / 30) % 2 === 0)
+          txt(isTouch ? 'Tap to slide again' : 'SPACE to slide again', W / 2, 430, 30, '#fff');
+      }
     }
     else if (state === 'win') {
       txt(`LEVEL ${level}`, W - 24, 36, 26, '#ffd23f', 'right');
