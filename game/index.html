@@ -92,11 +92,20 @@
 
   // ---------- Sound ----------
   let actx = null, muted = false;
+  let unlocked = false;
   function audio() {
-    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
-    if (actx && actx.state === 'suspended') actx.resume();
+    if (!actx) {
+      try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}   // iOS: play even with the ringer switch on silent
+    }
+    if (actx && actx.state !== 'running') actx.resume();
+    if (actx && !unlocked) {   // iOS: a silent buffer on the first touch unlocks the context
+      try { const b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0); unlocked = true; } catch (e) {}
+    }
     return actx;
   }
+  ['touchend', 'touchstart', 'pointerdown', 'keydown', 'click'].forEach(ev => addEventListener(ev, audio, { passive: true }));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && actx) actx.resume(); });
   function tone(f1, f2, d, type, vol, when) {
     const a = audio(); if (!a || muted) return;
     const o = a.createOscillator(), g = a.createGain();
