@@ -50,6 +50,7 @@
   let mission = 1, scroll = 0, speed = 5, prog = 0, player, objs = [], parts = [], hold = false;
   let deadT = 0, clearT = 0, endT = 0, titleT = -999, score = 0, best = 0, pickups = 0, nextSpawn = 0, shake = 0, flash = 0;
   let radio = null, radioQ = [], fired = new Set(), deathQuote = '', farted = false;
+  let birthT = 0, push = 0, popT = -1, pushed = new Set();   // the delivery room
   let streak = 0, boostT = -999, pink = 0;   // hearts-in-a-row combo and the 'she came' surge
   const BOOST_LEN = 110;
   const MOANS = ['ohhh... yes...', 'mmm. keep going.', 'oh god. OH GOD.', 'don\'t you dare stop', 'again. do it again.'];
@@ -132,6 +133,8 @@
       case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.28, 'triangle', 0.12, i * 0.13)); break;
       case 'chop': tone(70, 60, 0.08, 'square', 0.03); break;
       case 'blip': tone(600, 900, 0.06, 'square', 0.05); break;
+      case 'pop': tone(200, 900, 0.18, 'sine', 0.15); tone(900, 300, 0.3, 'sine', 0.12, 0.18); break;
+      case 'cry': [0, 0.35, 0.7].forEach(w => tone(700, 500, 0.3, 'sawtooth', 0.05, w)); break;
       case 'moan': tone(260, 520, 0.5, 'sine', 0.1); tone(520, 380, 0.7, 'sine', 0.1, 0.45); tone(180, 90, 0.9, 'triangle', 0.08, 0.2); break;
     }
   }
@@ -176,7 +179,14 @@
       case 'intro': nextScene(); break;
       case 'dead': if (t - deadT > 70) startMission(mission); break;
       case 'clear': if (t - clearT > 90) startMission(2); break;
-      case 'end': if (t - endT > 120) { state = 'title'; } break;
+      case 'end': if (t - endT > 120) { state = 'birth'; birthT = t; push = 0; popT = -1; pushed = new Set(); radio = null; radioQ = []; parts = []; } break;
+      case 'birth': {
+        const k = t - birthT;
+        if (k < 200) { birthT = t - 200; break; }                  // skip the title card
+        if (popT < 0) { push = Math.min(100, push + 7); shake = 3; sfx('blip'); }
+        else if (t - popT > 150) state = 'title';
+        break;
+      }
     }
   }
   function nextScene() { scene++; sf = 0; if (scene > 3) { score = 0; startMission(1); } }
@@ -221,6 +231,18 @@
     parts = parts.filter(q => q.life > 0);
 
     if (state === 'intro') { sf++; introTick(); return; }
+    if (state === 'birth') {
+      const k = t - birthT;
+      if (k === 200) say('PRICK', "Swimmer? It's me. I got out of the butt. I'm a doctor now. PUSH.", 200);
+      if (k > 200 && popT < 0) {
+        [[25, 'PRICK', "She's crowning. That's not a hat, son."], [50, 'PRICK', 'Breathe. No, not you. HER.'], [75, 'PRICK', 'I can see a helmet!']].forEach(([f, who, text]) => { if (push >= f && !pushed.has(f)) { pushed.add(f); say(who, text, 130); } });
+        if (push < 100) push = Math.max(0, push - 0.35);
+        else { popT = t; shake = 16; sfx('pop'); radio = null; radioQ = []; say('PRICK', "It's a... sperm? Congratulations. He has your helmet.", 400);
+          for (let i = 0; i < 40; i++) parts.push({ x: 560, y: 330, vx: rand(-6, 6), vy: rand(-8, -1), r: rand(3, 6), c: pickOne(['#ff5d8f', '#ffd23f', '#7ed6df', '#fff']), life: 90, max: 90 }); }
+      }
+      if (popT > 0 && t - popT === 40) sfx('cry');
+      radioTick(); return;
+    }
     if (state !== 'play') { radioTick(); return; }
 
     const M = MISSIONS[mission], p = player;
@@ -621,6 +643,73 @@
     txt(isTouch ? 'tap to skip' : 'SPACE to skip', W - 16, 22, 16, 'rgba(255,255,255,0.7)', 'right', null);
   }
 
+  // ---------- Delivery room ----------
+  function drawBirth() {
+    const k = t - birthT;
+    if (k < 200) {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      txt('9 MONTHS LATER'.slice(0, Math.floor(k / 4)), W / 2, H / 2 - 20, 54, '#e8ffe8', 'center', null);
+      if (k > 90) txt('(she kept it)', W / 2, H / 2 + 40, 24, '#ffd23f', 'center', null);
+      return;
+    }
+    const sq = popT < 0 ? push / 100 : 1, pk = popT < 0 ? 0 : t - popT;
+    // room
+    ctx.fillStyle = '#dff3f0'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#b8dcd6'; ctx.fillRect(0, 380, W, H - 380);
+    ctx.fillStyle = '#fff'; ctx.fillRect(60, 40, 220, 60); txt('MATERNITY WARD', 170, 70, 20, INK, 'center', null);
+    // monitor
+    rr(720, 60, 200, 120, 8); fs('#1d232b', INK, 3);
+    ctx.strokeStyle = '#4dff88'; ctx.lineWidth = 2; ctx.beginPath();
+    for (let x = 0; x < 180; x += 4) { const u = mod(x - t * 3, 180), spike = u % 60 < 6 ? -30 * (1 - Math.abs(u % 60 - 3) / 3) : 0; ctx.lineTo(730 + x, 130 + spike - Math.sin(x * 0.2) * 2); }
+    ctx.stroke(); txt(`${popT < 0 ? 120 + Math.floor(push * 0.8) : 80} bpm`, 820, 165, 16, '#4dff88', 'center', null);
+    // bed
+    rr(120, 300, 560, 130, 16); fs('#f4f6f8', INK, 3); ctx.fillStyle = '#c9d2dc'; ctx.fillRect(140, 430, 20, 60); ctx.fillRect(640, 430, 20, 60);
+    rr(130, 280, 110, 60, 20); fs('#fff', INK, 2.5);             // pillow
+    // mom: head, gown, belly, legs in stirrups
+    E(200, 250, 40, 40); fs('#f9c3ad');
+    ctx.fillStyle = '#5a2e1a'; ctx.beginPath(); ctx.arc(200, 240, 44, Math.PI, 0); ctx.fill(); ctx.fillRect(156, 240, 20, 50);
+    face(196, 254, { mouth: popT < 0 && push > 15 ? 'o' : (popT >= 0 ? undefined : 'sad'), ph: 3 });
+    if (popT < 0 && push > 30) { ctx.fillStyle = '#9ad8ff'; E(232, 236, 4, 6); ctx.fill(); }
+    ctx.fillStyle = '#ffb3c9'; rr(230, 290, 300, 90, 30); ctx.fill();          // gown
+    const by = 320 - 30 * sq * 0, bw = 95 * (1 + sq * 0.15), bh = 75 * (1 - sq * 0.25);
+    E(400, 300 + (75 - bh), bw, bh); fs('#ffb3c9', INK, 3);                     // belly, squashes when pushing
+    if (popT < 0) { E(400, 300 + (75 - bh), bw * 0.4, bh * 0.35); fs('rgba(255,255,255,0.35)', null); }
+    // blanket + stirrup legs
+    poly([500, 290, 600, 200, 660, 210, 620, 300, 600, 380, 500, 380]); fs('#7ed6df', INK, 3);
+    ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(600, 200); ctx.lineTo(640, 150); ctx.moveTo(660, 210); ctx.lineTo(700, 160); ctx.stroke();
+    ctx.strokeStyle = '#f9c3ad'; ctx.lineWidth = 5; ctx.stroke();
+    ctx.fillStyle = '#8d99a6'; ctx.fillRect(636, 140, 14, 10); ctx.fillRect(696, 150, 14, 10);
+    // Dr. Prick with a catcher's mitt
+    drawSperm(760, 330 + Math.sin(t * 0.1) * 3, 2, { hat: true, stache: true, ph: t * 0.15, mouth: talking('PRICK') ? 'o' : undefined });
+    ctx.fillStyle = '#c98b4b'; E(700, 330, 26, 30); fs('#c98b4b', INK, 2.5); E(700, 330, 14, 18); fs('#a8683a', INK, 1.5);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(740, 300); ctx.lineTo(752, 290); ctx.stroke();
+    E(760, 288, 12, 5); fs('#7ed6df', INK, 1.5); txt('MD', 760, 288, 8, INK, 'center', null);
+    // the baby
+    if (popT >= 0) {
+      const u = Math.min(1, pk / 60), bx = 620 + u * 120, byy = 300 - Math.sin(u * Math.PI) * 160 + (1 - u) * 0;
+      const land = pk > 60;
+      drawSperm(land ? 700 + Math.sin(t * 0.3) * 2 : bx, land ? 322 : byy, 0.9, { helmet: true, ph: t * 0.8, rot: land ? 0 : u * Math.PI * 2, mouth: land && pk > 40 ? 'o' : undefined });
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
+      const dx = land ? 700 : bx, dy = land ? 322 : byy; rr(dx - 8, dy + 6, 20, 10, 4); ctx.fill(); ctx.stroke();
+      if (pk < 30) txt('POP!', 620, 200, 60 - pk, '#ffd23f');
+      if (pk > 40) txt('WAAAH', 700 + rand(-1, 1), 270, 22 + Math.sin(t * 0.5) * 3, '#ff5d8f');
+      if (pk > 60) { ctx.save(); ctx.translate(W / 2, 120); ctx.rotate(Math.sin(t * 0.08) * 0.04); txt("IT'S A SPERM", 0, 0, 64, '#ffd23f'); ctx.restore(); }
+      if (pk > 90) txt('8 lbs, 0 oz. Well, 8 lbs of helmet.', W / 2, 180, 24, '#fff');
+      if (pk > 150 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to play again' : 'SPACE to play again', W / 2, 470, 30, '#fff');
+    } else {
+      // push meter
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; rr(W / 2 - 220, 200, 440, 34, 17); ctx.fill();
+      ctx.fillStyle = push > 75 ? '#ff5d8f' : '#ffd23f'; rr(W / 2 - 220, 200, Math.max(34, 440 * push / 100), 34, 17); ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = 3; rr(W / 2 - 220, 200, 440, 34, 17); ctx.stroke();
+      const big = 40 + Math.sin(t * 0.3) * 4 + push * 0.2;
+      txt(isTouch ? 'TAP TAP TAP TO PUSH!' : 'MASH SPACE TO PUSH!', W / 2, 150, big, push > 75 ? '#ff5d8f' : '#fff');
+      if (push > 60) txt(pickOne(['PUSH!', 'PUSH!!', 'BREATHE', 'PUSH!!!']), 200 + rand(-2, 2), 190, 26, '#ff5d8f');
+    }
+    for (const q of parts) { ctx.globalAlpha = q.life / q.max; E(q.x, q.y, q.r, q.r); ctx.fillStyle = q.c; ctx.fill(); ctx.globalAlpha = 1; }
+    drawRadio();
+  }
+
   // ---------- Draw ----------
   function draw() {
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
@@ -639,6 +728,8 @@
       if (best) txt(`BEST ${best}`, W - 24, 36, 26, '#fff', 'right');
     } else if (state === 'intro') {
       drawIntro();
+    } else if (state === 'birth') {
+      drawBirth();
     } else {
       // gameplay + overlays
       drawTunnel(M);
@@ -711,7 +802,7 @@
         if (k > 110) txt("Congratulations. It's a... you.", W / 2, 258, 28, '#ff5d8f', 'center', null);
         if (k > 150) txt(`SCORE ${score}   ·   BEST ${best}`, W / 2, 310, 26, '#fff', 'center', null);
         if (k > 190) txt('Captain Prick was never seen again. He is still in the butt.', W / 2, 350, 20, '#ffd23f', 'center', null);
-        if (k > 120 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to play again' : 'SPACE to play again', W / 2, 440, 30, '#fff');
+        if (k > 120 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to see what happens next' : 'SPACE to see what happens next', W / 2, 440, 30, '#fff');
       }
     }
     if (!isTouch) txt(muted ? 'M: sound off' : 'M: sound on', W - 16, H - 16, 16, 'rgba(255,255,255,0.8)', 'right', null);
