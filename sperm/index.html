@@ -50,6 +50,9 @@
   let mission = 1, scroll = 0, speed = 5, prog = 0, player, objs = [], parts = [], hold = false;
   let deadT = 0, clearT = 0, endT = 0, titleT = -999, score = 0, best = 0, pickups = 0, nextSpawn = 0, shake = 0, flash = 0;
   let radio = null, radioQ = [], fired = new Set(), deathQuote = '', farted = false;
+  let streak = 0, boostT = -999, pink = 0;   // hearts-in-a-row combo and the 'she came' surge
+  const BOOST_LEN = 110;
+  const MOANS = ['ohhh... yes...', 'mmm. keep going.', 'oh god. OH GOD.', 'don\'t you dare stop', 'again. do it again.'];
   try { best = +localStorage.getItem('cod_best') || 0; } catch (e) {}
 
   const MISSIONS = {
@@ -120,6 +123,7 @@
       case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.28, 'triangle', 0.12, i * 0.13)); break;
       case 'chop': tone(70, 60, 0.08, 'square', 0.03); break;
       case 'blip': tone(600, 900, 0.06, 'square', 0.05); break;
+      case 'moan': tone(260, 520, 0.5, 'sine', 0.1); tone(520, 380, 0.7, 'sine', 0.1, 0.45); tone(180, 90, 0.9, 'triangle', 0.08, 0.2); break;
     }
   }
 
@@ -141,11 +145,11 @@
 
   // ---------- Tunnel ----------
   const center = wx => H / 2 + Math.sin(wx * 0.0035) * 85 + Math.sin(wx * 0.0111 + 2) * 35;
-  const halfH = wx => (mission === 2 ? 150 : 165) + Math.sin(wx * 0.0027 + 1) * 18;
+  const halfH = wx => 165 + Math.sin(wx * 0.0027 + 1) * 18;
 
   // ---------- Mission flow ----------
   function startMission(m) {
-    mission = m; scroll = 0; speed = 4.5; prog = 0; objs = []; parts = []; pickups = 0; nextSpawn = 700; radio = null; radioQ = []; fired = new Set(); farted = false; shake = 0; flash = 0;
+    mission = m; scroll = 0; speed = 4.5; prog = 0; objs = []; parts = []; pickups = 0; nextSpawn = 700; radio = null; radioQ = []; fired = new Set(); farted = false; shake = 0; flash = 0; streak = 0; boostT = -999; pink = 0;
     player = { y: H / 2, vy: 0, ph: 0 };
     state = 'play'; titleT = t;
   }
@@ -183,7 +187,7 @@
     const c = center(wx), h = halfH(wx);
     const pool = mission === 1
       ? [['turd', 3], ['corn', 3], ['peanut', 2], ['fart', 1.5], ['roid', 2]]
-      : [['wbc', 3], ['mucus', 2], ['rival', 1.5], ['spermicide', prog > 0.5 ? 2.5 : 0.6], ['iud', prog > 0.7 ? 2 : 0]];
+      : [['wbc', 2], ['mucus', 1.5], ['rival', 1.5], ['spermicide', prog > 0.5 ? 1.5 : 0.4], ['iud', prog > 0.7 ? 1.2 : 0]];
     let sum = pool.reduce((s, p) => s + p[1], 0), r = Math.random() * sum, type = pool[0][0];
     for (const [n, w] of pool) { if ((r -= w) < 0) { type = n; break; } }
     const R = { turd: 28, corn: 14, peanut: 17, fart: 42, roid: 22, wbc: 26, mucus: 34, rival: 16, spermicide: 36, iud: 30 }[type];
@@ -211,40 +215,53 @@
     if (state !== 'play') { radioTick(); return; }
 
     const M = MISSIONS[mission], p = player;
-    speed = 3.8 + prog * 1.6;
+    const boosting = t - boostT < BOOST_LEN;
+    speed = 3.8 + prog * 1.6 + (boosting ? 9 : 0);
     scroll += speed; prog = clamp(scroll / M.len, 0, 1);
+    if (boosting) {
+      p.y += (center(scroll + PX) - p.y) * 0.12;                 // sucked toward the middle
+      if (t % 2 === 0) parts.push({ x: W + 10, y: center(scroll + rand(0, W)) + rand(-120, 120), vx: -speed * 1.6, vy: 0, r: rand(2, 4), c: 'rgba(255,255,255,0.7)', life: 40, max: 40, line: true });
+      if (t % 6 === 0) parts.push({ x: PX + rand(-30, 30), y: p.y + rand(-30, 30), vx: -2, vy: rand(-2, -0.5), r: 0, heart: true, c: '#ff5d8f', life: 50, max: 50 });
+    }
+    if (pink > 0) pink = Math.max(0, pink - 0.012);
     p.vy += 0.24; if (hold) p.vy -= 0.5;
     p.vy = clamp(p.vy, -4.8, 4.8); p.y += p.vy; p.ph += 0.4 + (hold ? 0.3 : 0);
     if (hold && t % 4 === 0) parts.push({ x: PX - 30, y: p.y + rand(-6, 6), vx: -speed * 0.4, vy: rand(-0.5, 0.5), r: rand(2, 4), c: 'rgba(255,255,255,0.6)', life: 25, max: 25 });
 
     // walls
     const wx = scroll + PX, c = center(wx), h = halfH(wx);
-    if (p.y - PR < c - h + 2 || p.y + PR > c + h - 2) { die('wall'); return; }
+    if (!boosting && (p.y - PR < c - h + 2 || p.y + PR > c + h - 2)) { die('wall'); return; }
 
     // spawn
     const endZone = M.len - 900;
-    while (scroll + W + 150 > nextSpawn && nextSpawn < endZone) { spawn(nextSpawn); nextSpawn += rand(400, 600); }
+    while (scroll + W + 150 > nextSpawn && nextSpawn < endZone) { spawn(nextSpawn); nextSpawn += mission === 2 ? rand(470, 700) : rand(400, 600); }
 
     // objects
     let slow = 1;
     for (const o of objs) {
       if (o.type === 'rival') { o.x += speed + 3.5; o.y += Math.sin(t * 0.1 + o.seed) * 0.8; if (!o.taunted && o.x > scroll + PX + 40) { o.taunted = true; say('RIVAL', pickOne(TAUNTS), 120); } }
-      if (o.type === 'wbc') { const dx = o.x - wx; if (dx > -100 && dx < 360) o.y += clamp(p.y - o.y, -0.8, 0.8); }
+      if (o.type === 'wbc') { const dx = o.x - wx; if (dx > -100 && dx < 330) o.y += clamp(p.y - o.y, -0.6, 0.6); }
       const sx = o.x - scroll, dx = sx - PX, dy = o.y - p.y, d = Math.hypot(dx, dy);
+      if (o.type === 'heart' && !o.got && !o.missed && sx < PX - o.r - 12) { o.missed = true; if (streak > 0 && !boosting) streak = 0; }
       const hit = d < o.r + PR - (o.type === 'drop' || o.type === 'heart' ? 0 : 9);
       if (!hit) continue;
       switch (o.type) {
         case 'drop': case 'heart':
           if (!o.got) { o.got = true; pickups++; sfx('pick'); if (PICK_LINES[pickups]) say('PRICK', PICK_LINES[pickups], 120);
-            parts.push({ x: sx, y: o.y, vx: 0, vy: -1.5, r: 0, txt: '+10', c: '#ffd23f', life: 40, max: 40 }); }
+            parts.push({ x: sx, y: o.y, vx: 0, vy: -1.5, r: 0, txt: '+10', c: '#ffd23f', life: 40, max: 40 });
+            if (o.type === 'heart' && !boosting) {
+              streak++;
+              if (streak >= 5) { streak = 0; boostT = t; pink = 1; shake = 10; sfx('moan'); radio = null; radioQ = []; say('EGG', pickOne(MOANS), 110); say('PRICK', 'She came. Ride the wave, Swimmer!', 130); score += 250;
+                for (let i = 0; i < 24; i++) parts.push({ x: PX, y: p.y, vx: rand(-6, 6), vy: rand(-6, 6), r: 0, heart: true, c: '#ff5d8f', life: 60, max: 60 }); }
+            } }
           break;
         case 'fart':
           p.vy -= 0.55; slow = 0.7;
           if (!farted) { farted = true; sfx('fart'); say('SWIMMER', 'WHO. FARTED.', 100); }
           if (t % 3 === 0) parts.push({ x: PX + rand(-20, 20), y: p.y + rand(-20, 20), vx: rand(-1, 1), vy: rand(-2, -0.5), r: rand(6, 12), c: 'rgba(120,200,90,0.5)', life: 30, max: 30 });
           break;
-        case 'mucus': slow = 0.45; p.vy *= 0.85; break;
-        default: die(o.type); return;
+        case 'mucus': slow = 0.6; p.vy *= 0.9; break;
+        default: if (!boosting) { die(o.type); return; }
       }
     }
     if (slow < 1) scroll -= speed * (1 - slow);
@@ -625,10 +642,20 @@
       else if (state === 'end') { const k = Math.min(1, (t - endT) / 40); drawSperm(M.len - scroll - 100 - k * 10, center(M.len) + Math.sin(t * 0.3) * 4, 1.15, { helmet: true, ph: t * 0.8 }); }
       for (const q of parts) {
         ctx.globalAlpha = q.life / q.max;
-        if (q.txt) txt(q.txt, q.x, q.y, 22, q.c); else { E(q.x, q.y, q.r, q.r); ctx.fillStyle = q.c; ctx.fill(); }
+        if (q.txt) txt(q.txt, q.x, q.y, 22, q.c);
+        else if (q.heart) { heart(q.x, q.y, 7); fs(q.c, INK, 1.2); }
+        else if (q.line) { ctx.strokeStyle = q.c; ctx.lineWidth = q.r; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(q.x + 40, q.y); ctx.stroke(); }
+        else { E(q.x, q.y, q.r, q.r); ctx.fillStyle = q.c; ctx.fill(); }
         ctx.globalAlpha = 1;
       }
       if (flash > 0) { ctx.fillStyle = `rgba(255,40,60,${flash * 0.5})`; ctx.fillRect(0, 0, W, H); }
+      if (pink > 0) { ctx.fillStyle = `rgba(255,120,180,${pink * 0.45 * (0.7 + Math.sin(t * 0.5) * 0.3)})`; ctx.fillRect(0, 0, W, H); }
+      if (state === 'play' && t - boostT < BOOST_LEN) {
+        const k = Math.min(1, (t - boostT) / 10);
+        ctx.save(); ctx.translate(W / 2, 120); ctx.scale(k, k); ctx.rotate(Math.sin(t * 0.3) * 0.05);
+        txt('SHE CAME', 0, 0, 74, '#ff5d8f'); ctx.restore();
+        txt('sucked in deeper!', W / 2, 175, 30, '#fff');
+      }
 
       // HUD
       txt(`MISSION ${mission}`, 24, 34, 24, '#7ed6df', 'left');
@@ -639,6 +666,7 @@
       if (mission === 1) { ctx.save(); ctx.translate(34, 92); ctx.beginPath(); ctx.moveTo(0, -10); ctx.quadraticCurveTo(8, 1, 0, 8); ctx.quadraticCurveTo(-8, 1, 0, -10); ctx.closePath(); fs('#5ec8ff', INK, 2); ctx.restore(); }
       else { heart(34, 92, 8); fs('#ff5d8f', INK, 2); }
       txt(`× ${pickups}`, 52, 92, 26, '#ffd23f', 'left');
+      if (mission === 2) { for (let i = 0; i < 5; i++) { heart(140 + i * 22, 92, 7); fs(i < streak ? '#ff5d8f' : 'rgba(255,255,255,0.25)', INK, 1.5); } txt('in a row', 258, 92, 16, '#fff', 'left'); }
       txt(`SCORE ${score + Math.floor(scroll / 20) + pickups * 10}`, W - 24, 34, 24, '#fff', 'right');
       const tk = t - titleT;
       if (state === 'play' && tk < 320) {
