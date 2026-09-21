@@ -23,13 +23,14 @@
   const cv = document.getElementById('c');
   const ctx = cv.getContext('2d');
   let scale = 1, dpr = 1;
+  let portrait = false;
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    scale = Math.min(innerWidth / W, innerHeight / H);
-    cv.style.width = W * scale + 'px';
-    cv.style.height = H * scale + 'px';
-    cv.width = Math.round(W * scale * dpr);
-    cv.height = Math.round(H * scale * dpr);
+    portrait = innerHeight > innerWidth * 1.1;
+    scale = portrait ? Math.min(innerHeight / W, innerWidth / H) : Math.min(innerWidth / W, innerHeight / H);
+    cv.style.width = W * scale + 'px'; cv.style.height = H * scale + 'px';
+    cv.style.transform = portrait ? 'rotate(90deg)' : '';
+    cv.width = Math.round(W * scale * dpr); cv.height = Math.round(H * scale * dpr);
   }
   addEventListener('resize', resize);
   resize();
@@ -145,7 +146,7 @@
   cv.addEventListener('pointerdown', e => {
     e.preventDefault(); audio();
     const r = cv.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width * W;
+    const x = portrait ? (e.clientY - r.top) / r.height * W : (e.clientX - r.left) / r.width * W;
     if (state !== 'playing') { jump(); return; }
     if (x < W * 0.4) duckTouch = e.pointerId; else jump();
   });
