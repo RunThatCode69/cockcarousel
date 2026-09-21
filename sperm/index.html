@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cum of Duty: Wrong Hole</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1530; overflow: hidden;
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<script>
+(() => {
+  // ---------- Setup ----------
+  const W = 960, H = 540;
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  let scale = 1, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    scale = Math.min(innerWidth / W, innerHeight / H);
+    cv.style.width = W * scale + 'px'; cv.style.height = H * scale + 'px';
+    cv.width = Math.round(W * scale * dpr); cv.height = Math.round(H * scale * dpr);
+  }
+  addEventListener('resize', resize); resize();
+
+  const FONT = "'Lilita One', 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif";
+  const INK = '#3a1230';
+  const CREAM = '#fdf6e3';
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const mod = (a, n) => ((a % n) + n) % n;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const pickOne = a => a[Math.floor(Math.random() * a.length)];
+
+  const PX = 220;                 // player screen x
+  const PR = 15;                  // player radius
+  let t = 0, state = 'title';
+  let scene = 0, sf = 0;          // intro scene + frame within scene
+  let mission = 1, scroll = 0, speed = 5, prog = 0, player, objs = [], parts = [], hold = false;
+  let deadT = 0, clearT = 0, endT = 0, briefT = 0, score = 0, best = 0, pickups = 0, nextSpawn = 0, shake = 0, flash = 0;
+  let radio = null, radioQ = [], fired = new Set(), deathQuote = '', farted = false;
+  try { best = +localStorage.getItem('cod_best') || 0; } catch (e) {}
+
+  const MISSIONS = {
+    1: { name: 'OPERATION BROWN EYE', obj: 'Get out of the butthole.', len: 11000, wall: '#7d4034', inner: '#d3867a', deep: '#b76b60', pick: 'lube drops' },
+    2: { name: 'OVULATION STATION', obj: 'Reach the egg. Make a baby.', len: 12500, wall: '#b03a5e', inner: '#ff9ec4', deep: '#f07aa8', pick: 'hearts' },
+  };
+  const SCRIPT = {
+    1: [
+      [0.02, 'PRICK', "Swimmer, you're in the rectum. Swim toward the light."],
+      [0.12, 'PRICK', 'Watch the corn. It never digests. Ever.'],
+      [0.24, 'SWIMMER', 'Captain, something just farted on me.'],
+      [0.28, 'PRICK', "That's the enemy, son. Hold your breath."],
+      [0.4, 'PRICK', "Hemorrhoids on the walls. Don't touch the angry grapes."],
+      [0.55, 'PRICK', "You're doing great. This is still the wrong hole."],
+      [0.68, 'SWIMMER', 'Is that... a peanut?'],
+      [0.72, 'PRICK', 'She had pad thai. Keep moving.'],
+      [0.86, 'PRICK', 'Sphincter ahead. Wait for it to open. Do NOT get clenched.'],
+      [0.95, 'PRICK', "Almost out. Don't look back. Seriously. Don't."],
+    ],
+    2: [
+      [0.02, 'PRICK', 'Good news: right hole. Bad news: 200 million other guys had the same idea.'],
+      [0.18, 'PRICK', "White blood cells inbound. They think you're an infection. Rude."],
+      [0.33, 'PRICK', 'Mucus wall. Push through it like your father would.'],
+      [0.48, 'SWIMMER', "Captain, it's getting tight."],
+      [0.52, 'PRICK', "That's the cervix, son. Everyone's first time is tight."],
+      [0.64, 'PRICK', 'Spermicide clouds. Purple means death. Like a grape.'],
+      [0.77, 'PRICK', 'Copper wire ahead. She said she had an IUD. Dodge it anyway.'],
+      [0.9, 'PRICK', 'Ovulation Station in sight. This is it. Make your father proud.'],
+      [0.97, 'EGG', 'come here, big boy'],
+    ],
+  };
+  const TAUNTS = ['later, loser', 'my dad is a lawyer', 'see you at the egg. jk you won\'t', 'nice tail. did your mom pick it?', 'swim faster, grandpa'];
+  const QUOTES = [
+    ["'Life... uh... finds a way.'", 'Dr. Ian Malcolm, probably'],
+    ["'Every sperm is sacred.'", 'some monks'],
+    ["'You miss 100% of the eggs you don\'t swim to.'", 'Wayne Gretzky. Michael Scott.'],
+    ["'Never go in dry.'", 'Captain Prick'],
+    ["'It\'s not the size of the sperm, it\'s the motion of the tail.'", 'nobody, ever'],
+    ["'PULL OUT. PULL OUT.'", 'Captain Prick, ignored'],
+    ["'The only easy day was yesterday. Yesterday you were in a ball.'", 'Navy SEALs, ish'],
+    ["'He died as he lived: in someone\'s butt.'", 'his eulogy'],
+    ["'Two hundred million went in. Zero came out. Including you.'", 'after-action report'],
+  ];
+  const PICK_LINES = { 5: 'that\'s the good lube', 15: 'slippery when wet', 30: 'you\'re basically a fish now', 50: 'ok you can stop collecting and start escaping' };
+
+  // ---------- Sound ----------
+  let actx = null, muted = false;
+  function audio() {
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (actx && actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function tone(f1, f2, d, type, vol, when) {
+    const a = audio(); if (!a || muted) return;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.connect(g); g.connect(a.destination);
+    const s = a.currentTime + (when || 0);
+    o.frequency.setValueAtTime(f1, s); o.frequency.exponentialRampToValueAtTime(f2, s + d);
+    g.gain.setValueAtTime(vol, s); g.gain.exponentialRampToValueAtTime(0.001, s + d);
+    o.start(s); o.stop(s + d + 0.02);
+  }
+  function sfx(n) {
+    switch (n) {
+      case 'pick': tone(880, 1400, 0.1, 'triangle', 0.1); break;
+      case 'die': tone(300, 40, 0.6, 'sawtooth', 0.12); break;
+      case 'fart': tone(120, 60, 0.4, 'sawtooth', 0.08); tone(90, 50, 0.3, 'square', 0.05, 0.1); break;
+      case 'radio': tone(1200, 900, 0.05, 'square', 0.04); break;
+      case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.28, 'triangle', 0.12, i * 0.13)); break;
+      case 'chop': tone(70, 60, 0.08, 'square', 0.03); break;
+      case 'blip': tone(600, 900, 0.06, 'square', 0.05); break;
+    }
+  }
+
+  // ---------- Radio ----------
+  function say(who, text, dur) { radioQ.push({ who, text, dur: dur || Math.max(150, 40 + text.length * 4), f: 0 }); }
+  function radioTick() {
+    if (!radio && radioQ.length) { radio = radioQ.shift(); sfx('radio'); }
+    if (radio && ++radio.f > radio.dur) radio = null;
+  }
+  function drawRadio() {
+    if (!radio) return;
+    const shown = radio.text.slice(0, Math.floor(radio.f * 1.4));
+    const names = { PRICK: 'Capt. Prick', SWIMMER: 'Sgt. Swimmer', RIVAL: 'Some Other Sperm', EGG: 'The Egg' };
+    const cols = { PRICK: '#ffd23f', SWIMMER: '#7ed6df', RIVAL: '#ff9f43', EGG: '#ff5d8f' };
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; rr(W / 2 - 400, H - 78, 800, 58, 12); ctx.fill();
+    txt(names[radio.who] + ':', W / 2 - 384, H - 49, 20, cols[radio.who], 'left', null);
+    txt(shown, W / 2 - 384 + ctx.measureText(names[radio.who] + ': ').width + 8, H - 49, 20, '#fff', 'left', null);
+  }
+
+  // ---------- Tunnel ----------
+  const center = wx => H / 2 + Math.sin(wx * 0.0035) * 85 + Math.sin(wx * 0.0111 + 2) * 35;
+  const halfH = wx => (mission === 2 ? 135 : 150) + Math.sin(wx * 0.0027 + 1) * 22;
+
+  // ---------- Mission flow ----------
+  function startMission(m) {
+    mission = m; scroll = 0; speed = 4.5; prog = 0; objs = []; parts = []; pickups = 0; nextSpawn = 700; radio = null; radioQ = []; fired = new Set(); farted = false; shake = 0; flash = 0;
+    player = { y: H / 2, vy: 0, ph: 0 };
+    state = 'play';
+  }
+  function die(why) {
+    if (state !== 'play') return;
+    state = 'dead'; deadT = t; shake = 14; flash = 1; radio = null; radioQ = [];
+    deathQuote = pickOne(QUOTES); sfx('die');
+    for (let i = 0; i < 16; i++) parts.push({ x: PX, y: player.y, vx: rand(-4, 4), vy: rand(-5, 2), r: rand(3, 6), c: CREAM, life: 50, max: 50 });
+    score += Math.floor(scroll / 20) + pickups * 10;
+  }
+  function tap() {
+    audio();
+    switch (state) {
+      case 'title': state = 'intro'; scene = 0; sf = 0; break;
+      case 'intro': nextScene(); break;
+      case 'brief': if (t - briefT > 30) startMission(mission); break;
+      case 'dead': if (t - deadT > 70) { state = 'brief'; briefT = t; } break;
+      case 'clear': if (t - clearT > 90) { mission = 2; state = 'brief'; briefT = t; } break;
+      case 'end': if (t - endT > 120) { state = 'title'; } break;
+    }
+  }
+  function nextScene() { scene++; sf = 0; if (scene > 3) { mission = 1; score = 0; state = 'brief'; briefT = t; } }
+
+  // ---------- Input ----------
+  addEventListener('keydown', e => {
+    if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) { e.preventDefault(); if (!e.repeat) { if (state === 'play') hold = true; else tap(); } }
+    if (e.code === 'KeyM') muted = !muted;
+  });
+  addEventListener('keyup', e => { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) hold = false; });
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') hold = true; else tap(); });
+  const release = () => { hold = false; };
+  addEventListener('pointerup', release); addEventListener('pointercancel', release);
+
+  // ---------- Spawning ----------
+  function spawn(wx) {
+    const c = center(wx), h = halfH(wx);
+    const pool = mission === 1
+      ? [['turd', 3], ['corn', 3], ['peanut', 2], ['fart', 1.5], ['roid', 2]]
+      : [['wbc', 3], ['mucus', 2], ['rival', 1.5], ['spermicide', prog > 0.5 ? 2.5 : 0.6], ['iud', prog > 0.7 ? 2 : 0]];
+    let sum = pool.reduce((s, p) => s + p[1], 0), r = Math.random() * sum, type = pool[0][0];
+    for (const [n, w] of pool) { if ((r -= w) < 0) { type = n; break; } }
+    const R = { turd: 28, corn: 14, peanut: 17, fart: 42, roid: 22, wbc: 26, mucus: 34, rival: 16, spermicide: 36, iud: 30 }[type];
+    const o = { type, x: wx, y: c + rand(-h + R + 10, h - R - 10), r: R, seed: rand(0, 6), got: false };
+    if (type === 'roid') o.y = Math.random() < 0.5 ? c - h + 8 : c + h - 8;
+    if (type === 'rival') { o.x = scroll - 120; o.y = c + rand(-h + 40, h - 40); o.taunted = false; }
+    objs.push(o);
+    // pickups in an arc or a line
+    const pk = mission === 1 ? 'drop' : 'heart';
+    if (Math.random() < 0.75) {
+      const py = c + rand(-h + 40, h - 40), px = wx + rand(120, 200);
+      for (let i = 0; i < 5; i++) objs.push({ type: pk, x: px + i * 34, y: py + Math.sin(i * 0.9) * 22, r: 10, seed: rand(0, 6), got: false });
+    }
+  }
+
+  // ---------- Update ----------
+  function update() {
+    t++;
+    if (shake > 0) { shake *= 0.9; if (shake < 0.4) shake = 0; }
+    if (flash > 0) flash = Math.max(0, flash - 0.04);
+    for (const q of parts) { q.x += q.vx; q.y += q.vy; q.vy += 0.15; q.life--; }
+    parts = parts.filter(q => q.life > 0);
+
+    if (state === 'intro') { sf++; introTick(); return; }
+    if (state !== 'play') { radioTick(); return; }
+
+    const M = MISSIONS[mission], p = player;
+    speed = 4.5 + prog * 2.5;
+    scroll += speed; prog = clamp(scroll / M.len, 0, 1);
+    p.vy += 0.32; if (hold) p.vy -= 0.62;
+    p.vy = clamp(p.vy, -6, 6); p.y += p.vy; p.ph += 0.4 + (hold ? 0.3 : 0);
+    if (hold && t % 4 === 0) parts.push({ x: PX - 30, y: p.y + rand(-6, 6), vx: -speed * 0.4, vy: rand(-0.5, 0.5), r: rand(2, 4), c: 'rgba(255,255,255,0.6)', life: 25, max: 25 });
+
+    // walls
+    const wx = scroll + PX, c = center(wx), h = halfH(wx);
+    if (p.y - PR < c - h + 6 || p.y + PR > c + h - 6) { die('wall'); return; }
+
+    // spawn
+    const endZone = M.len - 900;
+    while (scroll + W + 150 > nextSpawn && nextSpawn < endZone) { spawn(nextSpawn); nextSpawn += rand(300, 460); }
+
+    // objects
+    let slow = 1;
+    for (const o of objs) {
+      if (o.type === 'rival') { o.x += speed + 3.5; o.y += Math.sin(t * 0.1 + o.seed) * 0.8; if (!o.taunted && o.x > scroll + PX + 40) { o.taunted = true; say('RIVAL', pickOne(TAUNTS), 120); } }
+      if (o.type === 'wbc') { const dx = o.x - wx; if (dx > -100 && dx < 420) o.y += clamp(p.y - o.y, -1.3, 1.3); }
+      const sx = o.x - scroll, dx = sx - PX, dy = o.y - p.y, d = Math.hypot(dx, dy);
+      const hit = d < o.r + PR - 4;
+      if (!hit) continue;
+      switch (o.type) {
+        case 'drop': case 'heart':
+          if (!o.got) { o.got = true; pickups++; sfx('pick'); if (PICK_LINES[pickups]) say('PRICK', PICK_LINES[pickups], 120);
+            parts.push({ x: sx, y: o.y, vx: 0, vy: -1.5, r: 0, txt: '+10', c: '#ffd23f', life: 40, max: 40 }); }
+          break;
+        case 'fart':
+          p.vy -= 0.9; slow = 0.6;
+          if (!farted) { farted = true; sfx('fart'); say('SWIMMER', 'WHO. FARTED.', 100); }
+          if (t % 3 === 0) parts.push({ x: PX + rand(-20, 20), y: p.y + rand(-20, 20), vx: rand(-1, 1), vy: rand(-2, -0.5), r: rand(6, 12), c: 'rgba(120,200,90,0.5)', life: 30, max: 30 });
+          break;
+        case 'mucus': slow = 0.45; p.vy *= 0.85; break;
+        default: die(o.type); return;
+      }
+    }
+    if (slow < 1) scroll -= speed * (1 - slow);
+    objs = objs.filter(o => o.x - scroll > -200 && !o.got);
+
+    // end of mission
+    if (mission === 1) {
+      const gx = M.len - 450 - scroll;               // gate screen x
+      const gap = 34 + 70 * Math.abs(Math.sin(t * 0.045));
+      const gc = center(M.len - 450);
+      if (PX + PR > gx - 40 && PX - PR < gx + 40 && Math.abs(p.y - gc) > gap - PR) { die('clenched'); return; }
+      if (scroll > M.len) { state = 'clear'; clearT = t; score += 1000 + pickups * 10; sfx('win'); radio = null; radioQ = []; }
+    } else {
+      const ex = M.len - scroll, ec = center(M.len);
+      if (Math.hypot(ex - PX, ec - p.y) < 90 + PR) { state = 'end'; endT = t; score += 5000 + pickups * 10; sfx('win'); radio = null; radioQ = [];
+        if (score > best) { best = score; try { localStorage.setItem('cod_best', best); } catch (e) {} } }
+    }
+
+    // scripted radio
+    for (const [f, who, text] of SCRIPT[mission]) { const k = f + who; if (prog >= f && !fired.has(k)) { fired.add(k); say(who, text); } }
+    radioTick();
+  }
+
+  // ---------- Intro ----------
+  const INTRO = [
+    { len: 320 },
+    { len: 680, subs: [[20, 'PRICK', "Swimmer. Wake up. It's go time."], [130, 'SWIMMER', 'Where are we, Captain?'], [220, 'PRICK', 'Classified. Somewhere warm. Somewhere wet.'], [330, 'PRICK', 'Two hundred million of us went in. One comes out a father.'], [450, 'PRICK', 'Gear up. On the rope in ten.'], [560, 'PRICK', 'Bravo Six... going dark.']] },
+    { len: 540, subs: [[10, 'PRICK', 'On the rope, Swimmer. Go, go, go.'], [120, 'SWIMMER', "Captain, I can't see shit."], [210, 'PRICK', "That's the fog of war, son."], [310, 'SWIMMER', 'It smells like... war.'], [410, 'PRICK', 'Keep going. Almost at the LZ.']] },
+    { len: 640, subs: [[15, 'SWIMMER', '...Captain.'], [95, 'PRICK', 'Yeah.'], [150, 'SWIMMER', "This isn't the ship."], [230, 'PRICK', 'No, son.'], [300, 'PRICK', "That's an asshole."], [400, 'PRICK', 'New mission: get out. Find the right hole. Make a baby.'], [520, 'SWIMMER', 'Copy that. Oscar Mike.']] },
+  ];
+  function introTick() {
+    const sc = INTRO[scene];
+    if (sc.subs) for (const [f, who, text] of sc.subs) if (sf === f) { radio = null; radioQ = []; say(who, text, 999); }
+    if (scene === 1 && sf % 6 === 0) sfx('chop');
+    if (scene === 3 && sf === 1) { shake = 12; flash = 0.6; }
+    radioTick();
+    if (sf > sc.len) nextScene();
+  }
+
+  // ---------- Drawing helpers ----------
+  function E(x, y, rx, ry, r = 0) { ctx.beginPath(); ctx.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), r, 0, Math.PI * 2); }
+  function fs(fill, stroke = INK, lw = 2.5) { ctx.fillStyle = fill; ctx.fill(); if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); } }
+  function poly(pts) { ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.closePath(); }
+  function rr(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function heart(x, y, s) {
+    ctx.beginPath(); ctx.moveTo(x, y + s);
+    ctx.bezierCurveTo(x - s * 1.4, y - s * 0.2, x - s * 0.6, y - s * 1.2, x, y - s * 0.4);
+    ctx.bezierCurveTo(x + s * 0.6, y - s * 1.2, x + s * 1.4, y - s * 0.2, x, y + s);
+    ctx.closePath();
+  }
+  function txt(s, x, y, size, fill = '#fff', align = 'center', stroke = INK) {
+    ctx.font = `${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    if (stroke) { ctx.lineWidth = size * 0.2; ctx.strokeStyle = stroke; ctx.strokeText(s, x, y); }
+    ctx.fillStyle = fill; ctx.fillText(s, x, y);
+  }
+  function face(x, y, o) {
+    if (o.dead) {
+      ctx.strokeStyle = INK; ctx.lineWidth = 2;
+      [[x - 3, y - 3], [x + 6, y - 3]].forEach(([ex, ey]) => { ctx.beginPath(); ctx.moveTo(ex - 2.5, ey - 2.5); ctx.lineTo(ex + 2.5, ey + 2.5); ctx.moveTo(ex + 2.5, ey - 2.5); ctx.lineTo(ex - 2.5, ey + 2.5); ctx.stroke(); });
+      return;
+    }
+    const blink = (t + (o.ph || 0) * 9) % 170 < 5;
+    [[x - 2, y - 3], [x + 7, y - 3]].forEach(([ex, ey]) => {
+      if (blink) { ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(ex - 3, ey); ctx.lineTo(ex + 3, ey); ctx.stroke(); }
+      else { E(ex, ey, 3.6, 4); fs('#fff', INK, 1.4); E(ex + 1.3, ey + 0.4, 1.9, 2.1); fs(INK, null); E(ex + 1.9, ey - 0.8, 0.7, 0.7); fs('#fff', null); }
+    });
+    if (o.angry) { ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 6, y - 10); ctx.lineTo(x + 1, y - 7); ctx.moveTo(x + 11, y - 10); ctx.lineTo(x + 4, y - 7); ctx.stroke(); }
+    if (o.stache) { ctx.fillStyle = INK; E(x + 3, y + 3.5, 7, 2.6); ctx.fill(); }
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.8;
+    if (o.mouth === 'o') { E(x + 3, y + 6, 2.6, 3.4); fs('#7a2a4a', INK, 1.5); }
+    else if (o.mouth === 'sad') { ctx.beginPath(); ctx.moveTo(x - 1, y + 7); ctx.quadraticCurveTo(x + 3, y + 3, x + 7, y + 7); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.moveTo(x - 1, y + 4); ctx.quadraticCurveTo(x + 3, y + 8, x + 7, y + 4); ctx.stroke(); }
+  }
+  // The hero: a sperm with a face and a helmet. Head faces +x.
+  function drawSperm(x, y, s, o = {}) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s); if (o.rot) ctx.rotate(o.rot);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const ph = o.ph !== undefined ? o.ph : t * 0.35, amp = o.dead ? 0.25 : 1;
+    ctx.beginPath(); ctx.moveTo(-12, 0);
+    for (let i = 1; i <= 9; i++) ctx.lineTo(-12 - i * 6.5, Math.sin(ph + i * 0.75) * (1.5 + i * 1.2) * amp);
+    ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.stroke(); ctx.strokeStyle = o.col || CREAM; ctx.lineWidth = 4; ctx.stroke();
+    E(0, 0, 18, 14); fs(o.col || CREAM);
+    E(-7, -5, 5, 2.5); fs('rgba(255,255,255,0.8)', null);
+    if (o.helmet) {
+      ctx.beginPath(); ctx.arc(0, -4, 19, Math.PI, 0); ctx.closePath(); fs('#5c7a3a');
+      rr(-20, -6, 40, 5, 2); fs('#4a6330', INK, 1.5);
+    }
+    if (o.hat) { E(0, -10, 24, 5); fs('#6b7a4a'); rr(-13, -24, 26, 16, 5); fs('#6b7a4a'); }
+    face(0, 0, o);
+    ctx.restore();
+  }
+  function drawObj(o) {
+    const x = o.x - scroll, y = o.y, s = o.seed;
+    if (x < -120 || x > W + 120) return;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    switch (o.type) {
+      case 'turd': {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(t * 0.03 + s) * 0.2);
+        E(0, 8, 28, 14); fs('#6b3f1d'); E(-4, -4, 22, 12); fs('#7a4a24'); E(2, -15, 14, 9); fs('#8a5630');
+        E(6, -24, 5, 4); fs('#8a5630');
+        face(-2, -2, { mouth: 'o', ph: s });
+        ctx.restore(); break;
+      }
+      case 'corn': {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(t * 0.05 + s);
+        E(0, 0, 13, 10); fs('#ffd23f'); E(-4, -3, 4, 2.5); fs('#fff2a8', null);
+        ctx.restore(); break;
+      }
+      case 'peanut': {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(0.6 + Math.sin(t * 0.04 + s) * 0.2);
+        E(0, -9, 11, 11); fs('#d9a066'); E(0, 9, 12, 12); fs('#d9a066'); E(0, 0, 9, 7); fs('#d9a066', null);
+        ctx.strokeStyle = '#a8763f'; ctx.lineWidth = 1.5; for (let i = -14; i < 16; i += 6) { ctx.beginPath(); ctx.moveTo(-6, i); ctx.lineTo(6, i + 3); ctx.stroke(); }
+        ctx.restore(); break;
+      }
+      case 'fart': {
+        for (let i = 0; i < 5; i++) { const a = s + i * 1.3 + t * 0.02; E(x + Math.cos(a) * 22, y + Math.sin(a) * 16, 22, 18); fs('rgba(140,210,100,0.45)', 'rgba(90,160,60,0.6)', 1.5); }
+        txt('pfffft', x, y, 18, '#e9ffcc', 'center', '#4a7a2a'); break;
+      }
+      case 'roid': {
+        const top = o.y < center(o.x);
+        for (let i = 0; i < 3; i++) { E(x - 16 + i * 16, y + (top ? -4 : 4) + (i === 1 ? (top ? 10 : -10) : 0), 12, 12); fs('#d9304d'); E(x - 20 + i * 16, y + (top ? 6 : -6) + (i === 1 ? (top ? 6 : -6) : 0), 4, 2.5); fs('rgba(255,255,255,0.6)', null); }
+        face(x - 4, y + (top ? 8 : -6), { angry: true, mouth: 'sad', ph: s }); break;
+      }
+      case 'wbc': {
+        for (let i = 0; i < 6; i++) { const a = i * 1.05 + t * 0.03 + s; E(x + Math.cos(a) * 12, y + Math.sin(a) * 10, 14, 13); fs('#f4f4f8', INK, 1.5); }
+        E(x, y, 20, 17); fs('#f4f4f8', null);
+        face(x - 3, y, { angry: true, mouth: 'sad', ph: s }); break;
+      }
+      case 'mucus': {
+        E(x, y, 36, 30); fs('rgba(190,230,120,0.55)', 'rgba(130,180,60,0.8)', 2);
+        E(x - 10, y - 8, 8, 5); fs('rgba(255,255,255,0.5)', null);
+        txt('mucus', x, y + 2, 16, '#f2ffd6', 'center', '#5a7a2a'); break;
+      }
+      case 'rival': drawSperm(x, y, 0.9, { ph: t * 0.6 + s, col: '#e8e0ff' }); break;
+      case 'spermicide': {
+        for (let i = 0; i < 5; i++) { const a = s + i * 1.3 - t * 0.02; E(x + Math.cos(a) * 18, y + Math.sin(a) * 14, 22, 18); fs('rgba(150,80,200,0.55)', 'rgba(90,40,140,0.7)', 1.5); }
+        E(x, y - 2, 9, 8); fs('#fff', INK, 1.5); E(x - 3, y - 3, 2, 2.5); fs(INK, null); E(x + 3, y - 3, 2, 2.5); fs(INK, null); ctx.fillStyle = INK; ctx.fillRect(x - 4, y + 3, 8, 3); break;
+      }
+      case 'iud': {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(t * 0.02 + s) * 0.15);
+        ctx.strokeStyle = INK; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(-26, -18); ctx.lineTo(26, -18); ctx.moveTo(0, -18); ctx.lineTo(0, 24); ctx.stroke();
+        ctx.strokeStyle = '#d9843a'; ctx.lineWidth = 6; ctx.stroke();
+        ctx.strokeStyle = '#f2b26a'; ctx.lineWidth = 1.5; for (let i = -8; i < 22; i += 6) { ctx.beginPath(); ctx.moveTo(-3, i); ctx.lineTo(3, i + 3); ctx.stroke(); }
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-2, 24); ctx.lineTo(-6, 44); ctx.moveTo(2, 24); ctx.lineTo(7, 44); ctx.stroke();
+        ctx.restore(); break;
+      }
+      case 'drop': {
+        ctx.save(); ctx.translate(x, y + Math.sin(t * 0.1 + s) * 3);
+        ctx.beginPath(); ctx.moveTo(0, -12); ctx.quadraticCurveTo(10, 2, 0, 10); ctx.quadraticCurveTo(-10, 2, 0, -12); ctx.closePath(); fs('#5ec8ff', INK, 2);
+        E(-3, 1, 2, 3); fs('rgba(255,255,255,0.8)', null);
+        ctx.restore(); break;
+      }
+      case 'heart': { ctx.save(); ctx.translate(x, y + Math.sin(t * 0.1 + s) * 3); heart(0, 0, 9); fs('#ff5d8f', INK, 2); ctx.restore(); break; }
+    }
+  }
+  function drawTunnel(M) {
+    ctx.fillStyle = M.wall; ctx.fillRect(0, 0, W, H);
+    // deep ridges on the walls
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 3;
+    for (let x = -mod(scroll * 0.5, 60); x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 20, H); ctx.stroke(); }
+    // interior
+    ctx.beginPath();
+    for (let x = -10; x <= W + 10; x += 10) { const wx = x + scroll; const y = center(wx) - halfH(wx); x === -10 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    for (let x = W + 10; x >= -10; x -= 10) { const wx = x + scroll; ctx.lineTo(x, center(wx) + halfH(wx)); }
+    ctx.closePath();
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, M.deep); g.addColorStop(0.5, M.inner); g.addColorStop(1, M.deep);
+    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.stroke();
+    // wall ripples
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 3;
+    for (let x = -mod(scroll, 44); x < W; x += 44) { const wx = x + scroll, c = center(wx), h = halfH(wx); ctx.beginPath(); ctx.arc(x, c - h + 10, 8, 0, Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(x + 22, c + h - 10, 8, Math.PI, 0); ctx.stroke(); }
+    // floaties
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    for (let i = 0; i < 14; i++) { const x = mod(i * 173 - scroll * (0.5 + (i % 3) * 0.2), W + 40) - 20, y = center(x + scroll) + Math.sin(i * 2.1 + t * 0.02) * halfH(x + scroll) * 0.7; E(x, y, 3 + (i % 3), 3 + (i % 3)); ctx.fill(); }
+  }
+  function drawGate(M) {
+    const gx = M.len - 450 - scroll; if (gx < -100 || gx > W + 100) return;
+    const gc = center(M.len - 450), gap = 34 + 70 * Math.abs(Math.sin(t * 0.045));
+    [[-1, 0, gc - gap], [1, gc + gap, H]].forEach(([d, y0, y1]) => {
+      rr(gx - 40, y0, 80, y1 - y0, 18); fs('#c46a5c');
+      ctx.strokeStyle = '#8a3f36'; ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(gx, d < 0 ? gc - gap : gc + gap, 12 + i * 9, d < 0 ? 0 : Math.PI, d < 0 ? Math.PI : 0); ctx.stroke(); }
+    });
+    txt('EXIT', gx, 40, 22, '#ffd23f');
+    ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(gx - 10, 55); ctx.lineTo(gx, 68); ctx.lineTo(gx + 10, 55); ctx.stroke();
+  }
+  function drawEgg(M) {
+    const ex = M.len - scroll; if (ex > W + 200) return;
+    const ec = center(M.len), pulse = 1 + Math.sin(t * 0.08) * 0.03;
+    ctx.save(); ctx.translate(ex, ec); ctx.scale(pulse, pulse);
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6 + t * 0.01; ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 92, Math.sin(a) * 92); ctx.lineTo(Math.cos(a) * 108, Math.sin(a) * 108); ctx.stroke(); }
+    E(0, 0, 90, 88); fs('#ffd97a', INK, 4); E(0, 0, 62, 60); fs('#ffb84d', null);
+    E(-30, -30, 14, 8); fs('rgba(255,255,255,0.7)', null);
+    // flirty face
+    [[-22, -8], [22, -8]].forEach(([x, y]) => { E(x, y, 12, 13); fs('#fff', INK, 2); E(x + 3, y + 2, 6, 7); fs(INK, null); E(x + 5, y - 2, 2.5, 2.5); fs('#fff', null);
+      ctx.strokeStyle = INK; ctx.lineWidth = 2.5; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(x + i * 7, y - 13); ctx.lineTo(x + i * 9, y - 20); ctx.stroke(); } });
+    E(-38, 12, 9, 5); fs('#ff9bb5', null); E(38, 12, 9, 5); fs('#ff9bb5', null);
+    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-14, 22); ctx.quadraticCurveTo(0, 36, 14, 22); ctx.stroke();
+    ctx.restore();
+    // sign
+    rr(ex - 120, ec - 175, 240, 44, 8); fs('#8a5a2b', INK, 3);
+    ctx.fillStyle = '#6b4320'; ctx.fillRect(ex - 6, ec - 131, 12, 40);
+    txt('OVULATION STATION', ex, ec - 153, 24, '#ffd23f');
+  }
+
+  // ---------- Intro scenes ----------
+  function night() {
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0b1530'); g.addColorStop(1, '#1b2d5a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; for (let i = 0; i < 40; i++) { const x = (i * 197) % W, y = (i * 89) % 260; if ((t + i * 13) % 120 < 100) ctx.fillRect(x, y, 2, 2); }
+    E(820, 80, 34, 34); fs('#fff6c9', null); E(806, 72, 8, 6); fs('#eee2a8', null);
+  }
+  function rain() {
+    ctx.strokeStyle = 'rgba(180,200,255,0.35)'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 70; i++) { const x = mod(i * 137 - t * 3, W + 100) - 50, y = mod(i * 71 + t * 14, H + 60) - 30; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5, y + 18); ctx.stroke(); }
+  }
+  function sea(y0) {
+    ctx.fillStyle = '#0d2a4a'; ctx.fillRect(0, y0, W, H - y0);
+    ctx.strokeStyle = 'rgba(120,180,230,0.35)'; ctx.lineWidth = 2;
+    for (let r = 0; r < 5; r++) { ctx.beginPath(); for (let x = 0; x <= W; x += 16) ctx.lineTo(x, y0 + 20 + r * 34 + Math.sin(x * 0.03 + t * 0.05 + r) * 5); ctx.stroke(); }
+  }
+  function ship(x, y) {
+    poly([x, y, x + 300, y, x + 280, y + 46, x + 30, y + 46]); fs('#3b4652');
+    ctx.fillStyle = '#2b333d'; ctx.fillRect(x + 20, y - 2, 260, 6);
+    [['#c0392b', 0], ['#2980b9', 1], ['#27ae60', 2], ['#f39c12', 3], ['#8e44ad', 4]].forEach(([c, i]) => { rr(x + 30 + i * 46, y - 28, 42, 26, 3); fs(c, INK, 1.5); });
+    rr(x + 205, y - 70, 60, 42, 4); fs('#8d99a6'); ctx.fillStyle = '#ffe27a'; for (let i = 0; i < 3; i++) ctx.fillRect(x + 212 + i * 18, y - 60, 10, 8);
+    ctx.fillStyle = '#e74c3c'; ctx.fillRect(x + 248, y - 100, 6, 30);
+  }
+  function chopper(x, y, o = {}) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.strokeStyle = '#1d232b'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(40, -6); ctx.lineTo(150, -20); ctx.stroke();
+    poly([140, -32, 168, -46, 168, -16]); fs('#2c3540');
+    E(0, 0, 70, 30); fs('#2c3540');
+    rr(-20, -12, 40, 24, 4); fs('#1d232b', null);
+    if (o.door) { drawSperm(-8, 4, 0.5, { hat: true, stache: true, ph: t * 0.2 }); drawSperm(14, 6, 0.5, { helmet: true, ph: t * 0.3, mouth: o.mouth }); }
+    ctx.fillStyle = '#1d232b'; ctx.fillRect(-6, -40, 12, 12);
+    ctx.strokeStyle = 'rgba(200,210,220,0.85)'; ctx.lineWidth = 4;
+    const r = Math.cos(t * 0.9) * 110; ctx.beginPath(); ctx.moveTo(-r, -42); ctx.lineTo(r, -42); ctx.stroke();
+    ctx.strokeStyle = 'rgba(200,210,220,0.25)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-115, -42); ctx.lineTo(115, -42); ctx.stroke();
+    ctx.strokeStyle = '#1d232b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-40, 30); ctx.lineTo(-40, 42); ctx.lineTo(50, 42); ctx.lineTo(50, 30); ctx.stroke();
+    ctx.restore();
+  }
+  function drawIntro() {
+    if (scene === 0) {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      const lines = ['DAY 1 — 02:47:13', 'SGT. "SWIMMER" JR.', '22ND SPERM REGIMENT', 'SOMEWHERE OFF THE COAST OF THE BALLSACK'];
+      lines.forEach((l, i) => { const start = i * 55; if (sf > start) txt(l.slice(0, Math.floor((sf - start) / 2)), 120, 200 + i * 42, 30, '#e8ffe8', 'left', null); });
+      if (sf % 40 < 20) txt('_', 120 + ctx.measureText(' ').width, 200 + Math.min(3, Math.floor(sf / 55)) * 42, 30, '#e8ffe8', 'left', null);
+    } else if (scene === 1) {
+      night(); sea(360); ship(560, 400);
+      const bob = Math.sin(t * 0.08) * 6;
+      chopper(300 + Math.sin(t * 0.02) * 20, 170 + bob, { door: true, mouth: sf > 560 ? 'o' : undefined });
+      // searchlight
+      ctx.fillStyle = 'rgba(255,240,180,0.12)'; poly([300, 200 + bob, 560, 420, 760, 420]); ctx.fill();
+      rain();
+      if (sf > 560) { ctx.fillStyle = `rgba(0,0,0,${clamp((sf - 560) / 100, 0, 1)})`; ctx.fillRect(0, 0, W, H); }
+    } else if (scene === 2) {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      const y = 80 + sf * 0.75;
+      // faint cheeks appearing late
+      const a = clamp((sf - 330) / 200, 0, 0.55);
+      ctx.fillStyle = `rgba(230,170,150,${a})`; E(300, 700, 330, 300); ctx.fill(); E(660, 700, 330, 300); ctx.fill();
+      ctx.fillStyle = `rgba(90,40,40,${a})`; E(480, 560, 26, 20); ctx.fill();
+      // flashlight cone
+      const gr = ctx.createRadialGradient(480, y, 10, 480, y, 120); gr.addColorStop(0, 'rgba(255,250,220,0.35)'); gr.addColorStop(1, 'rgba(255,250,220,0)');
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#b89a6a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(480, -10); ctx.lineTo(480, H + 10); ctx.stroke();
+      drawSperm(486, y, 1.1, { helmet: true, rot: Math.PI / 2 + Math.sin(t * 0.1) * 0.1, ph: t * 0.3, mouth: sf > 300 ? 'o' : undefined });
+      rain();
+    } else {
+      drawTunnel(MISSIONS[1]);
+      ctx.strokeStyle = '#b89a6a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(480, -10); ctx.lineTo(480, center(480) + 6); ctx.stroke();
+      drawSperm(486, center(480), 1.2, { helmet: true, rot: Math.PI / 2, ph: t * 0.1, mouth: 'o' });
+      if (sf > 280) txt('(it\'s an asshole)', 480, 90, 26, '#ffd23f');
+    }
+    drawRadio();
+    txt(isTouch ? 'tap to skip' : 'SPACE to skip', W - 16, 22, 16, 'rgba(255,255,255,0.7)', 'right', null);
+  }
+
+  // ---------- Draw ----------
+  function draw() {
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    if (shake > 0) ctx.translate(rand(-shake, shake) * 0.5, rand(-shake, shake) * 0.5);
+    const M = MISSIONS[mission];
+
+    if (state === 'title') {
+      night(); sea(360); ship(560, 400); chopper(300 + Math.sin(t * 0.02) * 20, 170 + Math.sin(t * 0.08) * 6, { door: true }); rain();
+      ctx.save(); ctx.translate(W / 2, 100 + Math.sin(t * 0.05) * 4); ctx.rotate(Math.sin(t * 0.03) * 0.03);
+      txt('CUM OF DUTY', 0, 0, 82, '#ffd23f'); ctx.restore();
+      txt('~ Wrong Hole ~', W / 2, 165, 36, '#fff');
+      if (Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to deploy' : 'Press SPACE to deploy', W / 2, 250, 32, '#fff');
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; rr(W / 2 - 300, H - 100, 600, 70, 16); ctx.fill();
+      txt(isTouch ? 'Hold to swim up · release to sink' : 'Hold SPACE to swim up · release to sink', W / 2, H - 75, 22, '#fff', 'center', null);
+      txt('Don\'t touch anything brown. Or purple. Or angry.', W / 2, H - 47, 20, '#ffd23f', 'center', null);
+      if (best) txt(`BEST ${best}`, W - 24, 36, 26, '#fff', 'right');
+    } else if (state === 'intro') {
+      drawIntro();
+    } else if (state === 'brief') {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      const k = t - briefT;
+      txt(`MISSION ${mission}`, 120, 150, 30, '#7ed6df', 'left', null);
+      txt(M.name.slice(0, Math.floor(k / 2)), 120, 205, 54, '#fff', 'left', null);
+      if (k > 60) txt('OBJECTIVE: ' + M.obj.slice(0, Math.floor((k - 60) / 2)), 120, 270, 26, '#ffd23f', 'left', null);
+      if (k > 120) txt(mission === 1 ? 'Intel: it is dark, it is warm, it is NOT the ship.' : 'Intel: 199,999,999 hostiles. All of them your brothers.', 120, 315, 22, '#e8ffe8', 'left', null);
+      if (k > 30 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to begin' : 'SPACE to begin', W / 2, H - 70, 30, '#fff');
+    } else {
+      // gameplay + overlays
+      drawTunnel(M);
+      for (const o of objs) drawObj(o);
+      if (mission === 1) drawGate(M); else drawEgg(M);
+      const p = player;
+      if (state === 'play') drawSperm(PX, p.y, 1.15, { helmet: true, rot: clamp(p.vy * 0.07, -0.5, 0.5), ph: p.ph, mouth: hold ? 'o' : undefined });
+      else if (state === 'dead') drawSperm(PX, p.y, 1.15, { helmet: true, dead: true, rot: (t - deadT) * 0.05, ph: p.ph });
+      else if (state === 'clear') drawSperm(PX + Math.min(400, (t - clearT) * 6), p.y, 1.15, { helmet: true, ph: t * 0.6 });
+      else if (state === 'end') { const k = Math.min(1, (t - endT) / 40); drawSperm(M.len - scroll - 100 - k * 10, center(M.len) + Math.sin(t * 0.3) * 4, 1.15, { helmet: true, ph: t * 0.8 }); }
+      for (const q of parts) {
+        ctx.globalAlpha = q.life / q.max;
+        if (q.txt) txt(q.txt, q.x, q.y, 22, q.c); else { E(q.x, q.y, q.r, q.r); ctx.fillStyle = q.c; ctx.fill(); }
+        ctx.globalAlpha = 1;
+      }
+      if (flash > 0) { ctx.fillStyle = `rgba(255,40,60,${flash * 0.5})`; ctx.fillRect(0, 0, W, H); }
+
+      // HUD
+      txt(`MISSION ${mission}`, 24, 34, 24, '#7ed6df', 'left');
+      ctx.fillStyle = 'rgba(0,0,0,0.45)'; rr(24, 52, 260, 14, 7); ctx.fill();
+      ctx.fillStyle = '#ffd23f'; rr(24, 52, Math.max(14, 260 * prog), 14, 7); ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = 2; rr(24, 52, 260, 14, 7); ctx.stroke();
+      txt(mission === 1 ? 'to the exit' : 'to the egg', 290, 59, 18, '#fff', 'left');
+      if (mission === 1) { ctx.save(); ctx.translate(34, 92); ctx.beginPath(); ctx.moveTo(0, -10); ctx.quadraticCurveTo(8, 1, 0, 8); ctx.quadraticCurveTo(-8, 1, 0, -10); ctx.closePath(); fs('#5ec8ff', INK, 2); ctx.restore(); }
+      else { heart(34, 92, 8); fs('#ff5d8f', INK, 2); }
+      txt(`× ${pickups}`, 52, 92, 26, '#ffd23f', 'left');
+      txt(`SCORE ${score + Math.floor(scroll / 20) + pickups * 10}`, W - 24, 34, 24, '#fff', 'right');
+      if (state === 'play' && isTouch && t % 1 === 0 && scroll < 600) txt('hold anywhere to swim up', W / 2, H - 100, 22, '#fff');
+      drawRadio();
+
+      if (state === 'dead') {
+        const k = t - deadT;
+        ctx.fillStyle = `rgba(60,0,10,${clamp(k / 40, 0, 0.75)})`; ctx.fillRect(0, 0, W, H);
+        if (k > 20) { txt('YOU DIED', W / 2, 150, 70, '#ff4d6d', 'center', '#3a0010'); }
+        if (k > 50) { txt(deathQuote[0], W / 2, 240, 26, '#fff', 'center', null); txt('— ' + deathQuote[1], W / 2, 278, 22, '#ffd23f', 'center', null); }
+        if (k > 70 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? `Tap to retry mission ${mission}` : `SPACE to retry mission ${mission}`, W / 2, 400, 30, '#fff');
+      } else if (state === 'clear') {
+        const k = t - clearT;
+        ctx.fillStyle = `rgba(0,0,0,${clamp(k / 60, 0, 0.6)})`; ctx.fillRect(0, 0, W, H);
+        if (k > 30) txt('EXTRACTED', W / 2, 150, 70, '#7ed6df');
+        if (k > 60) txt('Mission 1 complete. You escaped the butthole.', W / 2, 235, 28, '#fff', 'center', null);
+        if (k > 90) txt('Somewhere, a woman is very confused.', W / 2, 272, 24, '#ffd23f', 'center', null);
+        if (k > 90 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap for Mission 2' : 'SPACE for Mission 2', W / 2, 400, 30, '#fff');
+      } else if (state === 'end') {
+        const k = t - endT;
+        if (k % 8 === 0) parts.push({ x: rand(0, W), y: H + 10, vx: rand(-1, 1), vy: rand(-4, -2), r: rand(4, 8), c: pickOne(['#ff5d8f', '#ffd23f', '#7ed6df', '#fff']), life: 120, max: 120 });
+        ctx.fillStyle = `rgba(0,0,0,${clamp(k / 60, 0, 0.55)})`; ctx.fillRect(0, 0, W, H);
+        if (k > 30) txt('MISSION COMPLETE', W / 2, 130, 62, '#ffd23f');
+        if (k > 70) txt("She's pregnant.", W / 2, 210, 34, '#fff');
+        if (k > 110) txt("Congratulations. It's a... you.", W / 2, 258, 28, '#ff5d8f', 'center', null);
+        if (k > 150) txt(`SCORE ${score}   ·   BEST ${best}`, W / 2, 310, 26, '#fff', 'center', null);
+        if (k > 190) txt('Captain Prick was never seen again. He is still in the butt.', W / 2, 350, 20, '#ffd23f', 'center', null);
+        if (k > 120 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to play again' : 'SPACE to play again', W / 2, 440, 30, '#fff');
+      }
+    }
+    if (!isTouch) txt(muted ? 'M: sound off' : 'M: sound on', W - 16, H - 16, 16, 'rgba(255,255,255,0.8)', 'right', null);
+  }
+
+  // ---------- Loop ----------
+  let last = performance.now(), acc = 0;
+  function loop(now) {
+    acc += Math.min(100, now - last); last = now;
+    while (acc >= 1000 / 60) { update(); acc -= 1000 / 60; }
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
