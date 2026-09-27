@@ -2,9 +2,13 @@
 
 A browser first-person shooter parody of Call of Duty 4, in the Cock Carousel universe. You are the dick. You are also the gun. Sequel to *Cum of Duty: Wrong Hole* (`/sperm`).
 
-One file, no build step, no libraries, no external assets: `index.html` is a Canvas 2D raycaster (Wolfenstein-style pseudo-3D) with textured, fogged floors and ceilings (a small floor caster), parallax skies, ~30 procedurally drawn props per level (barrels, sandbags, tents, palms, portholes, water coolers, burning cars…), 3D particles, wall splats, hit markers, a kill feed and a compass. Every wall, sprite and HUD element is drawn with canvas at load and every sound is a Web Audio oscillator. 960×540 virtual resolution, letterboxed; portrait phones get the rotated canvas, same as Slide Rush.
+**v3 is real 3D.** The game is still one self-contained `index.html` with no build step needed to deploy, but it now bundles [three.js](https://threejs.org) (MIT licence) inline, so nothing loads from a CDN. Levels are built from the mission grids with walls of different heights (low crates and sandbags are cover you can see over), textured floors, a sky dome with sun or moon, clouds, a horizon silhouette and a spinning carousel landmark, toon shading with ink outlines and real-time shadows. Characters are procedural 3D models: dicks with faces, hats and moustaches, crabs, bees, Condom Troopers, chilis, ice cubes, mousetraps and Imran Jackoff in his fur coat.
 
-Your weapon is the **DICK-47**: a dick-shaped rifle held in both hands. The magazine is the balls. Reloading is a three-part CoD-style animation — mag out (the balls drop), fresh mag in, rack the tip — with sounds for each step. It recoils, flashes a glob at the muzzle, ejects drops, sways when you sprint and, if you leave it alone, drips.
+The **DICK-47** is a 3D view model: a thick veiny shaft for a barrel, the head for a muzzle, the balls for a magazine, a heart-ring rear sight and a front post on the tip. It's held in camo sleeves and gloves, with your left hand on the shaft. Hip fire, aim-down-sights (you look down the shaft), sprint, crouch, reload (balls drop out, fresh pair in, rack the tip), nut-nade throws and melee.
+
+**Finding your way:** a yellow chevron path on the ground leads to the objective, a light beacon marks it, the compass points along the route and an on-screen heart shows the distance.
+
+Source: `fps/source/` — run `npm install && npm run build` there, then copy `build/index.html` over `fps/index.html`. Previous versions: `archive/fps-v1.html` (tag `fps-v1`, the first raycaster) and `archive/fps-v2.html` (tag `fps-v2`, raycaster with ADS, nades and music).
 
 ## Controls
 
