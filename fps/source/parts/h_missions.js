@@ -95,15 +95,15 @@ const M1 = () => {
       { x: 29.6, y: 1.6, r: 1.0, fn: () => { M.flags.courseDone = true; } },
     ],
     stages: [
-      { obj: 'Fire from the hip at the 5 targets', start() { tg = targetsAt([[3.5, 1.8], [5.5, 1.8], [7.5, 1.8], [9.5, 1.8], [11.5, 1.8]]); say('SARGE', "Right, new guy. Pick up the DICK-47. That's your rifle. Yes. It is. Don't make it weird.", 280); say('SARGE', isTouch ? 'Tap the right side to fire from the hip. The butts. Shoot the butts.' : 'Click to fire from the hip. The butts. Shoot the butts.', 300); },
+      { obj: isTouch ? 'Shoot the 5 butt targets at the far wall (tap the right side of the screen)' : 'Shoot the 5 butt targets at the far wall (click to shoot)', count: () => `Targets left: ${tg.filter(e => !e.dead).length}`, hint: 'Turn to face the wall with the butt targets on posts and shoot each one.', start() { tg = targetsAt([[3.5, 1.8], [5.5, 1.8], [7.5, 1.8], [9.5, 1.8], [11.5, 1.8]]); say('SARGE', "Right, new guy. Pick up the DICK-47. That's your rifle. Yes. It is. Don't make it weird.", 280); say('SARGE', isTouch ? 'Tap the right side to fire from the hip. The butts. Shoot the butts.' : 'Click to fire from the hip. The butts. Shoot the butts.', 300); },
       done: () => tg.every(e => e.dead), end() { say('SARGE', "Hip fire's not accurate. Like you. Now do it properly.", 220); } },
-      { obj: isTouch ? 'Tap AIM to aim down the sights, then hit the targets' : 'Hold RIGHT-CLICK to aim down the sights, then hit the targets', checkpoint: false, start() { M.flags.aded = false; tg = targetsAt([[4.5, 1.8], [7.5, 1.8], [10.5, 1.8]]); say('SARGE', isTouch ? 'Tap AIM. Look down the shaft. Line the heart up with the tip.' : 'Right-click. Aim down the sights. Line the heart up with the tip. Yes, the tip.', 300); },
-      tick() { if (player.ads > 0.8) M.flags.aded = true; }, done: () => M.flags.aded && tg.every(e => e.dead), end() { say('SARGE', "Beautiful. You look down that shaft like you were born to. Gate's open.", 240); openGate(8, 9); } },
-      { obj: 'Go through the gate and PUMP (reload)', checkpoint: false, done: () => M.flags.reloaded && player.y > 9.5, end() { say('SARGE', 'That\'s the sound. Wet. Now eat both eggplants — they heal you.', 260); } },
-      { obj: 'Eat the 2 eggplants', checkpoint: false, done: () => stats.eggs >= 2, end() { openGate(15, 14); say('SARGE', "Look at you. Big boy now. Next room's got rubbers in it.", 200); } },
-      { obj: "Take out the practice rubbers (don't get wrapped)", at: [18, 14.5, 0], pre() { openGate(8, 9); openGate(15, 14); }, start() { spawnWave([['condom', 25, 12], ['condom', 22, 17], ['condom', 28, 17.5]]); for (const e of ents) if (e.type === 'condom') { e.hpMul = 1; e.hp = 45; } }, done: () => noEnemies() && player.x > 15,
+      { obj: isTouch ? 'Tap AIM to look down the sights, then shoot the 3 new targets' : 'Hold RIGHT-CLICK to look down the sights, then shoot the 3 new targets', checkpoint: false, count: () => `Aimed: ${M.flags.aded ? 'YES' : 'not yet'} · Targets left: ${tg.filter(e => !e.dead).length}`, hint: isTouch ? 'Tap the AIM button first, THEN shoot. If you shoot them without aiming, they pop back up.' : 'Hold RIGHT-CLICK (or press Z) first, THEN shoot. If you shoot them without aiming, they pop back up.', start() { M.flags.aded = false; tg = targetsAt([[4.5, 1.8], [7.5, 1.8], [10.5, 1.8]]); say('SARGE', isTouch ? 'Tap AIM. Look down the shaft. Line the heart up with the tip.' : 'Right-click. Aim down the sights. Line the heart up with the tip. Yes, the tip.', 300); },
+      tick() { if (player.ads > 0.8) M.flags.aded = true; if (!M.flags.aded && tg.every(e => e.dead) && t % 60 === 0) { tg = targetsAt([[4.5, 1.8], [7.5, 1.8], [10.5, 1.8]]); say('SARGE', isTouch ? 'PROPERLY. Tap AIM first. Then shoot.' : 'PROPERLY. Hold right-click to aim first. Then shoot.', 200); } }, done: () => M.flags.aded && tg.every(e => e.dead), end() { say('SARGE', "Beautiful. You look down that shaft like you were born to. Gate's open.", 240); openGate(8, 9); } },
+      { obj: isTouch ? 'Walk through the open gate and reload (RELOAD button)' : 'Walk through the open gate and reload (press R)', checkpoint: false, start() { M.goal = { x: 8.5, y: 10.8 }; }, count: () => `Reloaded: ${M.flags.reloaded ? 'YES' : 'not yet'}`, hint: isTouch ? 'Go through the yellow gate in the south wall, then tap RELOAD.' : 'Go through the yellow gate in the south wall, then press R.', done: () => M.flags.reloaded && player.y > 9.5, end() { say('SARGE', 'That\'s the sound. Wet. Now eat both eggplants — they heal you.', 260); } },
+      { obj: 'Walk over the 2 purple eggplants to eat them', checkpoint: false, count: () => `Eaten: ${Math.min(2, stats.eggs)}/2`, tick() { const eg = ents.filter(e => e.kind === 'pickup' && e.type === 'eggplant' && !e.got && e.y > 9); if (eg.length) { eg.sort((a, b) => dist(a, player) - dist(b, player)); M.goal = { x: eg[0].x, y: eg[0].y }; } }, done: () => stats.eggs >= 2, end() { openGate(15, 14); M.goal = null; say('SARGE', "Look at you. Big boy now. Next room's got rubbers in it.", 200); } },
+      { obj: 'Go through the east gate and kill the 3 practice Condom Troopers. Dodge their condoms.', clearAll: true, count: () => `Condom Troopers left: ${aliveEnemies().length}`, hint: 'Keep moving sideways so the condoms miss. If the WRAPPED bar fills, you lose.', at: [18, 14.5, 0], pre() { openGate(8, 9); openGate(15, 14); }, start() { spawnWave([['condom', 25, 12], ['condom', 22, 17], ['condom', 28, 17.5]]); for (const e of ents) if (e.type === 'condom') { e.hpMul = 1; e.hp = 45; } }, done: () => noEnemies() && player.x > 15,
         end() { openGate(23, 9); say('SARGE', 'THE COURSE. North gate. Hurdles, wire, tyres, flag. Shoot everything that pops up.', 260); } },
-      { obj: 'THE COURSE: jump, crawl, run. Shoot the pop-ups. Reach the flag.', pre() { openGate(8, 9); openGate(15, 14); openGate(23, 9); }, start() { courseReset(); M.timerLabel = 'COURSE'; M.onTimeout = () => { say('SARGE', 'TOO SLOW. Again. She is not impressed.', 200); courseReset(); }; },
+      { obj: 'THE COURSE: follow the arrows to the flag. Jump the hurdles, crawl under the wire.', count: () => `Pop-ups hit: ${courseTg.filter(e => e.dead).length}/5 (optional)`, hint: isTouch ? 'Hurdles: tap JUMP. Barbed wire: tap CROUCH and walk under. Tyres are slow — hop them.' : 'Hurdles: SPACE. Barbed wire: press C to crouch, then walk under. Tyres are slow — hop them.', hintAfter: 900, pre() { openGate(8, 9); openGate(15, 14); openGate(23, 9); }, start() { courseReset(); M.timerLabel = 'COURSE'; M.onTimeout = () => { say('SARGE', 'TOO SLOW. Again. She is not impressed.', 200); courseReset(); }; },
         tick() { if (player.x > 30 && player.y < 6.8 && player.y > 5.2 && !player.crouch && t % 90 === 0) announce(isTouch ? 'TAP CROUCH' : 'PRESS C', 'the wire is right there', 30); },
         done: () => M.flags.courseDone,
         end() {
@@ -114,12 +114,12 @@ const M1 = () => {
           say('SARGE', 'South gate. Grenade pit. Then Captain Prick wants a word. In THE PIT.', 260);
           openGate(24, 20); M.goal = { x: 23.5, y: 22.5 }; shortcut();
         } },
-      { obj: 'Go to the grenade pit (south gate)', pre() { shortcut(); openGate(8, 9); openGate(15, 14); openGate(23, 9); openGate(24, 20); M.goal = { x: 23.5, y: 22.5 }; }, at: [29.6, 2.4, Math.PI / 2], done: () => near(23.5, 22.5, 1.6), end() { M.goal = null; } },
-      { obj: isTouch ? 'Throw nut-nades (NUT button) over the wall at the 3 targets' : 'Throw nut-nades (G) over the wall at the 3 targets', at: [23.5, 22.5, Math.PI / 2], pre() { openGate(24, 20); },
+      { obj: 'Follow the arrows through the south gate to the grenade pit', hintAfter: 1200, pre() { shortcut(); openGate(8, 9); openGate(15, 14); openGate(23, 9); openGate(24, 20); M.goal = { x: 23.5, y: 22.5 }; }, at: [29.6, 2.4, Math.PI / 2], done: () => near(23.5, 22.5, 1.6), end() { M.goal = null; } },
+      { obj: isTouch ? 'Throw nut-nades (NUT button) OVER the low wall at the 3 targets' : 'Throw nut-nades (press G) OVER the low wall at the 3 targets', count: () => `Targets left: ${pitTg.filter(e => !e.dead).length} · Nuts: ${player.nades}`, hint: 'Face the targets, look up a little, then throw. You can\'t shoot them through the wall. You get more nuts automatically.', hintAfter: 900, at: [23.5, 22.5, Math.PI / 2], pre() { openGate(24, 20); },
         start() { pitTg = targetsAt(PIT_T); player.nades = 3; say('SARGE', "Nut-nades. Pull the pin — it's a pube, don't ask — and LOB it over the wall.", 280); say('SARGE', isTouch ? 'Look UP a bit to throw further. Tap NUT.' : 'Look up a bit to throw further. Press G. You can\'t shoot through the wall, genius.', 260); },
-        tick() { if (player.nades <= 0 && !nades.length && t % 60 === 0) { player.nades = 3; say('SARGE', 'More nuts. We have SO many nuts.', 140); } },
+        tick() { if (player.nades <= 0 && !nades.length && t % 60 === 0) { player.nades = 3; say('SARGE', 'More nuts. We have SO many nuts.', 140); } if (M.stageT > 60 * 75 && !M.flags.pitSkip) { M.flags.pitSkip = true; for (const e of pitTg) if (!e.dead) killEnt(e); say('SARGE', 'Close enough. I\'ll put that down as a pass. Barely.', 200); } },
         done: () => pitTg.every(e => e.dead), end() { say('SARGE', "Good arm. She'd be proud. Now get in THE PIT. Prick's waiting.", 220); openGate(16, 24); openGate(17, 24); openGate(15, 34); M.goal = { x: 16.5, y: 34.5 }; } },
-      { obj: "THE PIT: clear Prick's killhouse. Don't shoot Nan.", at: [23.5, 30, Math.PI], pre() { openGate(24, 20); openGate(16, 24); openGate(17, 24); openGate(15, 34); }, checkpoint: true,
+      { obj: 'THE PIT: go in the west gate, shoot every pop-up target, reach the flag. Don\'t shoot Nan.', count: () => M.flags.khStage ? `Targets left: ${khTg.filter(e => !e.dead).length} · Nut the 3rd room before you enter` : 'Timer starts when you go in', hint: isTouch ? 'Rooms go: first room → north → west (tap NUT through the door first) → north → east to the flag.' : 'Rooms go: first room → north → west (press G through the door first) → north → east to the flag.', hintAfter: 1200, at: [23.5, 30, Math.PI], pre() { openGate(24, 20); openGate(16, 24); openGate(17, 24); openGate(15, 34); }, checkpoint: true,
         start() { khTg = []; khStage = 0; M.goal = { x: 15.5, y: 34.5 }; player.nades = Math.max(player.nades, 2); M.clock = null; M.clockOn = false;
           say('PRICK', "So you're the new bloke. Captain Prick. It's pronounced the way you think.", 260);
           say('PRICK', 'Killhouse. Pop-ups, plywood, one Nan. Clock starts when you go in. Nut-nade the third room BEFORE you enter.', 320);
@@ -228,31 +228,31 @@ const M2 = () => {
       { x: 53, y: 9.5, r: 1.5, fn: () => say('MACMILLI', 'The overlook is the far flat on the right. The one with the balcony.', 220) },
     ],
     stages: [
-      { obj: 'Follow Captain MacMillilitre. Stay low, stay in the pubes.', done: () => player.y < 33.5 && player.x > 6.5, end() { say('MACMILLI', 'Two rubbers. Tree line. Both looking the other way. Lovely.', 220); } },
-      { obj: 'On my mark: glob the LEFT one. I\'ll take the right.', at: [7.5, 31.5, -0.35], pre() { mac.x = 6.5; mac.y = 32; },
+      { obj: isTouch ? 'Follow the arrows. Tap CROUCH and stay in the tall brown grass so patrols can\'t see you.' : 'Follow the arrows. Press C to crouch and stay in the tall brown grass so patrols can\'t see you.', start() { M.goal = { x: 7.5, y: 31.5 }; }, done: () => player.y < 33.5 && player.x > 6.5, end() { say('MACMILLI', 'Two rubbers. Tree line. Both looking the other way. Lovely.', 220); } },
+      { obj: 'Shoot the LEFT Condom Trooper by the trees (east). Mac shoots the other one at the same time.', count: () => `Left: ${pair.filter(e => !e.dead).length}`, clearAll: true, clearList: () => pair, at: [7.5, 31.5, -0.35], pre() { mac.x = 6.5; mac.y = 32; M.goal = null; for (const e of pair) e.reveal = true; },
         start() { M.flags.syncT = 0; say('MACMILLI', 'I\'ll take the one on the right. You take the left. On three. ...Or whenever. I\'m old.', 280); for (const e of pair) e.onDeath = () => { M.flags.syncT = t; }; },
         tick() { if (M.flags.syncT && t - M.flags.syncT > 8) { for (const e of pair) if (!e.dead) { killEnt(e); sfx('shoot'); } } },
         done: () => pair.every(e => e.dead), end() { say('MACMILLI', 'Beautiful.', 120); M.goal = { x: 31.5, y: 27 }; } },
-      { obj: 'Through the farm. Leave the ones in the house.', at: [13, 29.5, 0], pre() { for (const e of pair) if (!e.dead) killEnt(e); }, start() { M.goal = { x: 31.5, y: 27 }; }, done: () => player.x > 31.2, end() { M.goal = null; } },
-      { obj: 'The graveyard. Stay in the grass.', at: [32.5, 27, 0], start() { M.goal = { x: 45.5, y: 24.2 }; M.flags.flyT = t + 200; },
+      { obj: 'Sneak east past the farmhouse to the gap in the hedge. Don\'t go in the house.', at: [13, 29.5, 0], pre() { for (const e of pair) if (!e.dead) killEnt(e); }, start() { M.goal = { x: 31.5, y: 27 }; }, done: () => player.x > 31.2, end() { M.goal = null; } },
+      { obj: 'Cross the graveyard to the gap in the north-east corner', hint: 'When the chopper comes, crouch in the brown grass and wait until Mac says it\'s gone.', at: [32.5, 27, 0], start() { M.goal = { x: 45.5, y: 24.2 }; M.flags.flyT = t + 150; },
         tick() {
           const f = t - M.flags.flyT;
-          if (f === 0) { M.flags.fly = spawnDeco('heli', 18, 44, 1, 1, { z: 3.4, far: 90 }); say('MACMILLI', 'CHOPPER. GET DOWN. In the grass. Don\'t. Move.', 200); announce(isTouch ? 'TAP CROUCH' : 'PRESS C', 'get down in the grass', 36); }
+          if (f === 0) { setObjective(isTouch ? 'CHOPPER! Tap CROUCH, get in the brown grass and wait for it to pass' : 'CHOPPER! Press C, get in the brown grass and wait for it to pass'); M.flags.fly = spawnDeco('heli', 18, 44, 1, 1, { z: 3.4, far: 90 }); say('MACMILLI', 'CHOPPER. GET DOWN. In the grass. Don\'t. Move.', 200); announce(isTouch ? 'TAP CROUCH' : 'PRESS C', 'get down in the grass', 36); }
           const h = M.flags.fly; if (!h) return;
-          if (f > 0) { h.x += 0.06; h.y -= 0.045; h.faceA = Math.atan2(0.06, -0.045); if (t % 9 === 0) sfx('chop'); if (h.x > 70) { h.gone = true; M.flags.fly = null; say('MACMILLI', '...Gone. Good. Keep moving.', 160); } }
+          if (f > 0) { h.x += 0.06; h.y -= 0.045; h.faceA = Math.atan2(0.06, -0.045); if (t % 9 === 0) sfx('chop'); if (h.x > 70) { h.gone = true; M.flags.fly = null; say('MACMILLI', '...Gone. Good. Keep moving.', 160); setObjective('Chopper\'s gone. Get to the gap in the north-east corner of the graveyard.'); } }
           if (f > 0 && dist(h, player) < 9 && (!player.crouch || cell(player.x | 0, player.y | 0) !== ',') && !M.flags.alarm) { alarm('the chopper saw your pubes'); spawnWave([['bee', player.x + 6, player.y - 3], ['bee', player.x - 6, player.y + 2], ['crab', 44, 26]]); for (const e of ents) if (e.kind === 'enemy' && !e.dead) { e.ai = 'chase'; e.sightMul = 3; } }
         },
         done: () => near(45.5, 24.2, 1.3) && !M.flags.fly, end() { M.goal = null; M.flags.alarm = false; } },
-      { obj: 'THE CONVOY. Get down. Do NOT move.', at: [44.5, 23.5, Math.PI], pre() { mac.x = 46.2; mac.y = 23.5; },
+      { obj: 'THE CONVOY. You\'re in the ditch. Stay still until Mac says GO (you can look around).', count: () => `Convoy passed: ${Math.round(100 * clamp((Math.min(...convoy.map(c => c.x)) + 47) / 113, 0, 1))}%`, at: [44.5, 23.5, Math.PI], pre() { mac.x = 46.2; mac.y = 23.5; },
         start() {
-          mac.stay = true; mac.x = 46.2; mac.y = 23.5; player.crouch = true; M.flags.convoyT = t;
+          mac.stay = true; mac.x = 46.2; mac.y = 23.5; player.crouch = true; player.canMove = false; M.flags.convoyT = t;
           say('MACMILLI', 'Convoy. Down. DOWN. In the ditch.', 160); say('MACMILLI', 'If you so much as scratch, we\'re both dead.', 220);
           convoy = [];
           for (let i = 0; i < 6; i++) { convoy.push(spawnProp('truck', -2 - i * 7.5, 21, { passable: true, faceA: 0, far: 60 })); }
           for (let i = 0; i < 9; i++) convoy.push(spawnEnemy('condom', -5 - i * 5, 19.7 + (i % 2) * 2.6, { convoy: true, frozen: true, far: 40 }));
         },
         tick() {
-          const p = player; let danger = false;
+          const p = player; let danger = false; p.crouch = true; p.canMove = false;
           for (const c of convoy) { if (c.dead) continue; c.x += 0.045 * ts; if (c.kind === 'enemy') { c.walk = (c.walk || 0) + ts; c.moveT = t; } const d = dist(c, p); if (d < 8) danger = true;
             if (d < 8 && (!p.crouch || p.y < 22.9) && !M.flags.seen) { M.flags.seen = true; } if (d < 3.2 && p.moving > 0.3) M.flags.seen = true; }
           if (danger && t % 120 === 0) say('MACMILLI', pickOne(['Don\'t. Move.', 'Steady...', 'Easy... easy...', 'Nobody breathe.', 'If he looks this way, think grass thoughts.']), 100);
@@ -260,16 +260,16 @@ const M2 = () => {
           if (t % 20 === 0) sfx('chop');
           if (M.flags.seen && state === 'game') { M.flags.seen = false; die('spotted'); }
         },
-        done: () => convoy.every(c => c.x > 66), end() { for (const c of convoy) c.gone = true; mac.stay = false; say('MACMILLI', '...Okay. Go. Across the road. Mind the chlamydia.', 220); } },
-      { obj: 'Across the road. Go AROUND the chlamydia. Get to the apartments.', at: [44.5, 23.2, -Math.PI / 2], pre() { mac.stay = false; }, start() { M.goal = { x: 42.5, y: 9.5 }; },
+        done: () => convoy.every(c => c.x > 66), end() { for (const c of convoy) c.gone = true; mac.stay = false; player.canMove = true; announce('GO', 'across the road', 40); say('MACMILLI', '...Okay. Go. Across the road. Mind the chlamydia.', 220); } },
+      { obj: 'Cross the road north. Go AROUND the green chlamydia clouds (they hurt). Follow the arrows to the apartments.', at: [44.5, 23.2, -Math.PI / 2], pre() { mac.stay = false; player.canMove = true; }, start() { M.goal = { x: 42.5, y: 9.5 }; },
         tick() { if (!M.flags.hzTip && player.y < 18.5) { M.flags.hzTip = true; say('MACMILLI', 'Too much chlamydia in that field. We go around. The long way. Always the long way.', 260); } },
         done: () => near(43, 9.5, 1.3), end() { M.goal = null; } },
-      { obj: 'Through the apartments to the overlook', at: [43, 9.5, 0], start() { M.goal = { x: 59, y: 15.5 }; }, done: () => near(59, 15.5, 1.4), end() { M.goal = null; } },
-      { obj: 'One shot, one squirt: hit Jackoff', at: [59, 16.5, Math.PI / 2 + 0.2], pre() { M.goal = null; },
+      { obj: 'Go through the apartments to the balcony room at the far east end', hint: 'Follow the arrows: along the corridor, then the last door on the right.', at: [43, 9.5, 0], start() { M.goal = { x: 59, y: 15.5 }; }, done: () => near(59, 15.5, 1.4), end() { M.goal = null; } },
+      { obj: isTouch ? 'Look down into the plaza. Tap AIM and shoot Jackoff (red arrow, fur coat) when he arrives.' : 'Look down into the plaza. Right-click to aim and shoot Jackoff (red arrow, fur coat) when he arrives.', hint: 'Face south, over the balcony rail. He walks in from the right and stops near the carousel.', hintAfter: 1200, at: [59, 16.5, Math.PI / 2 + 0.2], pre() { M.goal = null; },
         start() {
           mac.stay = true; mac.x = 57.5; mac.y = 16.5;
           boss = spawnNpc('boss2', 64, 33, 1.8, 1.4, { r: 0.8, hp: 1, far: 70,
-            tick: e => { if (e.flee) { e.x += 0.07; if (e.x > 70) e.gone = true; return; } if (e.x > 56.8) e.x -= 0.02; else { e.arrived = true; e.shootable = true; } },
+            tick: e => { if (e.flee) { e.x += 0.07; if (e.x > 70) e.gone = true; return; } if (e.x > 56.8) e.x -= 0.02; else { e.arrived = true; e.shootable = true; e.reveal = true; } },
             onDeath: e => { e.dead = false; e.hp = 9999; e.shootable = false; e.spr = 'boss'; e.attackT = 999; e.flee = true; M.flags.bossHit = true; sfx('boss'); shake = 10; } });
           spawnEnemy('condom', 63, 31.5, { frozen: true, far: 60, guard: true }); spawnEnemy('condom', 63, 35, { frozen: true, far: 60, guard: true });
           say('MACMILLI', 'There. The plaza. He\'s arriving. Fur coat. Both arms. For now.', 240);
@@ -278,7 +278,7 @@ const M2 = () => {
         tick() { for (const e of ents) if (e.guard && e.kind === 'enemy' && !e.dead && e.x > 58) e.x -= 0.02; },
         done: () => M.flags.bossHit,
         end() { announce('ONE SHOT, ONE SQUIRT', 'you blew his arm clean off', 44); say('MACMILLI', "Target down... no. He's lost an arm. Bloody hell, Leftenant.", 240); say('JACKOFF', 'MY ARM! MY BEAUTIFUL WANKING ARM!', 200); } },
-      { obj: 'HUNG-24 inbound! Fire exit. Get down to the carousel.', at: [59, 16.5, Math.PI], pre() { if (boss) { boss.flee = true; boss.spr = 'boss'; } },
+      { obj: 'Attack chopper! Follow the arrows out the fire exit and down to the carousel in the plaza.', at: [59, 16.5, Math.PI], pre() { if (boss) { boss.flee = true; boss.spr = 'boss'; } },
         start() {
           mac.stay = false; openGate(52, 18); M.goal = { x: 52.5, y: 28.5 };
           for (const e of ents) if (e.guard && !e.dead) { e.frozen = false; e.ai = 'chase'; e.sightMul = 4; }
@@ -288,7 +288,7 @@ const M2 = () => {
         },
         tick() { hungTick(); },
         done: () => near(52.5, 28.5, 2.2), end() { M.goal = null; } },
-      { obj: 'Hold the carousel until the bird arrives', at: [52.5, 28.5, Math.PI / 2], pre() { openGate(52, 18); },
+      { obj: 'Stay near the carousel and kill everything that comes until the timer runs out', count: () => `Enemies nearby: ${ents.filter(e => e.kind === 'enemy' && !e.dead && !e.convoy && dist(e, player) < 16).length}`, hint: 'They come up the road from the west and in from the east edge. Grab lotion when you shrink.', at: [52.5, 28.5, Math.PI / 2], pre() { openGate(52, 18); },
         start() {
           mac.stay = true; mac.x = 53.5; mac.y = 29.2; mac.crouchy = true;
           M.timer = 60 * 100; M.timerLabel = 'EVAC'; M.onTimeout = () => { M.flags.evac = true; }; M.flags.waveT = t - 400; M.flags.wave = 0;
@@ -307,8 +307,8 @@ const M2 = () => {
           if (M.timer && M.timer < 60 * 50 && hung && !M.flags.hungGone) { M.flags.hungGone = true; hung.leaving = true; say('MACMILLI', 'The HUNG is pulling off! Must need a refuel. Or a cuddle.', 200); }
         },
         done: () => M.flags.evac, end() { M.timer = null; say('PILOT', 'Big Bird on station! Pop smoke!', 180); M.goal = { x: 51.5, y: 35.5 }; } },
-      { obj: 'Get Mac and get to the bird!', at: [52.5, 28.5, Math.PI / 2],
-        start() {
+      { obj: 'Run to the helicopter!', at: [52.5, 28.5, Math.PI / 2],
+        start() { M.goal = { x: 51.5, y: 35.5 };
           heli = M.flags.heli = spawnDeco('heli', 30, 44, 1, 1, { z: 3.2, far: 90, heliT: 0 }); mac.stay = false; sfx('chop');
         },
         tick() {
@@ -410,7 +410,7 @@ const M3 = () => {
           if (f > 250) { camH = lerp(camH, 0.5, 0.05); } else camH = 0.5 + heli.z * 0.9;
           if (f === 250) { announce('FAST-ROPE', 'go go go', 34); sfx('slide'); } },
         done: () => t - M.flags.rideT > 330, end() { camH = 0.5; player.canMove = true; player.canFire = true; M.state = 'play'; player.x = 49.5; player.y = 4.5; } },
-      { obj: 'Sweep the deck. Get to the bridge.', at: [49.5, 4.5, Math.PI], pre() { heli.x = 51.5; heli.z = 2.4; M.state = 'play'; player.canMove = true; player.canFire = true; camH = 0.5; },
+      { obj: 'Fight west along the deck to the bridge cabin at the front of the ship', hint: 'Follow the arrows. The chopper\'s minigun picks off enemies near you.', at: [49.5, 4.5, Math.PI], pre() { heli.x = 51.5; heli.z = 2.4; M.state = 'play'; player.canMove = true; player.canFire = true; camH = 0.5; },
         start() { M.goal = { x: 10.2, y: 4.5 }; M.flags.gunT = t; say('PILOT', 'I\'ve got the minigun on the deck. Call it.', 180); },
         tick() {
           heli.x = lerp(heli.x, Math.max(12, player.x + 6), 0.004); heli.y = 4.5 + Math.sin(t * 0.01) * 2; heli.z = 2.6; heli.faceA = Math.PI / 2; if (t % 8 === 0) sfx('chop');
@@ -419,10 +419,10 @@ const M3 = () => {
           if (player.x < 32 && !M.flags.w2) { M.flags.w2 = true; wake([['condom', 4.5, 8.4], ['crab', 11, 7]]); say('SOUP', 'More out of the stairwell!', 140); }
         },
         done: () => near(10.2, 4.5, 1.3), end() { M.goal = null; } },
-      { obj: 'Clear the bridge. (They\'re asleep. Be rude.)', at: [10.5, 4.5, Math.PI], start() { for (const e of ents) if (e.sleeping) e.frozen = true; },
+      { obj: 'Go inside the bridge cabin and shoot the 3 sleeping crew', clearAll: true, clearList: () => ents.filter(e => e.sleeping), count: () => `Sleepers left: ${ents.filter(e => e.sleeping && !e.dead).length}`, at: [10.5, 4.5, Math.PI], start() { M.goal = { x: 6.5, y: 4 }; for (const e of ents) if (e.sleeping) { e.frozen = true; e.reveal = true; } },
         tick() { if (t % 90 === 0) for (const e of ents) if (e.sleeping && !e.dead) burst3d(e.x, e.y, 1.4, 1, 'puff', 0.01); },
         done: () => ents.filter(e => e.sleeping).every(e => e.dead), end() { say('PRICK', 'Bridge secure.', 120); say('GAS', 'He was holding a teddy.', 140); say('PRICK', 'Expendable teddy.', 140); M.goal = { x: 4.5, y: 10.5 }; } },
-      { obj: 'Down to crew quarters. Sweep east.', at: [6, 5.5, Math.PI / 2],
+      { obj: 'Take the stairs down (right next to the bridge) and fight east through crew quarters to the far stairs', hint: 'Follow the arrows along the corridor. Enemies come out of the doors on both sides.', at: [6, 5.5, Math.PI / 2],
         start() { M.goal = { x: 52.5, y: 16 };
           wake([['condom', 11.5, 10.6], ['crab', 18.5, 16.6], ['condom', 25.5, 10.6]]); for (const e of ents) if (e.kind === 'enemy' && !e.dead && e.y > 9) e.ai = 'idle'; },
         tick() {
@@ -432,7 +432,7 @@ const M3 = () => {
           if (x > 40 && !M.flags.q3) { M.flags.q3 = true; say('PRICK', 'Stairs to the hold, far end. Keep moving.', 160); }
         },
         done: () => near(52.5, 16, 1.6), end() { M.goal = null; } },
-      { obj: 'The hold: find the package', at: [52.5, 17, Math.PI / 2],
+      { obj: 'Go down into the hold and find the package at the far WEST end. The detector ticks faster as you get close.', at: [52.5, 17, Math.PI / 2],
         start() { M.goal = { x: PKG[0], y: PKG[1] };
           wake([['condom', 44, 20.5], ['condom', 44, 27.5], ['crab', 36, 23.5], ['condom', 28, 19.6], ['crab', 20, 21]]);
           say('PRICK', 'Eggplant detector\'s on. The faster it ticks, the closer you are. Like dating.', 240); },
@@ -443,7 +443,7 @@ const M3 = () => {
           if (player.x < 22 && !M.flags.h2) { M.flags.h2 = true; wake([['condom', 4, 20], ['condom', 4, 27.5], ['bee', 8, 23]]); }
         },
         done: () => M.flags.package, end() { M.meter = null; announce('PACKAGE SECURED', 'it\'s eggplants. it\'s always eggplants.', 40); say('PRICK', 'Got the manifest. Let\'s go.', 140); } },
-      { obj: 'THE SHIP IS SINKING. Back up to the helipad!', at: [4.5, 23.5, 0], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'crate') e.got = true; M.flags.package = true; },
+      { obj: 'THE SHIP IS SINKING! Follow the arrows back up to the helicopter at the back of the ship', hint: 'Out of the hold (east stairs), along the corridor, up the stairs at the east end, onto the deck.', at: [4.5, 23.5, 0], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'crate') e.got = true; M.flags.package = true; },
         start() {
           M.goal = { x: 50.5, y: 4.5 }; M.timer = 60 * 110; M.timerLabel = 'SINKING'; M.onTimeout = () => die('sunk');
           shake = 20; flash = 0.6; sfx('boom'); say('PILOT', 'Fast movers inbound! Get out of there!', 160); say('PRICK', 'That\'s a bomb. Ship\'s going down. Move it, move it, MOVE IT!', 240);
@@ -515,16 +515,16 @@ const M4 = () => {
       { x: 5, y: 2, r: 1.5, fn: () => say('PRICK', 'Room 69. Go on in. Take your time. That\'s a joke. Please hurry.', 220) },
     ],
     stages: [
-      { obj: 'Take a number at reception', done: () => M.flags.ticket, end() { M.goal = null; say('PRICK', 'Sixty-nine. Nice. Now sit tight — they\'re calling four.', 220); } },
-      { obj: 'Wait your turn (nobody is rushing)', at: [7.5, 20.5, -Math.PI / 2], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'ticket') e.got = true; M.goal = null; }, start() { M.flags.waveT = t; nextWave(); },
+      { obj: 'Follow the arrows to reception and grab a ticket (take a number)', done: () => M.flags.ticket, end() { M.goal = null; say('PRICK', 'Sixty-nine. Nice. Now sit tight — they\'re calling four.', 220); } },
+      { obj: 'Wait your turn: kill each wave in the waiting room until they call 69', clearAll: true, count: () => `Now serving: ${serving} · Wave ${Math.min(wave, waves.length)}/${waves.length} · Enemies left: ${aliveEnemies().length}`, at: [7.5, 20.5, -Math.PI / 2], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'ticket') e.got = true; M.goal = null; }, start() { M.flags.waveT = t; nextWave(); },
         tick() { if (noEnemies() && wave < waves.length && t - M.flags.waveT > 90) { M.flags.waveT = t; nextWave(); } },
         done: () => wave >= waves.length && noEnemies(), end() { serving = 69; bakeBoard(69); announce('NOW SERVING: 69', 'that\'s you. finally.', 46); openGate(3, 2); say('PRICK', 'Sixty-nine! That\'s you. Escalator\'s past reception. Room 69 is upstairs at the far end.', 300); M.goal = { x: 1.5, y: 2 }; } },
-      { obj: 'Ride the escalator up to Room 69', at: [20, 19.5, 0], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'ticket') e.got = true; openGate(3, 2); M.goal = { x: 1.5, y: 2 }; }, start() { spawnWave([['bee', 12, 2], ['bee', 28, 2], ['condom', 6, 2]]); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } },
+      { obj: 'Ride the escalator up and walk the (wrong-way) walkway to Room 69', hint: 'Escalator is past reception on the right. At the top, keep walking west against the walkway.', at: [20, 19.5, 0], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'ticket') e.got = true; openGate(3, 2); M.goal = { x: 1.5, y: 2 }; }, start() { spawnWave([['bee', 12, 2], ['bee', 28, 2], ['condom', 6, 2]]); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } },
         done: () => near(1.5, 2, 1.3), end() { announce('DEPOSIT MADE', 'the doctor will see you now', 44); say('PRICK', 'Sample delivered. You beautiful, patient man.', 240); M.flags.outT = t; } },
       { obj: 'Deposit', checkpoint: false, done: () => t - M.flags.outT > 130, end() { say('PRICK', 'Right. Sample\'s in the bag. Now we walk it out to the van. Through the car park. Full of rubbers.', 260); } },
       { obj: '', checkpoint: false, start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.upT = t; whiteOut = 0; announce('MEANWHILE', 'three miles up', 50); },
         tick() { const f = t - M.flags.upT; whiteOut = f < 60 ? f / 60 : Math.max(0, 1 - (f - 60) / 40); }, done: () => t - M.flags.upT > 100, end() { whiteOut = 0; player.canMove = true; player.canFire = true; } },
-      { obj: 'SONOGRAM-130: cover the team to the van. Don\'t hit the blinking squares.', at: [8, 29, -Math.PI / 2 + 0.3],
+      { obj: isTouch ? 'GUNSHIP: drag left side to move the crosshair, tap to fire. Protect the blinking squares (your team) until they reach the van.' : 'GUNSHIP: WASD moves the crosshair, click fires, R swaps guns. Protect the blinking squares (your team) until they reach the van.', count: () => `Team health: ${Math.round(M.gs ? M.gs.teamHp : 100)}% · Van: ${team.length ? Math.round(100 * clamp(team[0].s / TLEN, 0, 1)) : 0}%`, at: [8, 29, -Math.PI / 2 + 0.3],
         pre() { for (const e of ents) if (e.kind === 'enemy' && !e.dead) e.gone = true; ents = ents.filter(e => !e.gone); },
         start() {
           team = [['prick', 0], ['soup', -1.1], ['gas', -2.2]].map(([spr, off]) => spawnNpc(spr, TPATH[0][0], TPATH[0][1], 1.15, 0.9, { friendly: true, far: 80, s: off }));
@@ -575,7 +575,7 @@ const M5 = () => {
       '> OBJECTIVE: survive the bridge. Don\'t. Look. Back. (Do look back. That\'s where they are.)'],
     init() { say('PRICK', 'Back of the truck, son. They\'re coming up behind us. Fire at will. Will\'s the crab.', 260); },
     stages: [
-      { obj: 'Hold them off until the bridge', start() { M.state = 'rails'; player.a = Math.PI; M.flags.spawnT = 0; },
+      { obj: 'You\'re in the back of the truck. Shoot everything chasing you.', count: () => `Distance to the end of the bridge: ${Math.max(0, Math.round((156 - player.x) * 5))} m`, start() { M.state = 'rails'; player.a = Math.PI; M.flags.spawnT = 0; },
         tick() {
           if (t - M.flags.spawnT > (diff === 'regular' ? 70 : 95) && player.x < 150 && !(hung && !hung.dead && !hung.fled)) { M.flags.spawnT = t; const r = Math.random(), ty = r < 0.4 ? 'condom' : r < 0.65 ? 'bee' : 'crab'; spawnEnemy(ty, player.x - 9, rand(3.5, 6.5), { ai: 'chase', speedMul: ty === 'crab' ? 2.2 : 1.6, sightMul: 5 }); }
           for (const e of ents) if (e.kind === 'enemy' && e.x < player.x - 14) e.gone = true;
@@ -595,7 +595,7 @@ const M5 = () => {
       { obj: '', checkpoint: false, start() { M.state = 'cut'; f0 = t; player.canMove = false; player.canFire = false; shake = 34; flash = 1.2; sfx('boom'); say('PRICK', 'HOLD ON!', 90); },
         tick() { const f = F(); roll = Math.sin(f * 0.3) * 0.2 * Math.max(0, 1 - f / 90); if (f === 40) { whiteOut = 1; } if (f > 40) whiteOut = Math.max(0, 1 - (f - 40) / 50); },
         done: () => F() > 110, end() { roll = 0; whiteOut = 0; M.state = 'play'; player.canMove = true; player.canFire = true; player.x = 158.5; player.y = 5; player.a = 0; } },
-      { obj: 'Truck\'s down. Get to Prick and hold the wreck.', at: [158.5, 5, 0],
+      { obj: 'Truck crashed! Get next to Prick behind the wreck and survive until the timer runs out', hint: 'Enemies come from the far end of the bridge (east). Use nut-nades on groups.', at: [158.5, 5, 0],
         start() { M.state = 'play'; player.canMove = true; player.canFire = true; camH = 0.5; player.invul = false; prick = spawnNpc('prick', 166, 8, 1.15, 0.9, { far: 60 }); M.goal = { x: 165.5, y: 7.5 };
           M.timer = 60 * 60; M.timerLabel = 'HOLD'; M.onTimeout = () => { M.flags.held = true; }; M.flags.fw = t - 200; player.nades = 3;
           say('PRICK', 'Over here, son! Behind the wreck! They\'re coming down the bridge!', 220); },

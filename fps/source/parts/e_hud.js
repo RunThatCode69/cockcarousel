@@ -3,7 +3,7 @@ let jam = [], announceQ = [], radio = null, radioQ = [], objText = '', objT = 0,
 function say(who, text, life = 240) { radioQ.push({ who, text, life }); }
 function radioTick() { if (radio && --radio.life <= 0) radio = null; if (!radio && radioQ.length) { radio = radioQ.shift(); radio.max = radio.life; if (M && M.state === 'play') sfx('tick'); } }
 function announce(text, sub = '', big = 46) { announceQ.push({ text, sub, big, life: 150, max: 150 }); }
-function setObjective(s) { objText = s; objT = 0; }
+function setObjective(s) { if (s && s !== objText && state === 'game') sfx('select'); objText = s; objT = 0; }
 function hurtFx(n) { for (let i = 0; i < n; i++) { const edge = Math.random() < 0.5; jam.push({ x: edge ? (Math.random() < 0.5 ? rand(-20, 120) : rand(W - 120, W + 20)) : rand(0, W), y: edge ? rand(0, H) : (Math.random() < 0.5 ? rand(-20, 100) : rand(H - 100, H + 20)), r: rand(40, 110), life: 240, max: 240, s: Math.random() * 6 }); } }
 function killFeed(what) { feed.unshift({ text: what, life: 300 }); feed = feed.slice(0, 4); }
 const NAMES = { crab: 'CRAB', bee: 'BEE', trap: 'MOUSETRAP', condom: 'CONDOM TROOPER', chili: 'CHILI', ice: 'ICE CUBE', boss: 'IMRAN JACKOFF', target: 'TARGET' };
@@ -37,6 +37,8 @@ function drawHUD() {
   const cy = H / 2;
   // damage direction indicators
   for (const d of dmgDir) { const rel = wrapA(d.a - p.a) - Math.PI / 2; ctx.save(); ctx.translate(W / 2, cy); ctx.rotate(rel); ctx.globalAlpha = d.life / 40; ctx.strokeStyle = '#ff4d6d'; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(0, 0, 70, -0.5, 0.5); ctx.stroke(); ctx.restore(); ctx.globalAlpha = 1; }
+  // marked stragglers: red arrows over their heads
+  for (const e of ents) if (e.reveal && !e.dead) { const v = _cv.set(e.x, (e.z || 0) * YS + 1.6, e.y).project(camera); if (v.z > 1) continue; const sx = clamp((v.x * 0.5 + 0.5) * W, 20, W - 20), sy = clamp((-v.y * 0.5 + 0.5) * H, 40, H - 40); ctx.fillStyle = '#ff4d6d'; ctx.strokeStyle = INK; ctx.lineWidth = 3; poly([sx - 10, sy - 16, sx + 10, sy - 16, sx, sy]); ctx.fill(); ctx.stroke(); }
   // crosshair + hit marker
   // world-space objective marker (a heart with the distance in metres, CoD-style), projected from 3D
 if (M.goal && !M.goal.hidden && M.state !== 'crawl') {
@@ -82,7 +84,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     ctx.drawImage(mini, 0, 0, mini.width * 1.6, mini.height * 1.6);
     for (const e of ents) {
       if (e.kind === 'pickup') { ctx.fillStyle = PURP; E(e.x * sc, e.y * sc, 2.5, 2.5); ctx.fill(); }
-      else if (e.kind === 'enemy' && !e.dead && (p.ultraT > 0 || e.type === 'boss')) { ctx.fillStyle = '#ff4d6d'; E(e.x * sc, e.y * sc, 3, 3); ctx.fill(); }
+      else if (e.kind === 'enemy' && !e.dead && (p.ultraT > 0 || e.type === 'boss' || e.reveal)) { ctx.fillStyle = '#ff4d6d'; E(e.x * sc, e.y * sc, 3, 3); ctx.fill(); }
       else if (e.kind === 'npc') { ctx.fillStyle = CYAN; E(e.x * sc, e.y * sc, 2.5, 2.5); ctx.fill(); }
     }
     if (M.goal && !M.goal.hidden) { ctx.fillStyle = YEL; heart(M.goal.x * sc, M.goal.y * sc, 4); ctx.fill(); }
@@ -143,8 +145,8 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
   }
   if (!isTouch && hintT < 600 && M.state === 'play') {
     ctx.globalAlpha = Math.min(1, (600 - hintT) / 40);
-    txt('WASD move · mouse look · CLICK shoot · RIGHT-CLICK aim · R reload · G nut-nade', W / 2, 205, 19, '#fff');
-    txt('SPACE jump · SHIFT sprint · C crouch · V headbutt', W / 2, 228, 17, '#fff');
+    txt('WASD move · mouse look · CLICK shoot · RIGHT-CLICK aim · R reload · G nut-nade', W / 2, 345, 19, '#fff');
+    txt('SPACE jump · SHIFT sprint · C crouch · V headbutt', W / 2, 368, 17, '#fff');
     ctx.globalAlpha = 1;
   }
   if (joy.active) {
@@ -157,16 +159,28 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
 
 function drawObjRadio() {
   const ctx = hctx;
-  // objective
+  // objective: wrapped, with a live counter and (after a while) a hint, so you always know what to do next
+  let objBottom = 14;
   if (objText) {
-    ctx.fillStyle = 'rgba(74,29,58,0.7)'; rr(16, 14, 420, 56, 10); ctx.fill();
-    txt('OBJECTIVE', 30, 30, 15, CYAN, 'left', null);
-    txt(objText.slice(0, Math.floor(objT / 1.5)), 30, 54, objText.length > 40 ? 16 : 20, '#fff', 'left', null);
+    const shown = objText.slice(0, Math.floor(objT / 1.2));
+    const size = 18, lines = wrapLines(objText, size, 392);
+    const st = M && M.stages && M.stages[M.stage];
+    const cnt = st && st.count ? st.count() : '';
+    const hint = st && (M.stageT || 0) > (st.hintAfter || 1500) ? (st.hint || (st.clearAll ? 'Kill them all. When only a few are left, red arrows mark where they are.' : M.goal && !M.goal.hidden ? 'Follow the yellow arrows on the ground and the heart marker.' : '')) : '';
+    const hLines = hint ? wrapLines('HINT: ' + hint, 15, 392) : [];
+    const h = 30 + lines.length * 22 + (cnt ? 22 : 0) + hLines.length * 18 + 6;
+    ctx.fillStyle = 'rgba(74,29,58,0.78)'; rr(16, 14, 420, h, 10); ctx.fill(); if (objT < 200) { ctx.strokeStyle = t % 20 < 10 ? YEL : '#fff'; ctx.lineWidth = 3; ctx.stroke(); }
+    txt(objT < 200 ? 'NEW OBJECTIVE' : 'OBJECTIVE', 30, 30, 15, objT < 200 ? YEL : CYAN, 'left', null);
+    let y = 52, left = shown.length;
+    for (const l of lines) { txt(l.slice(0, Math.max(0, left)), 30, y, size, '#fff', 'left', null); left -= l.length + 1; y += 22; }
+    if (cnt) { txt(cnt, 30, y, 16, YEL, 'left', null); y += 22; }
+    if (hLines.length) { ctx.globalAlpha = 0.75 + 0.25 * Math.sin(t * 0.1); for (const l of hLines) { txt(l, 30, y - 2, 15, '#ffd6e7', 'left', null); y += 18; } ctx.globalAlpha = 1; }
+    objBottom = 14 + h;
   }
   if (radio) {
     const k = Math.min(1, (radio.max - radio.life) / 6);
     ctx.save(); ctx.globalAlpha = Math.min(1, radio.life / 20) * k;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'; const y = objText ? 84 : 14;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; const y = objBottom + 8;
     rr(16, y, 420, 30 + 22 * Math.ceil(radio.text.length / 40), 10); ctx.fill();
     txt(radio.who + ':', 30, y + 19, 16, radio.who === 'PRICK' ? CYAN : radio.who === 'MACMILLI' ? '#b8f0a0' : radio.who === 'SARGE' ? '#ffb347' : radio.who === 'JACKOFF' ? '#ff4d6d' : YEL, 'left', null);
     const shown = radio.text.slice(0, Math.floor((radio.max - radio.life) * 1.6));
@@ -183,4 +197,10 @@ function drawAnnounce() {
     txt(a.text, 0, 0, a.big, YEL); if (a.sub) txt(a.sub, 0, a.big * 0.9, 22, '#fff');
     ctx.restore();
   }
+}
+
+function wrapLines(s, size, maxW) {
+  hctx.font = `${size}px ${FONT}`; const out = []; let line = '';
+  for (const w of s.split(' ')) { const tst = line ? line + ' ' + w : w; if (hctx.measureText(tst).width > maxW && line) { out.push(line); line = w; } else line = tst; }
+  if (line) out.push(line); return out;
 }

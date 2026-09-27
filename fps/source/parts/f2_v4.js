@@ -9,7 +9,7 @@ function hazardTick() {
   const p = player; let nearest = 99;
   for (const z of M.hazards) {
     const d = dist(p, z) - z.r; nearest = Math.min(nearest, d);
-    if (d < 0 && !p.invul) { p.hp -= 0.35 * ts; p.lastHit = t; if (t % 20 === 0) { hurtFx(1); sfx('hurt'); } if (p.hp <= 0) { die(z.why || 'hazard'); return; } }
+    if (d < 0 && !p.invul) { p.hp -= 0.2 * ts; p.lastHit = t; if (t % 20 === 0) { hurtFx(1); sfx('hurt'); } if (p.hp <= 0) { die(z.why || 'hazard'); return; } }
   }
   if (nearest < 3.5) { const every = Math.max(4, Math.round(4 + nearest * 9)); if (t % every === 0) sfx('tick'); }
   if (nearest < 1.5 && t - (M.flags.hzWarn || -999) > 400) { M.flags.hzWarn = t; announce(M.hazardName || 'HAZARD', 'turn back', 30); }
@@ -98,4 +98,19 @@ function drawGunshipHUD() {
     const v = _cv.set(e.x, 1.2, e.y).project(camera); if (v.z > 1) continue;
     const sx = (v.x * 0.5 + 0.5) * W, sy = (-v.y * 0.5 + 0.5) * H; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(sx - 7, sy - 7, 14, 14);
   }
+}
+
+// ---------- anti-stuck: if a kill-everything stage drags on, show where the last ones are and clean up any you can't reach ----------
+function stallTick() {
+  const st = M.stages && M.stages[M.stage]; if (!st || !st.clearAll || M.state !== 'play') return;
+  if (M.stageT % 30) return;
+  const left = (st.clearList ? st.clearList() : aliveEnemies()).filter(e => !e.dead);
+  if (!left.length) return;
+  if (M.stageT > 60 * 25 && left.length <= 4) {
+    for (const e of left) e.reveal = true;
+    if (!M.goal || M.goal.auto) { let best = null, bd = 1e9; for (const e of left) { const d = dist(e, player); if (d < bd) { bd = d; best = e; } } M.goal = { x: best.x, y: best.y, auto: true }; }
+    if (!M.stallDone) { M.stallDone = true; say('PRICK', left.length === 1 ? 'One left. I\'ve marked him. Follow the arrows.' : `${left.length} left. I've marked them red. Follow the arrows.`, 200); }
+  }
+  // anything nobody can walk to (stuck in a wall, fell off the map) just gets removed after a bit
+  if (M.stageT > 60 * 40) for (const e of left) { const c = flowF ? flowF[(e.y | 0) * MW + (e.x | 0)] : 0; if ((c === -1 && !e.z) || (M.stageT > 60 * 90 && left.length <= 4)) { killEnt(e); if (!M.flags.stallKill) { M.flags.stallKill = true; say('PRICK', 'Got the last one from over here. Move on, son.', 180); } } }
 }

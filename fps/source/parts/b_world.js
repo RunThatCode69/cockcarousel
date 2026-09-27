@@ -50,7 +50,7 @@ function walkableFor(x, y, b) {
   return walkable(x, y);
 }
 // route finding treats hurdles and wire as passable (you can get through them)
-const walkNav = (x, y) => { const c = cell(x | 0, y | 0); return c === 'j' || c === 'w' || walkable(x, y); };
+const walkNav = (x, y) => { const c = cell(x | 0, y | 0); if (M && M.hazards) for (const h of M.hazards) if (Math.hypot(x - h.x, y - h.y) < h.r + 0.6) return false; return c === 'j' || c === 'w' || walkable(x, y); };
 function moveBody(b, dx, dy, r = 0.25) {
   const okX = walkableFor(b.x + dx + Math.sign(dx) * r, b.y - r, b) && walkableFor(b.x + dx + Math.sign(dx) * r, b.y + r, b);
   if (okX) b.x += dx;

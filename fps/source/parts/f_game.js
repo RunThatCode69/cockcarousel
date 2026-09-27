@@ -121,7 +121,7 @@ function applyPickup(e) {
   if (e.type === 'lotion') { const g = growBy(0.5); announce('LOTIONED UP', `+${g}"  ` + pickOne(['back to full mast', 'pump pump pump', 'smooth.', 'he\'s growing, sarge', 'extra grip']), 36); sfx('loot'); sfx('squish'); stats.lotion = (stats.lotion || 0) + 1; }
   if (e.type === 'pill') { growBy(1); p.hardT = 900; announce('RAGING', 'no shrinkage for 15 seconds', 40); sfx('streak'); }
 }
-function reload() { const p = player; if (M.state === 'gunship') { gunshipSwap(); return; } if (p.reloading || p.ammo === MAG || !p.canFire) return; p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
+function reload() { const p = player; if (M.state === 'gunship') { gunshipSwap(); return; } if (p.reloading || !p.canFire) return; if (p.ammo === MAG) { M.flags.reloaded = true; sfx('pump'); p.recoil = 0.3; announce('PUMP', 'already full. still counts.', 26); return; } p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
 function headbutt(e) {
   const p = player; p.buttT = 22; p.fireCd = 26; p.recoil = 0.6; stats.shots++; stats.hits++;
   sfx('butt'); shake = 8;
@@ -471,7 +471,7 @@ function startMission(i, stageIdx = 0) {
   goStage(stageIdx);
 }
 function goStage(i) {
-  M.stage = i;
+  M.stage = i; M.stageT = 0; M.stallDone = false; if (M.goal && M.goal.auto) M.goal = null;
   const s = M.stages[i];
   if (!s) { missionClear(); return; }
   if (s.checkpoint !== false) M.checkpoint = i;
@@ -495,6 +495,7 @@ function missionClear() {
 function updateGame() {
   stats.frames++; hintT++; objT++;
   if (M.clockOn) M.clock += ts;
+  M.stageT = (M.stageT || 0) + 1; stallTick();
   if (M.timer !== null && M.timer !== undefined) { M.timer -= ts; if (M.timer <= 0) { M.timer = 0; if (M.onTimeout) M.onTimeout(); } }
   updatePlayer();
   if (state !== 'game') return;
