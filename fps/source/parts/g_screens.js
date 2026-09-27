@@ -35,7 +35,7 @@ function drawTitle() {
   } else btn(W / 2 - bw / 2, y0, bw, bh, 'NEW GAME', newGame, isTouch ? 'tap' : 'SPACE');
   btn(W / 2 - bw - 10, y0 + 66, bw, bh, 'MISSION SELECT', () => { state = 'select'; }, `${unlockedM} of 5 unlocked`);
   btn(W / 2 + 10, y0 + 66, bw, bh, `DIFFICULTY: ${diff.toUpperCase()}`, () => { diff = diff === 'easy' ? 'regular' : 'easy'; save(); }, diff === 'easy' ? 'recommended. seriously.' : 'a few more enemies. still easy.');
-  txt(isTouch ? 'left thumb: move · right thumb: look & tap to shoot' : 'WASD + mouse · click to shoot · R reload · V headbutt', W / 2, H - 38, 18, '#fff', 'center', null);
+  txt(isTouch ? 'left thumb: move · right thumb: look & tap to shoot' : 'WASD + mouse · click shoot · SPACE jump · R reload · G nut', W / 2, H - 38, 18, '#fff', 'center', null);
   txt('sequel to Cum of Duty: Wrong Hole', W / 2, H - 16, 14, '#ffd6e7', 'center', null);
   btn(W - 150, 16, 134, 44, AUD.muted ? 'SOUND OFF' : 'SOUND ON', () => { setMuted(!AUD.muted); });
   if (!actxLive()) txt('tap anywhere for sound', W - 83, 76, 13, '#fff', 'center', null);
@@ -119,7 +119,7 @@ function drawBrief() {
 }
 function drawDead() {
   ctx.fillStyle = `rgba(60,0,30,${clamp(stateT / 40, 0, 0.75)})`; ctx.fillRect(0, 0, W, H);
-  if (stateT > 20) txt('YOU DIED', W / 2, 150, 74, '#ff4d6d', 'center', '#3a0010');
+  if (stateT > 20) txt(deathTitle, W / 2, 150, 74, deathTitle === 'WRAPPED' ? '#bfe6ff' : '#ff4d6d', 'center', deathTitle === 'WRAPPED' ? '#1a3a5a' : '#3a0010');
   if (stateT > 50) { txt(deathQuote[0], W / 2, 240, 26, '#fff', 'center', null); txt('— ' + deathQuote[1], W / 2, 278, 22, YEL, 'center', null); }
   if (stateT > 70 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to retry from checkpoint' : 'SPACE to retry from checkpoint', W / 2, 400, 30, '#fff');
 }

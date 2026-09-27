@@ -6,6 +6,8 @@ A browser first-person shooter parody of Call of Duty 4, in the Cock Carousel un
 
 The **DICK-47** is a 3D view model: a thick veiny shaft for a barrel, the head for a muzzle, the balls for a magazine, a heart-ring rear sight and a front post on the tip. It's held in camo sleeves and gloves, with your left hand on the shaft. Hip fire, aim-down-sights (you look down the shaft), sprint, crouch, reload (balls drop out, fresh pair in, rack the tip), nut-nade throws and melee.
 
+**The enemy:** Condom Troopers are the main bad guys now. They shoot condoms; each hit rolls one further down you (the WRAPPED meter). Fully wrapped and you're out: WRAPPED, mission failed. Stop getting hit and it slides back off.
+
 **Finding your way:** a yellow chevron path on the ground leads to the objective, a light beacon marks it, the compass points along the route and an on-screen heart shows the distance.
 
 Source: `fps/source/` — run `npm install && npm run build` there, then copy `build/index.html` over `fps/index.html`. Previous versions: `archive/fps-v1.html` (tag `fps-v1`, the first raycaster) and `archive/fps-v2.html` (tag `fps-v2`, raycaster with ADS, nades and music).
@@ -16,12 +18,13 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
 |---|---|---|
 | Move / strafe | `W A S D` | left half: drag (virtual joystick) |
 | Look (left/right **and up/down**) | mouse (click to lock the pointer), or `← →` / `Q E`, `T`/`B` tilt | right half: drag |
-| Shoot | click or `SPACE` | right half: tap (hold to keep firing) |
+| Shoot | click | right half: tap (hold to keep firing) |
 | Aim down sights | hold right-click, or `Z` to toggle | AIM button |
 | Reload | `R` | RELOAD button |
 | Nut-nade (grenade) | `G` | NUT button |
 | Sprint | hold `SHIFT` | push the joystick all the way forward |
 | Crouch | `C` | CROUCH button |
+| Jump | `SPACE` | JUMP button |
 | Headbutt | `V` / `F`, or just shoot with an enemy in your face | shoot with an enemy in your face |
 | Pause | `ESC` / `P` | `II` button |
 | Sound | `M`, or the SOUND button on the title | pause menu / title button |
@@ -42,8 +45,8 @@ The version before this pass is saved as `archive/fps-v1.html` and git tag `fps-
 
 ## Missions
 
-1. **Bootie Camp** — Camp Wetstone. Tutorial: Sarge (mustached drill-sergeant dick) walks you through shooting targets, pumping (reload), eating eggplants and practice crabs, then the timed Cargo Ship course.
-2. **All Girthed Up** — The Bush, 15 years ago. Ghillie-suit stealth through tall grass that is clearly pubes. Slow Condom Trooper patrols, mousetraps in the grass, then one long shot at Imran Jackoff from the overlook ("one shot, one squirt"), then run to the LZ.
+1. **Bootie Camp** — S.A.S. HQ, Crotchenhill. Sarge walks you through hip fire, aiming down sights, pumping (reload), eggplants and practice Condom Troopers, then THE COURSE: jump the hurdles, crawl under the barbed wire, high-knee the tyre run, shoot the pop-ups, hit the flag. Your time earns a Recommended Difficulty (SOFT → THROBBING).
+2. **All Girthed Up** — The Bush, 15 years ago. Ghillie-suit stealth through tall grass that is clearly pubes. Slow Condom Trooper patrols, mousetraps in the grass, then one long shot at Imran Jackoff from the overlook ("one shot, one squirt"), then run to the LZ as the helicopter comes in, climb aboard and lift out over the treeline.
 3. **Crew Expandable** — cargo ship MV Blue Balls. Tight steel corridors, crabs everywhere, grab the package in the hold, then a 75-second escape while the deck tilts, ending with the jump to the helicopter.
 4. **No Rushin'** — a fertility clinic waiting room. Take a number (69), survive three waves of Condom Troopers and bees while they call 4, 5, 6..., ride the escalator up, fight the moving walkway that's going the wrong way, make the deposit in Room 69.
 5. **GAME OVA** — Bridge over the Tubes. On-rails in the back of the truck shooting pursuers; the bridge blows; you crawl in slow-mo while Soup, Gas and Gropes go down one by one; Imran Jackoff (huge, one-armed, fur coat) walks up; Captain Prick slides you a pistol; one slow-motion glob; helicopter rescue; end credits over sad oscillator piano with a mid-credits tease for Modern Wharfare 2.

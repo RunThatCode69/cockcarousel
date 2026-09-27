@@ -23,7 +23,13 @@ function drawHUD() {
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     if (low > 0.6) txt("she's going soft...", W / 2, H - 150, 22, '#fff', 'center', '#3a0010');
   }
-  if (p.wrapT > 0) { ctx.fillStyle = 'rgba(200,230,255,0.12)'; ctx.fillRect(0, 0, W, H); txt('WRAPPED — so slow, so safe', W / 2, 120, 26, '#bfe9f8'); }
+  if ((p.wrap || 0) > 0.02) {
+    // latex creeping over the screen, a sheen, and a meter
+    const k = p.wrap; const g = ctx.createRadialGradient(W / 2, H / 2, H * (0.6 - 0.35 * k), W / 2, H / 2, H * 0.95); g.addColorStop(0, 'rgba(200,230,255,0)'); g.addColorStop(1, `rgba(190,225,255,${0.25 + 0.5 * k})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 0.25 * k; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(W * 0.3, H * 0.25, 200 * k, 30 * k, -0.4, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    const bx = W / 2 - 120, by = H - 150; rr(bx, by, 240, 22, 11); fs('rgba(26,58,90,0.7)', '#bfe6ff', 2.5); rr(bx + 3, by + 3, 234 * k, 16, 8); fs(k > 0.6 ? '#ff9ec4' : '#bfe6ff', null);
+    txt(`WRAPPED ${Math.round(k * 100)}%`, W / 2, by - 14, 18, '#bfe6ff', 'center', '#1a3a5a');
+  }
   if (p.shrink > 0) { ctx.fillStyle = 'rgba(160,220,255,0.1)'; ctx.fillRect(0, 0, W, H); txt('SHRINKAGE — damage halved', W / 2, 250, 26, '#bfe9f8', 'center', '#1a4a7a'); }
   if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${Math.min(1, flash)})`; ctx.fillRect(0, 0, W, H); }
   if (M.state !== 'play' && M.state !== 'rails' && M.state !== 'crawl' && M.state !== 'showdown') return;
@@ -146,8 +152,8 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
   }
   if (!isTouch && hintT < 600 && M.state === 'play') {
     ctx.globalAlpha = Math.min(1, (600 - hintT) / 40);
-    txt('WASD move · mouse look · click shoot · right-click aim · R reload · G nut-nade', W / 2, 205, 19, '#fff');
-    txt('SHIFT sprint · C crouch · V headbutt', W / 2, 228, 17, '#fff');
+    txt('WASD move · mouse look · CLICK shoot · RIGHT-CLICK aim · R reload · G nut-nade', W / 2, 205, 19, '#fff');
+    txt('SPACE jump · SHIFT sprint · C crouch · V headbutt', W / 2, 228, 17, '#fff');
     ctx.globalAlpha = 1;
   }
   if (joy.active) {

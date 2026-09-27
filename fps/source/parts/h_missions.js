@@ -36,14 +36,14 @@ Object.assign(PAL.finale, { hemiSky: '#ff9a6a', hemiGround: '#2a1a2a', hemiI: 0.
 const M1 = () => {
   const rows = [
     '################################',
-    '#..............#...............#',
-    '#..............#...............#',
-    '#..............#AAAAAAAAAAAAA..#',
-    '#..............#...............#',
-    '#..............#...............#',
-    '#..............#..AAAAAAAAAAAAA#',
-    '#..............#...............#',
-    '#..............#...............#',
+    '#..............#...ttt.........#',
+    '#..............#...ttt.........#',
+    '#..............#.AAAAAAAAAAAAAA#',
+    '#..............#...wwwwwwwww...#',
+    '#..............#...wwwwwwwww...#',
+    '#..............#AAAAAAAAAAAAAA.#',
+    '#..............#......A..j.j...#',
+    '#..............#......A..j.j...#',
     '########G#######AAAAAAAGAAAAAAA#',
     '#..............#...............#',
     '#..............#...............#',
@@ -59,44 +59,48 @@ const M1 = () => {
   ];
   const targetsAt = pts => pts.map(([x, y]) => spawnEnemy('target', x, y));
   let tg = [], courseTg = [];
-  const COURSE = [[19.5, 7.5], [22.5, 4.5], [27.5, 4.5], [25.5, 1.5], [19.5, 1.5]];
-  const courseReset = () => { for (const e of courseTg) e.gone = true; ents = ents.filter(e => !e.gone); courseTg = targetsAt(COURSE); player.x = 23.5; player.y = 8.3; player.a = -Math.PI / 2; M.timer = 60 * 90; M.flags.courseDone = false; };
+  // the obstacle course: lane 1 hurdles (east), lane 2 barbed-wire crawl (west), lane 3 tyre run + sprint (east) to the flag
+  const COURSE = [[29.5, 7.5], [16.6, 4.6], [22.5, 1.4], [26.5, 2.6], [29.6, 1.4]];
+  const courseReset = () => { for (const e of courseTg) e.gone = true; ents = ents.filter(e => !e.gone); courseTg = targetsAt(COURSE); player.x = 23.5; player.y = 8.4; player.a = 0; player.crouch = false; M.timer = 60 * 120; M.flags.courseDone = false; M.goal = { x: 29.5, y: 1.5 }; };
   return {
-    map: rows, heights: { '#': 2.0, A: 0.75, G: 1.5 }, tex: { '#': 'sand', A: 'crate', G: 'gate', P: 'poster' }, variants: { '#': ['recruit', 7], A: ['hesco', 6] }, floor: 'sandfloor', pal: PAL.camp, start: [7.5, 7.5, -Math.PI / 2], par: 150, music: 'title', amb: 'wind',
+    map: rows, heights: { '#': 2.0, A: 0.75, G: 1.5, j: 0.3 }, tex: { '#': 'sand', A: 'crate', G: 'gate', P: 'poster', j: 'wood' }, variants: { '#': ['recruit', 7], A: ['hesco', 6] }, floor: 'sandfloor', outer: { ground: 'sandfloor', ring: 'desert' }, pal: PAL.camp, start: [7.5, 7.5, -Math.PI / 2], par: 150, music: 'title', amb: 'wind',
     card: ['Day 1 – 06:09:42', "Sgt. 'Soap' MacTugish", '22nd S.A.S. (Sausage Air Service)', 'Crotchenhill, U.K.'],
     props: [['sign', 4.5, 6.5, { spr: 'sign_camp' }], ['sandbags', 2, 3.5], ['sandbags', 13, 3.5], ['sandbags', 5, 3.5], ['sandbags', 10, 3.5], ['flag', 1.5, 1.5], ['tent', 3.5, 17.5], ['tent', 11.5, 17.5], ['palm', 1.5, 10.5], ['palm', 13.5, 18.5],
       ['barrel', 1.5, 13.5], ['barrel', 2.4, 13.6], ['cratestack', 13.5, 11], ['ammobox', 7.5, 12.5, { passable: true }], ['tires', 17, 18.5], ['cactus', 29.5, 18.5], ['cactus', 17, 10.5], ['sandbags', 24, 10.5], ['sandbags', 28, 14.5],
-      ['sign', 17.5, 8.2, { spr: 'sign_ship' }], ['barrel', 30.5, 7.5], ['barrel', 30.5, 1.5], ['cone', 20, 5.5, { passable: true }], ['cone', 26, 2.5, { passable: true }], ['ammobox', 23.5, 12.5, { passable: true }]],
-    scatter: [[['barrel', 'sandbags', 'tires', 'ammobox'], 8, [[7.5, 7.5, 3], [7.5, 1.8, 3], [8.5, 10, 2], [23.5, 8.3, 3]], 3]],
+      ['sign', 21.3, 10.4, { spr: 'sign_ship' }], ['flag', 30.6, 1.2, { passable: true }], ['cone', 24.5, 7.2, { passable: true }], ['cone', 30.5, 5.5, { passable: true }], ['cone', 16.4, 3.4, { passable: true }], ['ammobox', 23.5, 12.5, { passable: true }]],
+    scatter: [[['barrel', 'sandbags', 'tires', 'ammobox'], 8, [[7.5, 7.5, 3], [7.5, 1.8, 3], [8.5, 10, 2], [23.5, 8.3, 3], [23, 4.5, 9]], 3]],
     brief: ['> CROTCHENHILL, U.K. — S.A.S. HEADQUARTERS. 06:09.', "Welcome to the S.A.S., new guy. That's the Sausage Air Service. You're the F.N.G.: Freshly Nutted Guy.", 'Captain Prick will be watching. He does not blink. Nobody knows why.',
-      'The enemy is everywhere: crabs, bees, and a mousetrap that thinks it\'s people.', 'Sarge will teach you to shoot, pump, and eat your vegetables.',
-      'Then you run the Cargo Ship course. Wet or go home.', '> OBJECTIVE: graduate without crying.'],
+      'The enemy: the Condom Troopers. They shoot condoms. Get fully wrapped and you are out of the fight.', 'Sarge will teach you to shoot, pump, and eat your vegetables.',
+      'Then you run THE COURSE: jump the hurdles, crawl the wire, high-knee the tyres. Wet or go home.', '> OBJECTIVE: graduate without crying.'],
     init() {
-      bakeSign('sign_camp', 'BOOTIE CAMP', 'no crying', '#fff6e0', INK); bakeSign('sign_ship', 'CARGO SHIP', 'course →', YEL, INK);
+      bakeSign('sign_camp', 'BOOTIE CAMP', 'no crying', '#fff6e0', INK); bakeSign('sign_ship', 'THE COURSE', 'jump · crawl · run →', YEL, INK);
       spawnNpc('sarge', 13, 6.5, 1.15, 0.9, { tick: e => { e.attackT = (t % 90 < 45) ? 5 : 0; } });
     },
     triggers: [
       { x: 8.5, y: 10.5, r: 1.5, fn: () => say('SARGE', 'Room two. Pump it. Press R, or tap RELOAD if you\'re on the little phone.', 260) },
-      { x: 20, y: 14, r: 2.5, fn: () => { say('SARGE', 'Practice crabs. They pinch. Headbutt them if they get close — it\'s called a wet willy.', 300); } },
-      { x: 23.5, y: 7.8, r: 1.2, fn: () => { say('SARGE', 'GO GO GO! Shoot the pop-ups, hit the exit. She\'s timing you.', 260); } },
-      { x: 16.8, y: 1.6, r: 1.1, fn: () => { M.flags.courseDone = true; } },
+      { x: 20, y: 14, r: 2.5, fn: () => { say('SARGE', "Practice rubbers. They shoot condoms. Three hits and you're wrapped. Dodge, then glob 'em.", 300); } },
+      { x: 24.2, y: 8, r: 1.0, fn: () => { say('SARGE', isTouch ? 'GO GO GO! Hurdles! Tap JUMP!' : 'GO GO GO! Hurdles! SPACE to jump!', 220); } },
+      { x: 30, y: 5.5, r: 1.0, fn: () => { say('SARGE', isTouch ? 'Wire! Tap CROUCH and crawl, maggot!' : 'Wire! C to crouch and crawl, maggot! Lower! LOWER!', 240); } },
+      { x: 16.5, y: 2.5, r: 1.0, fn: () => { say('SARGE', "Tyres! High knees! Shoot the pop-ups! She's timing you!", 220); } },
+      { x: 29.6, y: 1.6, r: 1.0, fn: () => { M.flags.courseDone = true; } },
     ],
     stages: [
-      { obj: 'Fire from the hip at the 5 targets', start() { tg = targetsAt([[3.5, 1.8], [5.5, 1.8], [7.5, 1.8], [9.5, 1.8], [11.5, 1.8]]); say('SARGE', "Right, new guy. Pick up the DICK-47. That's your rifle. Yes. It is. Don't make it weird.", 280); say('SARGE', isTouch ? 'Tap the right side to fire from the hip. The butts. Shoot the butts.' : 'Click or SPACE to fire from the hip. The butts. Shoot the butts.', 300); },
+      { obj: 'Fire from the hip at the 5 targets', start() { tg = targetsAt([[3.5, 1.8], [5.5, 1.8], [7.5, 1.8], [9.5, 1.8], [11.5, 1.8]]); say('SARGE', "Right, new guy. Pick up the DICK-47. That's your rifle. Yes. It is. Don't make it weird.", 280); say('SARGE', isTouch ? 'Tap the right side to fire from the hip. The butts. Shoot the butts.' : 'Click to fire from the hip. The butts. Shoot the butts.', 300); },
       done: () => tg.every(e => e.dead), end() { say('SARGE', "Hip fire's not accurate. Like you. Now do it properly.", 220); } },
       { obj: isTouch ? 'Tap AIM to aim down the sights, then hit the targets' : 'Hold RIGHT-CLICK to aim down the sights, then hit the targets', checkpoint: false, start() { M.flags.aded = false; tg = targetsAt([[4.5, 1.8], [7.5, 1.8], [10.5, 1.8]]); say('SARGE', isTouch ? 'Tap AIM. Look down the shaft. Line the heart up with the tip.' : 'Right-click. Aim down the sights. Line the heart up with the tip. Yes, the tip.', 300); },
       tick() { if (player.ads > 0.8) M.flags.aded = true; }, done: () => M.flags.aded && tg.every(e => e.dead), end() { say('SARGE', "Beautiful. You look down that shaft like you were born to. Gate's open.", 240); openGate(8, 9); } },
       { obj: 'Go through the gate and PUMP (reload)', checkpoint: false, done: () => M.flags.reloaded && player.y > 9.5, end() { say('SARGE', 'That\'s the sound. Wet. Now eat both eggplants — they heal you.', 260); } },
-      { obj: 'Eat the 2 eggplants', checkpoint: false, done: () => stats.eggs >= 2, end() { openGate(15, 14); say('SARGE', 'Look at you. Big boy now. Crab room\'s open.', 200); } },
-      { obj: 'Kill the practice crabs', at: [18, 14.5, 0], pre() { openGate(8, 9); openGate(15, 14); }, start() { spawnWave([['crab', 24, 12], ['crab', 20, 16.5], ['crab', 27, 17.5]]); }, done: () => noEnemies() && player.x > 15,
-        end() { openGate(23, 9); say('SARGE', 'Cargo Ship course. North gate. Run it fast and shoot everything that pops up.', 260); } },
-      { obj: 'CARGO SHIP: shoot the pop-ups, reach the exit', pre() { openGate(8, 9); openGate(15, 14); openGate(23, 9); }, start() { courseReset(); M.timerLabel = 'COURSE'; M.onTimeout = () => { say('SARGE', 'TOO SLOW. Again. She is not impressed.', 200); courseReset(); }; },
+      { obj: 'Eat the 2 eggplants', checkpoint: false, done: () => stats.eggs >= 2, end() { openGate(15, 14); say('SARGE', "Look at you. Big boy now. Next room's got rubbers in it.", 200); } },
+      { obj: "Take out the practice rubbers (don't get wrapped)", at: [18, 14.5, 0], pre() { openGate(8, 9); openGate(15, 14); }, start() { spawnWave([['condom', 25, 12], ['condom', 22, 17], ['condom', 28, 17.5]]); for (const e of ents) if (e.type === 'condom') { e.hpMul = 1; e.hp = 45; } }, done: () => noEnemies() && player.x > 15,
+        end() { openGate(23, 9); say('SARGE', 'THE COURSE. North gate. Hurdles, wire, tyres, flag. Shoot everything that pops up.', 260); } },
+      { obj: 'THE COURSE: jump, crawl, run. Shoot the pop-ups. Reach the flag.', pre() { openGate(8, 9); openGate(15, 14); openGate(23, 9); }, start() { courseReset(); M.timerLabel = 'COURSE'; M.onTimeout = () => { say('SARGE', 'TOO SLOW. Again. She is not impressed.', 200); courseReset(); }; },
+        tick() { if (player.x > 30 && player.y < 6.8 && player.y > 5.2 && !player.crouch && t % 90 === 0) announce(isTouch ? 'TAP CROUCH' : 'PRESS C', 'the wire is right there', 30); },
         done: () => M.flags.courseDone,
         end() {
-          const el = (60 * 90 - M.timer) / 60, hit = courseTg.filter(e => e.dead).length; M.timer = null;
-          const grade = el < 20 ? 'THROBBING' : el < 30 ? 'HARD' : el < 45 ? 'SEMI' : 'SOFT';
-          announce(`RECOMMENDED DIFFICULTY: ${grade}`, `your time ${el.toFixed(1)}s · Captain Prick's time: 6.9s · ${hit}/5 pop-ups`, 34);
-          say('SARGE', `${el.toFixed(1)} seconds. Prick did it in six point nine. Nobody's ever beaten it. Nobody ever will.`, 300);
+          const el = (60 * 120 - M.timer) / 60, hit = courseTg.filter(e => e.dead).length; M.timer = null;
+          const grade = el < 28 ? 'THROBBING' : el < 40 ? 'HARD' : el < 60 ? 'SEMI' : 'SOFT';
+          announce(`RECOMMENDED DIFFICULTY: ${grade}`, `your time ${el.toFixed(1)}s · Captain Prick's time: 16.9s · ${hit}/5 pop-ups`, 34);
+          say('SARGE', `${el.toFixed(1)} seconds. Prick did it in sixteen point nine. With a hangover. Nobody's ever beaten it.`, 300);
           say('PRICK', 'Soap. Pack your lube. We ride at midnight.', 260);
           M.flags.gradT = t;
         } },
@@ -133,7 +137,7 @@ const M2 = () => {
   ];
   let boss = null;
   return {
-    map: rows, heights: { '#': 1.9, A: 0.85 }, tex: { '#': 'hedge', A: 'fence', P: 'poster' }, variants: { '#': ['rock', 6] }, floor: 'dirt', pal: PAL.bush, start: [3, 19, 0], par: 200, stealth: true, music: 'night', amb: 'wind',
+    map: rows, heights: { '#': 1.9, A: 0.85 }, tex: { '#': 'hedge', A: 'fence', P: 'poster' }, variants: { '#': ['rock', 6] }, floor: 'dirt', outer: { ground: 'dirt', ring: 'forest' }, pal: PAL.bush, start: [3, 19, 0], par: 200, stealth: true, music: 'night', amb: 'wind',
     card: ['15 years earlier', 'Lt. Jack Prick', 'S.A.S. — still had hair then', 'Pubyat, Ukrainian SSR'], goal: { x: 27.5, y: 7.8 },
     props: [['sign', 4.5, 18.2, { spr: 'sign_bush' }], ['fire', 30.5, 19.5, { passable: true }], ['tent', 33, 17.5], ['lantern', 27.5, 15.2, { z: 0.6, passable: true }], ['lantern', 19.5, 9.2, { z: 0.6, passable: true }], ['rock', 21.5, 7.5], ['rock', 33.5, 7.5], ['rock', 1.5, 8.5],
       ['barrel', 24.5, 16.5], ['cratestack', 33.5, 20.5], ['sign', 26.5, 8.6, { spr: 'sign_look' }], ['rock', 17.5, 1.5]],
@@ -165,9 +169,37 @@ const M2 = () => {
       { obj: 'Sneak through the grass to the overlook', done: () => near(27.5, 7.8, 1.6), end() { M.goal.hidden = true; say('MACMILLI', 'There he is. Imran Jackoff. The fur coat. Both arms, for now.', 240); } },
       { obj: 'One shot, one squirt: hit Jackoff', at: [27.5, 7.8, -Math.PI / 2], pre() { M.goal.hidden = true; }, start() { boss.shootable = true; boss.far = 60; say('MACMILLI', 'Account for the wind. And the Coriolis effect. And his feelings. ...Take the shot.', 300); }, done: () => M.flags.bossHit,
         end() { announce('ONE SHOT, ONE SQUIRT', 'you blew his arm clean off', 44); say('MACMILLI', "Target down... no. He's lost an arm. Bloody hell, Leftenant.", 240); say('JACKOFF', 'MY ARM! MY BEAUTIFUL WANKING ARM!', 200); } },
-      { obj: 'Everyone is awake. Get back to the LZ.', at: [27.5, 7.8, Math.PI / 2], pre() { M.goal.hidden = true; boss.flee = true; boss.spr = 'boss'; }, start() { M.goal = { x: 3, y: 19 }; spawnWave([['bee', 30, 9], ['bee', 24, 12], ['bee', 29, 17], ['bee', 21, 19], ['condom', 14, 19]]); for (const e of ents) if (e.kind === 'enemy' && e.ai !== 'chase') { e.ai = 'chase'; e.sightMul = 4; } say('MACMILLI', "They know we're here. Bees. Lots of bees. Forget stealth. RUN. Back to the LZ.", 240); },
-        done: () => near(3, 19, 1.8), end() { say('MACMILLI', "Extracted. Mark my words, Leftenant: fifteen years from now he's going to be very upset about that arm.", 320); M.flags.outT = t; } },
-      { obj: 'Extraction', checkpoint: false, done: () => t - M.flags.outT > 120 },
+      { obj: 'Everyone is awake. Get back to the LZ.', at: [27.5, 7.8, Math.PI / 2], pre() { M.goal.hidden = true; boss.flee = true; boss.spr = 'boss'; }, start() { M.goal = { x: 3, y: 19 }; spawnWave([['condom', 30, 9], ['bee', 24, 12], ['condom', 29, 17], ['condom', 21, 19], ['bee', 14, 19]]); for (const e of ents) if (e.kind === 'enemy' && e.ai !== 'chase') { e.ai = 'chase'; e.sightMul = 4; } say('MACMILLI', "They know we're here. Rubbers AND bees. Forget stealth. RUN. Back to the LZ.", 240); },
+        tick() {
+          // the bird comes in low over the treeline, flares and hovers at the LZ
+          if (!M.flags.heli && player.x < 16) { M.flags.heli = spawnDeco('heli', -6, 15, 1, 1, { z: 3.2, far: 80, heliT: 0 }); announce('CHOPPER INBOUND', 'get to the LZ', 40); say('PILOT', 'Big Bird, inbound. Pop smoke, pop smoke.', 200); say('MACMILLI', 'Chopper! Get to the LZ, Leftenant!', 200); sfx('chop'); }
+          const hl = M.flags.heli; if (!hl) return;
+          hl.heliT++; const k = Math.min(1, hl.heliT / 330);
+          hl.x = lerp(-6, 3.5, ease(k)); hl.y = lerp(15, 18.6, ease(k)); hl.z = lerp(3.2, 0.62, ease(Math.min(1, k * 1.15))) + (k >= 1 ? Math.sin(t * 0.1) * 0.02 : 0); hl.faceA = 0;
+          if (t % 9 === 0) sfx('chop');
+          if (k >= 1) { hl.landed = true; if (t % 6 === 0) burst3d(hl.x + rand(-1.2, 1.2), hl.y + rand(-1.2, 1.2), 0.05, 1, 'puff', 0.06); M.goal = { x: 3.5, y: 18.2 }; }
+        },
+        done: () => M.flags.heli && M.flags.heli.landed && near(3.5, 18.6, 1.9), end() { say('PILOT', 'Get in, get in!', 140); } },
+      { obj: 'Extraction', checkpoint: false,
+        start() {
+          // board: you're pulled up to the open door; the bird lifts off over the pubes
+          M.state = 'cut'; player.canMove = false; player.canFire = false; M.goal = null; M.flags.boardT = t;
+          for (const e of ents) if (e.kind === 'enemy') e.frozen = true;
+          M.flags.gunner = spawnNpc('soup', 0, 0, 1.3, 1, { far: 60 });
+        },
+        tick() {
+          const hl = M.flags.heli, f = t - M.flags.boardT;
+          const up = Math.max(0, f - 60);
+          hl.z = 0.62 + up * up * 0.00012 + up * 0.004; hl.x = 3.5 + up * 0.012; hl.y = 18.6 - up * 0.02;
+          player.x = lerp(player.x, hl.x + 0.2, 0.15); player.y = lerp(player.y, hl.y - 1.3, 0.15);   // sitting in the open side door, legs out, facing the bush
+          camH = lerp(camH, 0.35 + hl.z, 0.2); player.a = lerpA(player.a, -Math.PI / 2 + 0.35, 0.04); pitch = lerp(pitch, f > 80 ? -110 : 0, 0.03);
+          const g = M.flags.gunner; g.x = hl.x + 1.1; g.y = hl.y - 1.0; g.z = hl.z - 0.2; g.faceA = Math.PI + 0.4;
+          if (t % 8 === 0) sfx('chop');
+          if (f === 70) say('MACMILLI', 'Everybody on? GO! GO!', 140);
+          if (f === 170) say('MACMILLI', "Mark my words, Leftenant: fifteen years from now he's going to be very upset about that arm.", 320);
+          if (f > 360) whiteOut = Math.min(1, (f - 360) / 60);
+        },
+        done: () => t - M.flags.boardT > 430, end() { whiteOut = 0; camH = 0.5; pitch = 0; } },
     ],
   };
 };
@@ -187,7 +219,7 @@ const M3 = () => {
   put(g, 13, 12, 'e'); put(g, 22, 3, 'e'); put(g, 9, 15, 'e');
   for (let y = 1; y <= 22; y += 4) put(g, 7, y, 'A');   // rusty panels on the spine's port side
   return {
-    map: g, heights: { '#': 1.7, A: 1.7, B: 1.3, G: 1.5 }, tex: { '#': 'steel', A: 'rust', B: 'container', G: 'gate' }, variants: { '#': ['porthole', 5] }, floor: 'deck', pal: PAL.ship, start: [3.5, 3.5, 0], par: 170, music: 'tense', amb: 'sea',
+    map: g, heights: { '#': 1.7, A: 1.7, B: 1.3, G: 1.5 }, tex: { '#': 'steel', A: 'rust', B: 'container', G: 'gate' }, variants: { '#': ['porthole', 5] }, floor: 'deck', outer: { ground: 'water', groundY: -1.6, ring: 'sea' }, pal: PAL.ship, start: [3.5, 3.5, 0], par: 170, music: 'tense', amb: 'sea',
     card: ['Day 3 – 01:00:12', "Sgt. 'Soap' MacTugish", '22nd Sausage Air Service', 'MV Blue Balls — Bering Sea'], goal: { x: 21.5, y: 17 },
     props: [['lifering', 1.3, 5.5, { passable: true }], ['barrel', 5.5, 1.5], ['valve', 8.3, 7.5, { passable: true }], ['valve', 9.7, 14.5, { passable: true }], ['lantern', 8.5, 4, { z: 0.65, passable: true }], ['lantern', 9.5, 12, { z: 0.65, passable: true }], ['lantern', 17.5, 20.5, { z: 0.65, passable: true }], ['lantern', 26.5, 8, { z: 0.65, passable: true }],
       ['cratestack', 11.5, 1.5], ['cratestack', 16.5, 6.5], ['barrel', 11.5, 14.5], ['tires', 16.5, 9.5], ['ammobox', 12.5, 20.5, { passable: true }], ['barrel', 19.5, 1.5], ['valve', 24.5, 1.5, { passable: true }], ['cratestack', 19.5, 9.5], ['barrel', 24.5, 18.5], ['lifering', 27.7, 15.5, { passable: true }], ['sign', 10.8, 20.5, { spr: 'sign_hold' }]],
@@ -198,9 +230,9 @@ const M3 = () => {
     init() {
       bakeSign('sign_hold', 'HOLD →', 'mind the crabs', YEL, INK);
       spawnDeco('heli', 3.5, 1.5, 1.4, 1.6, { z: 1.4, far: 30 });
-      spawnWave([['crab', 12, 2], ['crab', 15, 5], ['crab', 9, 12], ['crab', 12, 13], ['crab', 15, 21], ['crab', 22, 21], ['crab', 27, 8], ['crab', 21, 3], ['crab', 20, 10], ['crab', 23, 17]]);
+      spawnWave([['condom', 12, 2], ['crab', 15, 5], ['condom', 9, 12], ['condom', 12, 13], ['crab', 15, 21], ['condom', 22, 21], ['condom', 27, 8], ['crab', 21, 3], ['condom', 20, 10], ['crab', 23, 17]]);
       spawnPickup('crate', 21.5, 17).onGet = () => { M.flags.package = true; };
-      say('PRICK', 'Bravo Six, going wet. Weapons free.', 200); say('PILOT', 'Crew?', 120); say('PRICK', "Expendable. They're crabs.", 180);
+      say('PRICK', 'Bravo Six, going wet. Weapons free.', 200); say('PILOT', 'Crew?', 120); say('PRICK', "Expendable. Rubbers and crabs. Mostly rubbers.", 180);
     },
     triggers: [
       { x: 8.5, y: 12, r: 1.5, fn: () => { say('PRICK', 'Check your corners. Check your corners.', 180); say('PRICK', "Hallway clear. Crabs don't do corners.", 200); } },
@@ -209,7 +241,7 @@ const M3 = () => {
     stages: [
       { obj: 'Find the package in the hold', done: () => M.flags.package, end() { announce('PACKAGE SECURED', 'it\'s eggplants. it\'s always eggplants.', 40); } },
       { obj: 'THE SHIP IS SINKING. Get back to the helipad!', at: [22.5, 17, Math.PI], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'crate') e.got = true; }, start() { M.goal = { x: 3.5, y: 3.5 }; M.timer = 60 * 75; M.timerLabel = 'SINKING'; M.onTimeout = () => die('timer'); shake = 16; flash = 0.5; sfx('boom'); say('PRICK', 'That\'s a bomb. Ship\'s going down. Move it, move it, MOVE IT!', 240);
-          spawnWave([['crab', 26.5, 16], ['crab', 24, 20.5], ['crab', 12, 20.5], ['crab', 9, 18], ['crab', 9, 8], ['crab', 8.5, 4]]); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } },
+          spawnWave([['condom', 26.5, 16], ['crab', 24, 20.5], ['condom', 12, 20.5], ['crab', 9, 18], ['condom', 9, 8], ['condom', 8.5, 4]]); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } },
         tick() { roll = lerp(roll, -0.16 * (1 - M.timer / (60 * 75)), 0.02); },
         done: () => near(3.5, 3.5, 2.2), end() { M.timer = null; say('PRICK', 'Bird\'s overhead! JUMP FOR IT!', 200); } },
       { obj: 'JUMP', checkpoint: false, start() { M.state = 'cut'; player.canMove = false; player.canFire = false; player.a = -Math.PI / 2; player.x = 3.5; player.y = 4.2; M.flags.jumpT = t; sfx('chop'); },
@@ -277,7 +309,7 @@ const M5 = () => {
   let allies = [], boss = null, prick = null, pistol = null, f0 = 0;
   const F = () => t - f0;
   return {
-    map: g, heights: { '#': 0.7, A: 3.2, B: 1.6 }, tex: { '#': 'concrete', A: 'tower', B: 'rust' }, floor: 'asphalt', floorOf: (x) => x >= 57 ? 'rubble' : null, pal: PAL.bridge, start: [3, 5, Math.PI], par: 200, railSpeed: 0.028, music: 'chase', amb: 'wind',
+    map: g, heights: { '#': 0.7, A: 3.2, B: 1.6 }, tex: { '#': 'concrete', A: 'tower', B: 'rust' }, floor: 'asphalt', outer: { ground: 'water', groundY: -7, ring: 'city' }, floorOf: (x) => x >= 57 ? 'rubble' : null, pal: PAL.bridge, start: [3, 5, Math.PI], par: 200, railSpeed: 0.028, music: 'chase', amb: 'wind',
     card: ['Day 6 – 11:11:11', "Sgt. 'Soap' MacTugish", '22nd Sausage Air Service', 'Bridge over the Tubes'],
     props: [['car', 12, 3.5], ['car', 22, 6.5], ['cone', 26, 3.5, { passable: true }], ['barrier', 31, 6.5], ['car', 38, 3.5], ['lampost', 8, 7.5], ['lampost', 18, 3.5], ['lampost', 28, 7.5], ['lampost', 38, 7.5], ['lampost', 48, 3.5], ['barrier', 44, 3.5], ['car', 50, 6.5], ['cone', 54, 3.5, { passable: true }],
       ['wreck', 60, 2], ['wreck', 66, 8], ['fire', 60.5, 2.5, { passable: true }], ['smoke', 60.5, 2.3, { passable: true, z: 0.8 }], ['car', 70, 1.5], ['fire', 70, 2.4, { passable: true }], ['smoke', 70, 2.2, { passable: true, z: 0.8 }], ['barrel', 75, 8.5], ['wreck', 76, 3], ['barrier', 63, 8.5], ['cone', 65, 1.5, { passable: true }]],
@@ -288,7 +320,7 @@ const M5 = () => {
     stages: [
       { obj: 'Hold them off until the bridge', start() { M.state = 'rails'; player.a = Math.PI; M.flags.spawnT = 0; },
         tick() {
-          if (t - M.flags.spawnT > (diff === 'regular' ? 70 : 95) && player.x < 50) { M.flags.spawnT = t; const ty = Math.random() < 0.55 ? 'bee' : 'crab'; spawnEnemy(ty, player.x - 9, rand(3.5, 6.5), { ai: 'chase', speedMul: ty === 'crab' ? 2.2 : 1.6, sightMul: 5 }); }
+          if (t - M.flags.spawnT > (diff === 'regular' ? 70 : 95) && player.x < 50) { M.flags.spawnT = t; const r = Math.random(), ty = r < 0.5 ? 'condom' : r < 0.8 ? 'bee' : 'crab'; spawnEnemy(ty, player.x - 9, rand(3.5, 6.5), { ai: 'chase', speedMul: ty === 'crab' ? 2.2 : 1.6, sightMul: 5 }); }
           for (const e of ents) if (e.kind === 'enemy' && e.x < player.x - 14) e.gone = true;
           if (player.x > 25 && !M.flags.mid) { M.flags.mid = true; say('SOUP', 'Bridge! We\'re almost across!', 180); say('PRICK', 'Don\'t say that. Never say that.', 180); }
         },

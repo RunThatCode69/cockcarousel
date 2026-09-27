@@ -199,6 +199,13 @@ export function makeCrate() {
   root.userData = { kind: 'crate' }; return root;
 }
 export function makeNut() { const r = new THREE.Group(); r.add(sphere(0.09, SKIN, 0, 0, 0)); const ring = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.008, 6, 12), toon('#8a8a9a')); ring.position.set(0.05, 0.09, 0); r.add(ring); return r; }
+export function makeCondomShot() {   // a flying condom: the rolled ring and a floppy translucent tip
+  const g = new THREE.Group(); const latex = toon('#c8e6ff', { transparent: 0.8 });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.022, 8, 18), toon('#dcefff')); g.add(ring);
+  const tip = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.1, 4, 10), latex); tip.rotation.x = Math.PI / 2; tip.position.z = -0.09; g.add(tip);
+  const res = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), latex); res.position.z = -0.2; g.add(res);
+  return g;
+}
 export function makeGlob() { const m = new THREE.Mesh(G.sphLo, toon(CUM, { emissive: '#ffffff', ei: 0.35 })); m.scale.setScalar(0.09); return m; }
 export function makeStinger() { const m = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.14, 6), toon(INK)); m.rotation.x = Math.PI / 2; const g = new THREE.Group(); g.add(m); return g; }
 export function makeBottle() { const g = new THREE.Group(); g.add(at(ink(G.cyl(0.05, 0.05, 0.2, 10), toon('#ff7a3a')), 0, 0, 0)); g.add(at(ink(G.cyl(0.025, 0.03, 0.08, 8), toon('#c92a2a')), 0, 0.13, 0)); return g; }
@@ -215,7 +222,12 @@ export function makeHeli() {
   g.add(at(new THREE.Mesh(G.sph, toon('#bfe9f8', { transparent: 0.7 })), 0.8, 0.1, 0, 0.5, 0.4, 0.5));
   const rotor = new THREE.Group(); rotor.position.y = 0.75; g.add(rotor); [0, Math.PI / 2].forEach(a => { const b = new THREE.Mesh(G.box(3.2, 0.03, 0.14), toon('#2a2a2a')); b.rotation.y = a; rotor.add(b); });
   [-0.4, 0.4].forEach(z => g.add(at(new THREE.Mesh(G.box(1.8, 0.05, 0.06), toon('#3f4a2e')), 0, -0.75, z)));
-  g.userData = { rotor }; return g;
+  // nav lights (red port, green starboard, white strobe on the tail) and a searchlight cone, so you can find it at night
+  const lamp = (c, x, y, z) => { const l = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color: c, fog: false })); l.position.set(x, y, z); g.add(l); return l; };
+  lamp('#ff3040', 0.2, 0, 0.72); lamp('#30ff60', 0.2, 0, -0.72); const strobe = lamp('#ffffff', -2.2, 0.3, 0);
+  const beam = new THREE.Mesh(new THREE.ConeGeometry(1.4, 5, 16, 1, true), new THREE.MeshBasicMaterial({ color: '#fff6c8', transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  beam.position.set(1.3, -2.6, 0); g.add(beam);
+  g.userData = { rotor, strobe }; return g;
 }
 export function makeTuft(seed = 0) {   // a tuft of "tall grass". Curly, brown. You know what it is.
   const g = new THREE.Group(); const mat = toon('#3a2a1a');

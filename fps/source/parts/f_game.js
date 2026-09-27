@@ -4,7 +4,7 @@
 // ================================================================
 const MAG = 8, DMG = 35, GLOB_SPEED = 0.3;
 let state = 'title', player = null, ents = [], globs = [], eproj = [], puddles = [], stats = null, stateT = 0;
-let unlockedM = 1, bestM = {}, diff = 'easy', deathQuote = ['', ''], pauseFrom = null, missionIdx = 1;
+let unlockedM = 1, bestM = {}, diff = 'easy', deathQuote = ['', ''], deathTitle = 'YOU DIED', pauseFrom = null, missionIdx = 1;
 try { unlockedM = clamp(+localStorage.getItem('mw_unlocked') || 1, 1, 5); } catch (e) {}
 try { bestM = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; } catch (e) {}
 try { diff = localStorage.getItem('mw_diff') === 'regular' ? 'regular' : 'easy'; } catch (e) {}
@@ -15,7 +15,7 @@ const ENEMY = {
   crab:   { spr: 'crab',   h: 1.0,  w: 1.25,  hp: 50,  speed: 0.036, r: 0.5,  atk: 'melee', dmg: 12, range: 1.0, cd: 55,  sight: 9 },
   bee:    { spr: 'bee',    h: 0.8,  w: 1.0, hp: 35,  speed: 0.05,  r: 0.42, atk: 'ranged', proj: 'stinger', dmg: 8, range: 6, cd: 85, sight: 10, fly: 0.55, erratic: true, keep: 2.5 },
   trap:   { spr: 'trap',   h: 0.7,  w: 1.15,  hp: 60,  speed: 0,     r: 0.5,  atk: 'lunge', dmg: 18, range: 2.4, cd: 120, sight: 3.5 },
-  condom: { spr: 'condom', h: 1.35, w: 1.05, hp: 70,  speed: 0.03,  r: 0.48, atk: 'wrap',  dmg: 6,  range: 1.1, cd: 95,  sight: 8 },
+  condom: { spr: 'condom', h: 1.35, w: 1.05, hp: 70,  speed: 0.03,  r: 0.48, atk: 'ranged', proj: 'condomshot', dmg: 0, range: 7.5, cd: 140, sight: 9, keep: 3.2 },
   chili:  { spr: 'chili',  h: 1.15, w: 0.9, hp: 55,  speed: 0.026, r: 0.42, atk: 'throw', proj: 'bottle', dmg: 0, range: 6.5, cd: 150, sight: 9, keep: 3.5 },
   ice:    { spr: 'ice',    h: 1.4,  w: 1.6,  hp: 220, speed: 0.02,  r: 0.6,  atk: 'melee', dmg: 15, range: 1.3, cd: 75,  sight: 9, aura: 3.2, boss: true },
   boss:   { spr: 'boss',   h: 2.2,  w: 1.7,  hp: 160, speed: 0.022, r: 0.65, atk: 'melee', dmg: 20, range: 1.5, cd: 80,  sight: 30, boss: true },
@@ -36,7 +36,7 @@ const RANKS = [[85, 'GENERAL ERECTION', 'she wants more'], [70, 'MAJOR WOOD', 'w
 function newPlayer(x, y, a) {
   return { x, y, a, hp: 100, lastHit: -999, ammo: MAG, reloading: false, reloadT: 0, fireCd: 0, recoil: 0, walkT: 0, moving: 0, bobY: 0,
     wrapT: 0, shrink: 0, ultraT: 0, streak: 0, buttT: 0, aimLock: false, speedMul: 1, invul: false, canFire: true, canMove: true,
-    lookP: 0, ads: 0, sprint: 0, crouch: false, nades: 3, throwT: 0, kick: 0, stepN: 0 };
+    lookP: 0, ads: 0, sprint: 0, crouch: false, nades: 3, throwT: 0, kick: 0, stepN: 0, jz: 0, jv: 0, wrap: 0, lastWrap: 0, hintT: 0 };
 }
 function spawnEnemy(type, x, y, o = {}) {
   const d = ENEMY[type];
@@ -129,12 +129,23 @@ function hurtPlayer(dmg, why, src) {
   if (src) dmgDir.push({ a: angleTo(p, src), life: 40 });
   if (p.hp <= 0) { p.hp = 0; die(why); }
 }
+// ---------- getting wrapped: condom hits roll one further down you. All the way on = you lose. ----------
+function wrapHit(k, src) {
+  const p = player; if (p.invul || state !== 'game') return;
+  p.wrap = Math.min(1, (p.wrap || 0) + k * (diff === 'regular' ? 1.2 : 1)); p.lastWrap = t; p.wrapT = Math.max(p.wrapT, 50);
+  sfx('wrap'); shake = Math.max(shake, 5); if (src) dmgDir.push({ a: angleTo(p, src), life: 40 });
+  if (p.wrap >= 1) { die('wrapped'); return; }
+  announce(`WRAPPED ${Math.round(p.wrap * 100)}%`, p.wrap > 0.7 ? 'one more and you\'re done' : 'dodge it. then glob him.', 34);
+  if (!M.flags.wrapTip) { M.flags.wrapTip = true; say('PRICK', "That's a condom, son. Get fully wrapped and you're out of the fight. Keep moving.", 260); }
+}
 function die(why) {
   state = 'dead'; stateT = 0; deathQuote = pickOne(DEATHS); sfx('die'); player.streak = 0; hurtFx(6); shake = 14;
   if (why === 'trap') deathQuote = ['SNAP. The cheese was never real.', 'Sarge'];
   if (why === 'sauce') deathQuote = ['Death by hot sauce. You went out spicy.', 'Sarge'];
   if (why === 'ice') deathQuote = ['It\'s cold, okay?! IT\'S COLD.', 'you, to no one'];
   if (why === 'timer') deathQuote = ['The ship sank. You sank. Everything sank.', 'Captain Prick'];
+  deathTitle = why === 'wrapped' ? 'WRAPPED' : 'YOU DIED';
+  if (why === 'wrapped') deathQuote = pickOne([['Protected. Neutralized. Very safe.', 'Condom Trooper'], ['Ribbed for their pleasure.', 'the box'], ['You got wrapped before you got in.', 'Captain Prick'], ['No glove, no love. Lots of glove, no you.', 'Sarge']]);
 }
 
 // ---------- per-frame gameplay ----------
@@ -173,6 +184,15 @@ function updatePlayer() {
   let sp = 0.062 * p.speedMul * (p.wrapT > 0 ? 0.35 : 1) * (M.state === 'crawl' ? 0.22 : 1) * (1 + 0.6 * p.sprint) * (1 - 0.4 * p.ads) * (p.crouch ? 0.55 : 1) * ts;
   const c = cell(p.x | 0, p.y | 0);
   if (c === ',') sp *= 0.8;
+  if (c === 't' && p.jz < 0.05) sp *= 0.55;   // tyre run: slow, unless you hop through
+  // jumping
+  if (p.jz > 0 || p.jv > 0) { p.jz += p.jv * ts; p.jv -= 0.0055 * ts; if (p.jz <= 0) { p.jz = 0; if (p.jv < -0.03) { sfx('step'); p.kick += 6; } p.jv = 0; } }
+  // walked into a hurdle or the wire? tell them what to do
+  if ((fx || fy) && t - p.hintT > 150) {
+    const ax = p.x + Math.cos(p.a) * 0.55, ay = p.y + Math.sin(p.a) * 0.55, ahead = cell(ax | 0, ay | 0);
+    if (ahead === 'j' && p.jz < 0.1) { p.hintT = t; announce(isTouch ? 'TAP JUMP!' : 'SPACE TO JUMP!', 'up and over, big guy', 34); }
+    if (ahead === 'w' && !p.crouch) { p.hintT = t; announce(isTouch ? 'TAP CROUCH!' : 'C TO CROUCH!', 'get low. lower. like a worm.', 34); }
+  }
   const dx = (Math.cos(p.a) * fx - Math.sin(p.a) * fy) * sp, dy = (Math.sin(p.a) * fx + Math.cos(p.a) * fy) * sp;
   if (len > 0.05) { moveBody(p, dx, dy, 0.25); p.walkT += ts; p.moving = lerp(p.moving, 1, 0.2); } else p.moving = lerp(p.moving, 0, 0.2);
   if (M.state === 'rails') { p.x += M.railSpeed * ts; p.moving = lerp(p.moving, 0.4, 0.1); p.walkT += ts * 0.6; }
@@ -185,6 +205,7 @@ function updatePlayer() {
   if (p.reloading) { p.reloadT -= ts; const r = 1 - p.reloadT / RELOAD_T; if (r > 0.3 && p.rsfx < 1) { p.rsfx = 1; sfx('thud'); } if (r > 0.62 && p.rsfx < 2) { p.rsfx = 2; sfx('magin'); } if (r > 0.7 && p.rsfx < 3) { p.rsfx = 3; sfx('pump'); } if (p.reloadT <= 0) { p.reloading = false; p.ammo = MAG; sfx('click'); } }
   p.drip = Math.min(1, (p.drip || 0) + 0.004 * ts);
   if (t - p.lastHit > 180 && p.hp < 100 && p.hp > 0) p.hp = Math.min(100, p.hp + 0.45 * ts);
+  if (p.wrap > 0 && t - (p.lastWrap || 0) > 90) p.wrap = Math.max(0, p.wrap - 0.006 * ts);   // it slides back off if you stop getting hit
   if (fireHeld && M.state !== 'crawl') { p.sprint = 0; fire(); }
   p.aimLock = !!bestTarget();
   // pickups
@@ -220,7 +241,7 @@ function updateGlobs() {
     q.x += q.vx * ts; q.y += q.vy * ts; q.life -= ts;
     if (q.arc) { q.z += q.vz * ts; q.vz -= 0.004 * ts; if (q.z <= 0) { q.life = 0; puddles.push({ x: q.x, y: q.y, life: 700, spr: 'puddle', z: 0, h: 0.28, w: 1.4, seed: 0 }); burst3d(q.x, q.y, 0.2, 8, 'saucedrop'); sfx('sizzle'); continue; } }
     if (solid(q.x, q.y)) { q.life = 0; continue; }
-    if (!q.arc && dist(q, player) < 0.45) { q.life = 0; hurtPlayer(q.dmg, 'bee', q); }
+    if (!q.arc && dist(q, player) < 0.45) { q.life = 0; if (q.spr === 'condomshot') wrapHit(0.25, q); else hurtPlayer(q.dmg, 'bee', q); }
   }
   eproj = eproj.filter(q => q.life > 0);
   for (const q of puddles) q.life -= ts;
@@ -229,6 +250,7 @@ function updateGlobs() {
 function updateEnemies() {
   const p = player;
   const onGrass = cell(p.x | 0, p.y | 0) === ',';
+  if (t % 12 === 0 || !flowF) buildFlow(p.x, p.y);
   for (const e of ents) {
     if (e.tick) e.tick(e);
     if (e.kind === 'deco' && e.hair) {   // the hairstrike coming down
@@ -262,7 +284,8 @@ function updateEnemies() {
     const a = angleTo(e, p);
     let mvx = 0, mvy = 0;
     const keep = d.keep || 0;
-    if (dd > Math.max(d.range * 0.8, keep)) { mvx = Math.cos(a); mvy = Math.sin(a); }
+    const clearShot = dd < d.range && losShot(e.x, e.y, p.x, p.y);
+    if (dd > Math.max(d.range * 0.8, keep) || !clearShot) { const fa = dd > 1.6 ? flowDir(e) : null; const m = fa === null ? a : fa; mvx = Math.cos(m); mvy = Math.sin(m); }
     else if (keep && dd < keep - 0.5) { mvx = -Math.cos(a); mvy = -Math.sin(a); }
     if (d.erratic) { e.wob += 0.12 * ts; mvx += Math.cos(a + Math.PI / 2) * Math.sin(e.wob) * 1.2; mvy += Math.sin(a + Math.PI / 2) * Math.sin(e.wob) * 1.2; }
     if (e.stuck > 0) { e.stuck -= ts; const s = e.stuckDir; mvx = Math.cos(s); mvy = Math.sin(s); }
@@ -277,11 +300,11 @@ function updateEnemies() {
     for (const o of ents) { if (o === e || o.kind !== 'enemy' || o.dead) continue; const od = dist(e, o); if (od < 0.7 && od > 0.001) { const ax = (e.x - o.x) / od * 0.01, ay = (e.y - o.y) / od * 0.01; moveBody(e, ax, ay, e.r); } }
     if (d.aura && dd < d.aura) p.shrink = 3;
     // attack
-    if (e.cd <= 0 && dd < d.range && los(e.x, e.y, p.x, p.y)) {
+    if (e.cd <= 0 && dd < d.range && (d.atk === 'ranged' ? clearShot : los(e.x, e.y, p.x, p.y))) {
       e.cd = d.cd * (diff === 'regular' ? 0.85 : 1); e.attackT = 22;
       if (d.atk === 'melee') { e.pending = 10; }
       if (d.atk === 'wrap') { e.pending = 10; }
-      if (d.atk === 'ranged') { eproj.push({ x: e.x, y: e.y, vx: Math.cos(a) * 0.11, vy: Math.sin(a) * 0.11, life: 120, dmg: d.dmg, spr: d.proj, z: 0.5, h: 0.25, w: 0.35, seed: 0 }); sfx('sting'); }
+      if (d.atk === 'ranged') { const v = d.proj === 'condomshot' ? 0.065 : 0.11; eproj.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 160, dmg: d.dmg, spr: d.proj, z: 0.5, h: 0.25, w: 0.35, seed: 0 }); sfx(d.proj === 'condomshot' ? 'fwip' : 'sting'); }
       if (d.atk === 'throw') { const tt = Math.max(20, dd / 0.09); eproj.push({ x: e.x, y: e.y, vx: (p.x - e.x) / tt, vy: (p.y - e.y) / tt, life: 400, dmg: 0, spr: 'bottle', z: 0.6, vz: 0.002 * tt, arc: true, h: 0.4, w: 0.35, seed: 0 }); }
     }
     if (e.pending !== undefined) { e.pending -= ts; if (e.pending <= 0) { delete e.pending; if (dd < d.range + 0.3) { hurtPlayer(d.dmg, e.type, e); if (d.atk === 'wrap') { p.wrapT = 120; sfx('wrap'); announce('WRAPPED', 'that\'s not how consent works', 36); } } } }
@@ -292,6 +315,11 @@ function updateEnemies() {
 }
 // ---------- the nut-nade: CoD's frag, but it's one ball ----------
 let nades = [];
+function jump() {
+  const p = player; if (!p || state !== 'game' || M.state !== 'play' || !p.canMove || p.jz > 0 || p.jv > 0) return;
+  if (p.crouch) { p.crouch = false; return; }   // like CoD: jump stands you up first
+  p.jv = 0.07; p.jz = 0.001; sfx('bounce');
+}
 function throwNade() {
   const p = player; if (!p || p.nades <= 0 || !p.canFire || p.throwT > 0 || !(M.state === 'play' || M.state === 'rails')) return;
   p.nades--; p.throwT = 28; sfx('pin'); say('YOU', pickOne(['NUT OUT!', 'NUT OUT!', 'Frag— I mean, NUT OUT!', 'Throwing a ball!']), 90);
@@ -453,7 +481,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.repeat) return;
   if (state === 'game') {
-    if (e.code === 'Space') { fireHeld = true; fire(); }
+    if (e.code === 'Space') jump();
     if (e.code === 'KeyR') reload();
     if (e.code === 'KeyG') throwNade();
     if (e.code === 'KeyC' || e.code === 'ControlLeft') { player.crouch = !player.crouch; sfx('ads'); }
@@ -466,7 +494,7 @@ addEventListener('keydown', e => {
   else if (e.code === 'Space' || e.code === 'Enter') advance();
   else if (state === 'title' && e.code === 'KeyN') newGame();
 });
-addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Space') fireHeld = false; });
+addEventListener('keyup', e => { keys[e.code] = false; });
 cv.addEventListener('pointerdown', e => {
   e.preventDefault(); audio();
   const [x, y] = toCanvas(e);
@@ -506,6 +534,7 @@ const release = e => {
 cv.addEventListener('contextmenu', e => e.preventDefault());
 // on-screen buttons for phones (bottom right, above the look area)
 const TOUCH_BTNS = [
+  { x: W - 150, y: H - 254, w: 130, h: 50, label: 'JUMP', fn: () => jump() },
   { x: W - 150, y: H - 130, w: 130, h: 50, label: 'RELOAD', fn: () => reload() },
   { x: W - 150, y: H - 192, w: 130, h: 50, label: 'AIM', fn: () => { adsToggle = !adsToggle; sfx('ads'); }, on: () => adsToggle },
   { x: W - 290, y: H - 130, w: 126, h: 50, label: 'NUT', fn: () => throwNade(), count: () => player.nades },

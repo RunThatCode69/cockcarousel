@@ -47,7 +47,7 @@ function renderWorld() {
   const p = player;
   // camera from the v2 camera model: x/y on the grid, camH as eye height, pitch px → radians, roll, fov
   const bob = p ? p.bobY * 0.004 : 0;
-  camera.position.set(p.x, camH * YS + bob, p.y);
+  camera.position.set(p.x, (camH + (p.jz || 0)) * YS + bob, p.y);
   camera.rotation.set(clamp(pitch * PX2RAD, -1.35, 1.35), -p.a - Math.PI / 2, roll);
   if (shake > 0.3) { camera.position.x += rand(-1, 1) * shake * 0.004; camera.position.y += rand(-1, 1) * shake * 0.004; }
   camera.fov = 72 * (fovK / 0.66); camera.updateProjectionMatrix();

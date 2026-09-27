@@ -73,6 +73,7 @@ function sfx(n) {
     case 'bee': tone(rand(300, 360), rand(280, 340), 0.25, 'sawtooth', 0.04); break;
     case 'sting': tone(1500, 700, 0.08, 'square', 0.06); hiss(0.05, 0.15, 0, 'highpass', 4000, 6000); break;
     case 'snap': hiss(0.05, 0.4, 0, 'highpass', 3000, 5000, 1); tone(300, 60, 0.3, 'sawtooth', 0.08, 0.05); break;
+    case 'fwip': tone(900, 300, 0.14, 'sine', 0.12); hiss(0.1, 0.15, 0, 'bandpass', 2500, 800, 2); break;
     case 'wrap': tone(200, 900, 0.35, 'sine', 0.14); tone(900, 200, 0.35, 'sine', 0.1, 0.35); break;
     case 'sizzle': hiss(0.5, 0.25, 0, 'highpass', 3000, 5000, 0.7); break;
     case 'shiver': for (let i = 0; i < 6; i++) tone(700 + i * 40, 650, 0.05, 'square', 0.04, i * 0.06); break;

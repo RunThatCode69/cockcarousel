@@ -1,41 +1,34 @@
 
 // ================================================================
-//  THE DICK-47, in 3D: stock, receiver, rail, red-dot, veiny barrel, a head for a muzzle, balls for a magazine.
+//  THE DICK-47, in 3D: a smooth cartoon shaft for a barrel, a head for a muzzle, balls for a magazine, and a face.
 //  Held in camo sleeves and gloves. Hip, ADS, sprint, reload, rack, throw, melee.
 // ================================================================
 const RELOAD_T = 80;
 const ease = k => k < 0 ? 0 : k > 1 ? 1 : k * k * (3 - 2 * k);
 const GUN = (() => {
-  // The whole gun is the dick: a thick veiny shaft is the barrel, the head is the muzzle, the balls are the magazine.
+  // The whole gun is the dick (cartoon, not anatomy class): a smooth shaft is the barrel, the head is the muzzle, the balls are the magazine.
   // Only the grip, trigger and a skinny stock are "gun". Forward is -z.
   const gun = new THREE.Group();
   const dark = MD.toon('#2a2626'), skinM = MD.toon(SKIN), headM = MD.toon(HEAD), veinM = MD.toon('#d9829a');
   const add = (m, x, y, z) => { m.position.set(x, y, z); gun.add(m); return m; };
   // shaft: thick, slightly tapered, gently curving up
-  const shaftPts = [new THREE.Vector2(0, -0.02), new THREE.Vector2(0.05, -0.012)]; for (let i = 0; i <= 14; i++) { const k = i / 14; shaftPts.push(new THREE.Vector2(0.066 - k * 0.008 + Math.sin(k * Math.PI) * 0.006, k * 0.46)); }
+  const shaftPts = [new THREE.Vector2(0, -0.02), new THREE.Vector2(0.05, -0.012)]; for (let i = 0; i <= 14; i++) { const k = i / 14; shaftPts.push(new THREE.Vector2(0.066 - k * 0.004, k * 0.46)); }
   const shaftGeo = new THREE.LatheGeometry(shaftPts, 24); shaftGeo.rotateX(-Math.PI / 2);
   const shaft = add(MD.ink(shaftGeo, skinM, 0.004), 0, 0, 0);
-  // veins: raised, wiggly, a couple of branches
-  [[0.06, 0.02, 0], [-0.056, 0.024, 1], [0.02, 0.062, 2], [-0.03, -0.055, 3], [0.045, -0.04, 4]].forEach(([vx, vy, i]) => {
-    const pts = []; for (let k = 0; k <= 10; k++) { const q = k / 10; const r = 0.068 - q * 0.008; const ang = Math.atan2(vy, vx) + Math.sin(q * 7 + i) * 0.25; pts.push(new THREE.Vector3(Math.cos(ang) * r, Math.sin(ang) * r, -0.03 - q * (0.3 + (i % 2) * 0.08))); }
-    gun.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, 0.0085, 6), veinM));
-  });
   // the head: big mushroom tip with a proper ridge, a slit and a shine
   const head = new THREE.Group(); head.position.set(0, 0, -0.5); gun.add(head);
   const hd = MD.ink(new THREE.SphereGeometry(1, 24, 16), headM, 0.004); hd.scale.set(0.08, 0.072, 0.09); hd.position.z = -0.03; head.add(hd);
   const ridge = MD.ink(new THREE.TorusGeometry(0.074, 0.016, 10, 28), MD.toon(HEAD2), 0.003); ridge.position.z = 0.03; head.add(ridge);
-  const slit = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.03, 0.01), new THREE.MeshBasicMaterial({ color: '#8a2a4a' })); slit.position.set(0, 0.0, -0.119); head.add(slit);
   const shine = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), new THREE.MeshBasicMaterial({ color: '#fff' })); shine.scale.set(1.4, 0.7, 1); shine.position.set(0.03, 0.045, -0.05); head.add(shine);
   const post = MD.ink(new THREE.ConeGeometry(0.008, 0.03, 8), MD.toon('#ffd23f'), 0.002); post.position.set(0, 0.083, -0.02); head.add(post);   // front sight post
-  // a fold of skin where head meets shaft
-  const fold = MD.ink(new THREE.TorusGeometry(0.066, 0.012, 8, 24), MD.toon(SKIN2), 0.002); fold.position.z = -0.45; gun.add(fold);
   // balls = the magazine, hanging below the base
   const mag = new THREE.Group(); mag.position.set(0, -0.075, 0.02); gun.add(mag);
   [-1, 1].forEach(s => { const b = MD.ink(new THREE.SphereGeometry(1, 20, 14), skinM, 0.004); b.scale.set(0.068, 0.076, 0.07); b.position.set(s * 0.052, -0.02, 0); mag.add(b); });
   const seam = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.1, 0.1), MD.toon(SKIN2)); seam.position.set(0, -0.02, 0.01); mag.add(seam);
-  // pubes at the base (a little curly ring)
-  const pubeM = MD.toon('#3a2a1a'); const bush = new THREE.Group(); gun.add(bush);
-  for (let i = 0; i < 10; i++) { const a = -0.3 + i / 9 * (Math.PI + 0.6); const pts = []; for (let k = 0; k <= 5; k++) { const q = k / 5; pts.push(new THREE.Vector3(Math.cos(a) * (0.066 + q * 0.014) + Math.sin(q * 9 + i) * 0.004, Math.sin(a) * (0.066 + q * 0.014) + Math.cos(q * 8 + i) * 0.004, 0.005 - q * 0.008)); } bush.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 8, 0.0022, 3), pubeM)); }
+  const bush = new THREE.Group(); gun.add(bush);   // (kept empty: the cartoon version has no hair)
+  // a face on top of the shaft, looking back up at you. It reacts.
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.085, 0.085), new THREE.MeshBasicMaterial({ map: MD.faceTex('happy'), transparent: true, depthWrite: false }));
+  face.position.set(0, 0.066, -0.12); face.rotation.x = -Math.PI / 2 + 0.55; face.renderOrder = 5; gun.add(face);
   // rear sight: a little pink heart ring on top of the base
   const ring = MD.ink(new THREE.TorusGeometry(0.016, 0.004, 6, 16), MD.toon(PINK), 0.002); ring.position.set(0, 0.083, -0.03); gun.add(ring);
   add(MD.ink(new THREE.BoxGeometry(0.006, 0.018, 0.01), dark, 0.001), 0, 0.064, -0.03);
@@ -49,7 +42,7 @@ const GUN = (() => {
   const flashTex = (() => { const c = bake(128, 128, () => { E(64, 64, 34, 30); fs(CUM, CUM2, 5); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; E(64 + Math.cos(a) * 46, 64 + Math.sin(a) * 42, 10, 9); fs(CUM, CUM2, 3); } E(54, 54, 10, 6); fs('#fff', null); }); return new THREE.CanvasTexture(c); })();
   const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: flashTex, transparent: true, depthWrite: false })); flash.position.set(0, 0, -0.66); flash.scale.setScalar(0.2); gun.add(flash);
   MD.bakeModel(gun, [head, mag, shaft, bush]);
-  return { gun, head, mag, shaft, flash, bush };
+  return { gun, head, mag, shaft, flash, bush, face };
 })();
 // arms: camo sleeves, fingerless gloves
 const camoTex = (() => { const c = bake(128, 128, () => { A2.ctx.fillStyle = '#b8a47a'; A2.ctx.fillRect(0, 0, 128, 128); for (let i = 0; i < 26; i++) { E((i * 37) % 128, (i * 71) % 128, 10 + (i % 4) * 4, 7 + (i % 3) * 3, i); fs(i % 5 === 0 ? '#d98aa0' : i % 2 ? '#8a7650' : '#6b5a3a', null); } }); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.wrapS = tx.wrapT = THREE.RepeatWrapping; return tx; })();
@@ -112,5 +105,6 @@ function updateWeapon() {
   placeArm(armL, lh, _b.set(-0.3, -0.6, 0.05));
   heldNut.visible = thr > 0 && thr < 0.55;
   GUN.bush.visible = ads < 0.5;
+  { const fk = rec > 0.4 ? 'yell' : (p.wrap || 0) > 0.5 || p.hp < 40 ? 'angry' : p.reloading ? 'yell' : 'happy'; if (GUN.face.userData.k !== fk) { GUN.face.material.map = MD.faceTex(fk); GUN.face.material.needsUpdate = true; GUN.face.userData.k = fk; } GUN.face.visible = ads < 0.6; }
   vmCam.fov = lerp(58, 50, ads); vmCam.updateProjectionMatrix();
 }
