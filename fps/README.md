@@ -11,18 +11,30 @@ Your weapon is the **DICK-47**: a dick-shaped rifle held in both hands. The maga
 | | Desktop | Phone |
 |---|---|---|
 | Move / strafe | `W A S D` | left half: drag (virtual joystick) |
-| Look | mouse (click to lock the pointer) or `← →` / `Q E` | right half: drag |
+| Look (left/right **and up/down**) | mouse (click to lock the pointer), or `← →` / `Q E`, `T`/`B` tilt | right half: drag |
 | Shoot | click or `SPACE` | right half: tap (hold to keep firing) |
-| Reload ("pump") | `R` | RELOAD button, bottom right |
-| Headbutt | `V` / `F` — or just shoot with an enemy in your face | shoot with an enemy in your face |
-| Pause | `ESC` / `P` | `II` button, top center |
-| Sound | `M` | pause menu |
+| Aim down sights | hold right-click, or `Z` to toggle | AIM button |
+| Reload | `R` | RELOAD button |
+| Nut-nade (grenade) | `G` | NUT button |
+| Sprint | hold `SHIFT` | push the joystick all the way forward |
+| Crouch | `C` | CROUCH button |
+| Headbutt | `V` / `F`, or just shoot with an enemy in your face | shoot with an enemy in your face |
+| Pause | `ESC` / `P` | `II` button |
+| Sound | `M`, or the SOUND button on the title | pause menu / title button |
 
 Generous auto-aim (about a 15° cone), big enemies, slow projectiles. It is much easier than CoD on purpose. Health is CoD-style: 100 HP, regenerates after 3 seconds without damage, jam-smear on the screen instead of blood, red vignette when low.
 
 **Killstreaks** — 3: *Ultrasound online* (enemies on the minimap). 5: *Care Package* (a crate of eggplants, full heal). 7: *Precision Hairstrike* (a giant pube falls and wipes the room).
 
 **Enemies** — Crab (melee rusher), Bee (fast, erratic, shoots stingers), Mousetrap (sits still, lunges), Condom Trooper (wraps you: slow for 2 s), Chili (throws hot sauce, area denial), Ice Cube (mini-boss: "shrinkage" halves your damage while near), and Imran Jackoff.
+
+## v2 detail pass
+
+Vertical look (Duke3D-style y-shearing), aim-down-sights through a red-dot with a heart reticle, sprint, crouch and a 3-per-mission nut-nade. The DICK-47 is held in camo sleeves and gloves with a stock, receiver, rail, red dot and foregrip; it lags behind your look, kicks your view on recoil and brightens the scene on each shot. Sprites are shaded and cast ground shadows, walls have baked occlusion, each level has its own colour grade, desktop gets film grain. HUD: CoD4 intro card, compass, world objective marker with distance, hit markers, `+69` XP popups, kill feed, stance icon, grenade count.
+
+Sound: filtered-noise gunshots and explosions, footsteps, a music track per level (march, night crickets, tense pulse, elevator muzak, chase drums) and ambient beds (wind, sea, room tone, fire). On iPhones it loops a silent `<audio>` element on the first touch so the ringer switch doesn't mute the game.
+
+The version before this pass is saved as `archive/fps-v1.html` and git tag `fps-v1`.
 
 ## Missions
 
