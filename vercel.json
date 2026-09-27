@@ -1,1 +1,9 @@
-{ "cleanUrls": true }
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/cod", "destination": "/sperm" },
+    { "source": "/cumofduty", "destination": "/sperm" },
+    { "source": "/callofduty", "destination": "/sperm" },
+    { "source": "/wronghole", "destination": "/sperm" }
+  ]
+}
