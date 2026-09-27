@@ -32,6 +32,7 @@ function drawHUD() {
   }
   if (p.shrink > 0) { ctx.fillStyle = 'rgba(160,220,255,0.1)'; ctx.fillRect(0, 0, W, H); txt('SHRINKAGE — damage halved', W / 2, 250, 26, '#bfe9f8', 'center', '#1a4a7a'); }
   if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${Math.min(1, flash)})`; ctx.fillRect(0, 0, W, H); }
+  if (M.state === 'gunship') { drawGunshipHUD(); drawObjRadio(); drawAnnounce(); return; }
   if (M.state !== 'play' && M.state !== 'rails' && M.state !== 'crawl' && M.state !== 'showdown') return;
   const cy = H / 2;
   // damage direction indicators
@@ -69,22 +70,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     ctx.restore();
     ctx.fillStyle = '#fff'; poly([cx, cy0 + 14, cx - 5, cy0 + 20, cx + 5, cy0 + 20]); ctx.fill();
   }
-  // objective
-  if (objText) {
-    ctx.fillStyle = 'rgba(74,29,58,0.7)'; rr(16, 14, 420, 56, 10); ctx.fill();
-    txt('OBJECTIVE', 30, 30, 15, CYAN, 'left', null);
-    txt(objText.slice(0, Math.floor(objT / 1.5)), 30, 54, objText.length > 40 ? 16 : 20, '#fff', 'left', null);
-  }
-  if (radio) {
-    const k = Math.min(1, (radio.max - radio.life) / 6);
-    ctx.save(); ctx.globalAlpha = Math.min(1, radio.life / 20) * k;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'; const y = objText ? 84 : 14;
-    rr(16, y, 420, 30 + 22 * Math.ceil(radio.text.length / 40), 10); ctx.fill();
-    txt(radio.who + ':', 30, y + 19, 16, radio.who === 'PRICK' ? CYAN : radio.who === 'MACMILLI' ? '#b8f0a0' : radio.who === 'SARGE' ? '#ffb347' : radio.who === 'JACKOFF' ? '#ff4d6d' : YEL, 'left', null);
-    const shown = radio.text.slice(0, Math.floor((radio.max - radio.life) * 1.6));
-    txtWrap(shown, 30, y + 43, 18, 392, '#fff', 'left', null, 1.2);
-    ctx.restore();
-  }
+  drawObjRadio();
   // minimap + kill feed
   if (mini && M.state !== 'crawl') {
     const mw = 118, mh = 118, mx = W - mw - 16, my = 14;
@@ -139,6 +125,8 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     const s = Math.max(0, Math.ceil(M.timer / 60));
     txt(`${M.timerLabel || ''} ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`, W / 2, 60, 30, s < 15 && t % 30 < 15 ? '#ff4d6d' : '#fff');
   }
+  if (M.meter) { const m = M.meter, bw = 220, bx = W / 2 - bw / 2, by = 92; txt(m.label, W / 2, by - 8, 15, m.color || YEL, 'center', null); rr(bx, by, bw, 12, 6); fs('rgba(0,0,0,0.5)', '#fff', 1.5); rr(bx + 2, by + 2, (bw - 4) * clamp(m.k, 0, 1), 8, 4); fs(m.color || YEL, null); }
+  if (M.clock !== undefined && M.clock !== null) txt(`${M.clockLabel || ''} ${(M.clock / 60).toFixed(1)}s`, W / 2, 60, 30, '#fff');
   // CoD4-style intro card, bottom left, typed out on arrival
   if (M.card && hintT < 420) {
     ctx.globalAlpha = Math.min(1, (420 - hintT) / 40);
@@ -146,13 +134,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     M.card.forEach((line, i) => { const shown = line.slice(0, Math.max(0, n)); n -= line.length + 6; txt(shown, 30, H - 190 + i * 26, i === 0 ? 20 : 18, i === 0 ? '#fff' : '#d6f5d0', 'left', 'rgba(0,0,0,0.8)'); });
     ctx.globalAlpha = 1;
   }
-  if (announceQ.length) {
-    const a = announceQ[0];
-    const k = Math.min(1, (a.max - a.life) / 8), al = Math.min(1, a.life / 25);
-    ctx.save(); ctx.globalAlpha = al; ctx.translate(W / 2, 170); ctx.scale(k, k); ctx.rotate(Math.sin(t * 0.1) * 0.02);
-    txt(a.text, 0, 0, a.big, YEL); if (a.sub) txt(a.sub, 0, a.big * 0.9, 22, '#fff');
-    ctx.restore();
-  }
+  drawAnnounce();
   if (isTouch && hintT < 600 && M.state === 'play') {
     ctx.globalAlpha = Math.min(1, (600 - hintT) / 40);
     txt('drag here to move', W * 0.25, H - 80, 22, '#fff');
@@ -171,4 +153,34 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
   }
   if (isTouch) { rr(W / 2 - 24, 40, 48, 26, 8); fs('rgba(74,29,58,0.6)', null); txt('II', W / 2, 53, 16, '#fff', 'center', null); }
   if (!isTouch) txt(muted ? 'M: sound off' : 'M: sound on', W - 16, 152, 13, '#fff', 'right', null);
+}
+
+function drawObjRadio() {
+  const ctx = hctx;
+  // objective
+  if (objText) {
+    ctx.fillStyle = 'rgba(74,29,58,0.7)'; rr(16, 14, 420, 56, 10); ctx.fill();
+    txt('OBJECTIVE', 30, 30, 15, CYAN, 'left', null);
+    txt(objText.slice(0, Math.floor(objT / 1.5)), 30, 54, objText.length > 40 ? 16 : 20, '#fff', 'left', null);
+  }
+  if (radio) {
+    const k = Math.min(1, (radio.max - radio.life) / 6);
+    ctx.save(); ctx.globalAlpha = Math.min(1, radio.life / 20) * k;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; const y = objText ? 84 : 14;
+    rr(16, y, 420, 30 + 22 * Math.ceil(radio.text.length / 40), 10); ctx.fill();
+    txt(radio.who + ':', 30, y + 19, 16, radio.who === 'PRICK' ? CYAN : radio.who === 'MACMILLI' ? '#b8f0a0' : radio.who === 'SARGE' ? '#ffb347' : radio.who === 'JACKOFF' ? '#ff4d6d' : YEL, 'left', null);
+    const shown = radio.text.slice(0, Math.floor((radio.max - radio.life) * 1.6));
+    txtWrap(shown, 30, y + 43, 18, 392, '#fff', 'left', null, 1.2);
+    ctx.restore();
+  }
+}
+function drawAnnounce() {
+  const ctx = hctx;
+  if (announceQ.length) {
+    const a = announceQ[0];
+    const k = Math.min(1, (a.max - a.life) / 8), al = Math.min(1, a.life / 25);
+    ctx.save(); ctx.globalAlpha = al; ctx.translate(W / 2, 170); ctx.scale(k, k); ctx.rotate(Math.sin(t * 0.1) * 0.02);
+    txt(a.text, 0, 0, a.big, YEL); if (a.sub) txt(a.sub, 0, a.big * 0.9, 22, '#fff');
+    ctx.restore();
+  }
 }

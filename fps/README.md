@@ -12,7 +12,7 @@ The **DICK-47** is a 3D view model: a thick veiny shaft for a barrel, the head f
 
 **Finding your way:** a yellow chevron path on the ground leads to the objective, a light beacon marks it, the compass points along the route and an on-screen heart shows the distance.
 
-Source: `fps/source/` — run `npm install && npm run build` there, then copy `build/index.html` over `fps/index.html`. Previous versions: `archive/fps-v1.html` (tag `fps-v1`, the first raycaster) and `archive/fps-v2.html` (tag `fps-v2`, raycaster with ADS, nades and music).
+Source: `fps/source/` — run `npm install && npm run build` there, then copy `build/index.html` over `fps/index.html`. Previous versions are in `archive/` (`fps-v1` … `fps-v3.2`, each also a git tag).
 
 ## Controls
 
@@ -47,11 +47,40 @@ The version before this pass is saved as `archive/fps-v1.html` and git tag `fps-
 
 ## Missions
 
-1. **Bootie Camp** — S.A.S. HQ, Crotchenhill. Sarge walks you through hip fire, aiming down sights, pumping (reload), eggplants and practice Condom Troopers, then THE COURSE: jump the hurdles, crawl under the barbed wire, high-knee the tyre run, shoot the pop-ups, hit the flag. Your time earns a Recommended Difficulty (SOFT → THROBBING).
-2. **All Girthed Up** — The Bush, 15 years ago. Ghillie-suit stealth through tall grass that is clearly pubes. Slow Condom Trooper patrols, mousetraps in the grass, then one long shot at Imran Jackoff from the overlook ("one shot, one squirt"), then run to the LZ as the helicopter comes in, climb aboard and lift out over the treeline.
-3. **Crew Expandable** — cargo ship MV Blue Balls. Tight steel corridors, crabs everywhere, grab the package in the hold, then a 75-second escape while the deck tilts, ending with the jump to the helicopter.
-4. **No Rushin'** — a fertility clinic waiting room. Take a number (69), survive three waves of Condom Troopers and bees while they call 4, 5, 6..., ride the escalator up, fight the moving walkway that's going the wrong way, make the deposit in Room 69.
-5. **GAME OVA** — Bridge over the Tubes. On-rails in the back of the truck shooting pursuers; the bridge blows; you crawl in slow-mo while Soup, Gas and Gropes go down one by one; Imran Jackoff (huge, one-armed, fur coat) walks up; Captain Prick slides you a pistol; one slow-motion glob; helicopter rescue; end credits over sad oscillator piano with a mid-credits tease for Modern Wharfare 2.
+v4 made every mission several times longer (about 5 minutes each for a first play-through). Each one follows the beats of its Call of Duty 4 original.
+
+1. **Bootie Camp** (F.N.G.). S.A.S. HQ, Crotchenhill.
+   - Sarge walks you through hip fire, aiming down sights, pumping (reload), eggplants and practice Condom Troopers.
+   - THE COURSE: hurdles, a barbed-wire crawl, the tyre run and pop-ups, against the clock.
+   - The **grenade pit**: lob nut-nades over a wall; you can't shoot through it.
+   - **THE PIT**, Captain Prick's timed plywood killhouse. Pop-up targets appear room by room. Don't shoot Nan (+3 s). Nut-nade the third room before you go in (+3 s if you walk in without one). Prick's record is 19.2 s.
+2. **All Girthed Up** (All Ghillied Up / One Shot, One Kill). Pubyat, 15 years ago. Captain MacMillilitre follows you the whole way.
+   - A synchronised kill ("you take the left").
+   - Past the farmhouse: leave the three inside.
+   - The graveyard, where a chopper flies over and you must get down in the grass.
+   - **The convoy**: trucks and rubbers march past a metre away. Move and you're dead.
+   - Around the chlamydia zones (they hurt, and the ticking gets faster as you get close).
+   - Through the Pubyat Heights apartments to the overlook, and one shot at Jackoff in the plaza.
+   - The HUNG-24 attack chopper strafes you down the fire exit.
+   - **Hold the carousel for 100 seconds** while Mac, with a crab-bitten leg, covers the road.
+   - The bird lands and you lift out.
+3. **Crew Expandable** (Crew Expendable). MV Blue Balls.
+   - Ride in ("Crew?" "Expendable.") and fast-rope onto the helipad.
+   - Sweep the deck with minigun support from the chopper.
+   - The bridge, where they're asleep.
+   - Crew quarters, doors on both sides.
+   - The hold, a maze of container lanes with an **eggplant detector** that ticks faster as you close in.
+   - The package. Then jets hit the ship: a 110-second run back up through the flooding, tilting, lurching ship to the ramp. Jump.
+4. **No Rushin'** (plus Death From Above). The fertility clinic.
+   - Take a number, survive the waiting room, ride the escalator, make the deposit.
+   - Then "Meanwhile, three miles up": the **Sonogram-130**, a grayscale thermal gunship.
+     - Slew with WASD or the stick, orbit with the mouse, 25mm SPERM (rapid) or 105mm NUTS (`R` swaps).
+     - Cover Prick, Soup and Gas across the car park to the FREE CANDY van.
+     - Rubber trucks unload troops. Friendlies blink. Three friendly-fire hits and the mission fails.
+5. **GAME OVA** (Game Over). Bridge over the Tubes.
+   - A much longer truck ride, with the **HUNG-24** chasing you (you can shoot it down) and pursuit trucks unloading crabs.
+   - The truck crashes. Get to Prick behind the wreck and **hold for 60 seconds** as they come down the bridge.
+   - The tanker blows, then the crawl, the executions, the pistol slide, one slow-motion glob and the credits.
 
 Each mission opens with a typewriter briefing over a "satellite map" (it's a scrotum) and ends with a stats screen: kills, accuracy, time and a rank — Private Parts, Corporal Punishment, Sergeant Sausage, Colonel Angus, Major Wood, General Erection.
 

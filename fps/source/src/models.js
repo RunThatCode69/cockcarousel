@@ -174,10 +174,10 @@ export function makeTrap() {
   const cheese = ink(new THREE.CylinderGeometry(0.1, 0.1, 0.05, 3), toon(YEL)); cheese.position.set(-0.05, 0.09, 0); body.add(cheese);
   root.userData = { body, bar, kind: 'trap' }; return root;
 }
-export function makeTarget() {
+export function makeTarget(civ) {
   const root = new THREE.Group();
   root.add(cylBetween(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.5, 0), 0.03, '#8a6a44'));
-  const c = bake(128, 128, () => { rr(6, 6, 116, 116, 10); fs('#fff6e0', INK, 5); E(42, 64, 26, 30); fs('#ffb3c9', INK, 4); E(86, 64, 26, 30); fs('#ffb3c9', INK, 4); E(64, 64, 14, 14); fs('#fff', PINK, 5); E(64, 64, 6, 6); fs(PINK, null); });
+  const c = civ ? bake(128, 128, () => { rr(6, 6, 116, 116, 10); fs('#dff5ff', INK, 5); E(64, 58, 32, 34); fs(SKIN, INK, 4); E(64, 30, 36, 16); fs('#d8d8e8', INK, 3); E(50, 58, 10, 10); fs('#fff', INK, 3); E(78, 58, 10, 10); fs('#fff', INK, 3); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(64, 76, 10, 0.2, Math.PI - 0.2); ctx.stroke(); txt('NAN', 64, 108, 20, PINK, 'center', null); }) : bake(128, 128, () => { rr(6, 6, 116, 116, 10); fs('#fff6e0', INK, 5); E(42, 64, 26, 30); fs('#ffb3c9', INK, 4); E(86, 64, 26, 30); fs('#ffb3c9', INK, 4); E(64, 64, 14, 14); fs('#fff', PINK, 5); E(64, 64, 6, 6); fs(PINK, null); });
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   const board = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.03), [toon('#fff6e0'), toon('#fff6e0'), toon('#fff6e0'), toon('#fff6e0'), new THREE.MeshToonMaterial({ map: t, gradientMap: ramp }), new THREE.MeshToonMaterial({ map: t, gradientMap: ramp })]);
   board.position.y = 0.72; board.castShadow = true; root.add(board);
@@ -252,7 +252,7 @@ export function makeTuft(seed = 0) {   // a tuft of "tall grass". Curly, brown. 
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2 + seed, r = 0.12 + (i % 3) * 0.06, h = 0.55 + ((i * 7 + seed * 13) % 5) * 0.08;
     const pts = []; for (let k = 0; k <= 6; k++) { const q = k / 6; pts.push(new THREE.Vector3(Math.cos(a) * r * q + Math.sin(q * 9 + i) * 0.05, q * h, Math.sin(a) * r * q + Math.cos(q * 8 + i) * 0.05)); }
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 10, 0.014, 4), mat); tube.castShadow = true; g.add(tube);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 6, 0.016, 3), mat); tube.castShadow = true; g.add(tube);
   }
   return g;
 }
@@ -284,9 +284,25 @@ export const PROP3D = {
   posterstand: () => { const g = new THREE.Group(); g.add(cylBetween(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.9, 0), 0.03, '#3a3a4a')); const m = canvasMat(128, 110, () => { rr(4, 4, 120, 102, 6); fs('#fff6e0', INK, 4); txt('HAVE YOU TRIED', 64, 30, 14, INK, 'center', null); txt('NOT RUSHING?', 64, 58, 18, PINK, 'center', null); txt('- the clinic', 64, 86, 11, INK, 'center', null); }); g.add(at(new THREE.Mesh(G.box(0.6, 0.5, 0.03), m), 0, 1.05, 0)); return g; },
   lantern: () => { const g = new THREE.Group(); g.add(at(new THREE.Mesh(G.sph, new THREE.MeshBasicMaterial({ color: '#fff2a8' })), 0, 1.1, 0, 0.09, 0.11, 0.09)); g.add(at(ink(G.cyl(0.08, 0.12, 0.06, 8), toon('#3a3a4a')), 0, 1.22, 0)); return g; },
   chair: () => { const g = new THREE.Group(); const m = toon('#7ed6df'); g.add(at(ink(G.box(0.45, 0.08, 0.45), m), 0, 0.42, 0)); g.add(at(ink(G.box(0.45, 0.5, 0.06), m), 0, 0.7, -0.2)); [[-0.18, -0.18], [0.18, -0.18], [-0.18, 0.18], [0.18, 0.18]].forEach(([x, z]) => g.add(at(new THREE.Mesh(G.box(0.04, 0.4, 0.04), toon(INK)), x, 0.2, z))); return g; },
+  truck: () => { const g = new THREE.Group(); const m = toon('#5b6b3c'); g.add(at(ink(G.box(2.6, 0.5, 1.1), toon('#3a3a42')), 0, 0.35, 0)); g.add(at(ink(G.box(0.8, 0.8, 1.05), m), 0.95, 0.95, 0)); g.add(at(new THREE.Mesh(G.box(0.1, 0.36, 0.9), toon('#9fd4ff')), 1.36, 1.1, 0));
+    const tarp = canvasMat(256, 128, () => { ctx.fillStyle = '#6b7a4a'; ctx.fillRect(0, 0, 256, 128); rr(40, 34, 176, 60, 10); fs('#fff6e0', INK, 4); txt('RUBBER CO.', 128, 64, 30, INK, 'center', null); });
+    const b = ink(G.box(1.8, 1.0, 1.1), tarp); b.position.set(-0.35, 1.0, 0); g.add(b);
+    for (const [x, z] of [[-0.8, 0.55], [0.3, 0.55], [0.95, 0.55], [-0.8, -0.55], [0.3, -0.55], [0.95, -0.55]]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.14, 12), toon('#1e1e24')); w.rotation.x = Math.PI / 2; w.position.set(x, 0.22, z); g.add(w); }
+    return g; },
+  van: () => { const g = new THREE.Group(); const m = canvasMat(256, 128, () => { ctx.fillStyle = '#f4f7ff'; ctx.fillRect(0, 0, 256, 128); txt('FREE CANDY', 128, 50, 26, PINK, 'center', null); txt('(it\'s the team van)', 128, 88, 18, INK, 'center', null); });
+    g.add(at(ink(G.box(2.2, 1.1, 1.1), m), 0, 0.8, 0)); for (const [x, z] of [[-0.7, 0.55], [0.7, 0.55], [-0.7, -0.55], [0.7, -0.55]]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.12, 12), toon('#1e1e24')); w.rotation.x = Math.PI / 2; w.position.set(x, 0.2, z); g.add(w); } return g; },
+  tombstone: () => { const g = new THREE.Group(); const m = canvasMat(64, 96, () => { ctx.fillStyle = '#8a8698'; ctx.fillRect(0, 0, 64, 96); txt('RIP', 32, 34, 18, INK, 'center', null); txt('lil guy', 32, 58, 11, INK, 'center', null); });
+    const s = ink(G.box(0.5, 0.7, 0.14), m, 0.02); s.position.y = 0.35; g.add(s); const top = ink(new THREE.CylinderGeometry(0.25, 0.25, 0.14, 12, 1, false, 0, Math.PI), toon('#8a8698'), 0.02); top.rotation.set(Math.PI / 2, 0, Math.PI / 2); top.position.y = 0.7; g.add(top); return g; },
+  carousel: () => { const g = new THREE.Group(), spin = new THREE.Group(); g.add(spin);
+    g.add(at(ink(G.cyl(2.3, 2.4, 0.3, 24), toon('#c98b4b')), 0, 0.15, 0));
+    g.add(cylBetween(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3.1, 0), 0.18, '#ffd23f'));
+    const roof = ink(new THREE.ConeGeometry(2.7, 1.1, 24), toon(PINK), 0.04); roof.position.y = 3.5; spin.add(roof);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; spin.add(cylBetween(new THREE.Vector3(Math.cos(a) * 1.8, 0.3, Math.sin(a) * 1.8), new THREE.Vector3(Math.cos(a) * 1.8, 3.0, Math.sin(a) * 1.8), 0.035, '#ffd23f'));
+      const d = makeDick({ scale: 0.55 }); d.position.set(Math.cos(a) * 1.8, 1.0 + (i % 2) * 0.3, Math.sin(a) * 1.8); d.rotation.y = -a; spin.add(d); }
+    g.userData.spin = spin; return g; },
   plant: () => { const g = new THREE.Group(); g.add(at(ink(G.cyl(0.16, 0.12, 0.3, 10), toon('#c98b4b')), 0, 0.15, 0)); for (let i = 0; i < 6; i++) { const l = ink(G.sph, toon('#3f8f32'), 0.02); l.scale.set(0.06, 0.3, 0.06); const a = i / 6 * Math.PI * 2; l.position.set(Math.cos(a) * 0.1, 0.5, Math.sin(a) * 0.1); l.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); g.add(l); } return g; },
 };
-export const PROP_SOLID = { barrel: 1, sandbags: 1, cratestack: 1, tent: 1, palm: 1, tires: 1, barrier: 1, cactus: 1, flag: 1, rock: 1, car: 1, wreck: 1, lampost: 1, cooler: 1, magrack: 1, desk: 1, posterstand: 1 };
+export const PROP_SOLID = { truck: 1, van: 1, tombstone: 1, carousel: 1, barrel: 1, sandbags: 1, cratestack: 1, tent: 1, palm: 1, tires: 1, barrier: 1, cactus: 1, flag: 1, rock: 1, car: 1, wreck: 1, lampost: 1, cooler: 1, magrack: 1, desk: 1, posterstand: 1 };
 // a flat sign with text, on two posts
 export function makeSign(text, sub, bg = '#fff6e0', fg = INK) {
   const m = canvasMat(256, 110, () => { rr(6, 6, 244, 98, 10); fs(bg, INK, 6); txt(text, 128, sub ? 42 : 55, text.length > 12 ? 30 : 38, fg, 'center', null); if (sub) txt(sub, 128, 80, 20, fg, 'center', null); });

@@ -30,14 +30,16 @@ function los(x0, y0, x1, y1) {
   if (d < 0.01) return true;
   const n = Math.ceil(d * 4), sx = dx / n, sy = dy / n;
   let x = x0, y = y0;
-  for (let i = 0; i < n; i++) { x += sx; y += sy; if (solid(x, y) && wallH(cell(x | 0, y | 0)) > 0.95) return false; }
+  const skip = Math.ceil(0.55 * 4) ;   // ignore the cell you're standing in (lookouts on towers, etc.)
+  for (let i = 0; i < n; i++) { x += sx; y += sy; if (i < skip - 1 && solid(x0, y0)) continue; if (i >= n - skip && solid(x1, y1)) continue; if (solid(x, y) && wallH(cell(x | 0, y | 0)) > 0.95) return false; }
   return true;
 }
 // can a glob get there? (low cover blocks shots even though you can see over it)
 function losShot(x0, y0, x1, y1) {
   const dx = x1 - x0, dy = y1 - y0, d = Math.hypot(dx, dy); if (d < 0.01) return true;
   const n = Math.ceil(d * 4), sx = dx / n, sy = dy / n; let x = x0, y = y0;
-  for (let i = 0; i < n; i++) { x += sx; y += sy; if (solid(x, y) && wallH(cell(x | 0, y | 0)) * YS > 0.62) return false; }
+  const skip = 3;
+  for (let i = 0; i < n; i++) { x += sx; y += sy; if (i < skip - 1 && solid(x0, y0)) continue; if (i >= n - skip && solid(x1, y1)) continue; if (solid(x, y) && wallH(cell(x | 0, y | 0)) * YS > 0.62) return false; }
   return true;
 }
 // the player can clear hurdles mid-jump and pass wire crouched; everything else uses plain walkable()
@@ -202,7 +204,15 @@ function floorMesh() {
   }
   return g;
 }
-let waterTex = null;
+let waterTex = null, outerWater = null;
+// free GPU memory when a level is thrown away (retries used to leak ~130 geometries each). Shared things just re-upload if reused.
+function disposeTree(root) {
+  root.traverse(o => {
+    if (o.geometry) o.geometry.dispose();
+    const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+    for (const m of ms) { for (const k of ['map', 'alphaMap', 'emissiveMap']) if (m[k] && m[k].isCanvasTexture) m[k].dispose(); m.dispose(); }
+  });
+}
 // sky: a gradient dome, a sun or moon, drifting clouds and a distant silhouette ring
 function buildSky(pal) {
   const g = new THREE.Group();
@@ -249,7 +259,7 @@ function makeCarousel([x, z, s]) {
 }
 let skySpinners = [];
 function buildLevel() {
-  scene.remove(level); level = new THREE.Group(); scene.add(level); wallGroup = null; skySpinners = []; waterTex = null;
+  scene.remove(level); disposeTree(level); level = new THREE.Group(); scene.add(level); wallGroup = null; skySpinners = []; waterTex = null; outerWater = null;
   const pal = M.pal;
   scene.fog = new THREE.Fog(pal.fog, pal.fogNear || 8, (pal.fogDist || 14) * 3.2);
   scene.background = new THREE.Color(pal.fog);
@@ -287,7 +297,7 @@ function buildOuter(o) {
   const gt = texOf(o.ground, [120, 120]);
   const gm = o.ground === 'water' ? new THREE.MeshStandardMaterial({ map: gt, color: '#6a9ac0', roughness: 0.25, metalness: 0.1 }) : new THREE.MeshStandardMaterial({ map: gt, roughness: 1 });
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), gm); ground.rotation.x = -Math.PI / 2; ground.position.set(MW / 2, (o.groundY || 0) - 0.02, MH / 2); ground.receiveShadow = true; g.add(ground);
-  if (o.ground === 'water') waterTex = gt;
+  if (o.ground === 'water') { waterTex = gt; outerWater = ground; }
   if (o.ring === 'desert') {
     const rock = new THREE.DodecahedronGeometry(1, 0), rockM = MD.toon('#a88a6a');
     g.add(instanced(rock, rockM, ringPositions(70, 4, 40, 3), r => 0.4 + r * 1.4));

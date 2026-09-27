@@ -29,12 +29,12 @@ function makeView(e) {
       case 'chili': o = MD.makeChili(); break;
       case 'ice': o = MD.makeIce(); o.scale.setScalar(1.4); break;
       case 'trap': o = MD.makeTrap(); o.scale.setScalar(1.3); break;
-      case 'target': o = MD.makeTarget(); o.scale.setScalar(1.25); break;
+      case 'target': o = MD.makeTarget(e.civ); o.scale.setScalar(1.25); break;
       case 'boss': o = MD.makeDick({ coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 2.3 }); break;
     }
   } else if (e.kind === 'npc') {
     const S = { sarge: { hat: 'drill', face: 'sarge', scale: 1.2 }, prick: { hat: 'boonie', face: 'prick', skin: '#cfc0cc', head: '#b992a8', cigar: true, scale: 1.2 },
-      soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15 }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15 }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15 },
+      soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15 }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15 }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1 }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15 }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15 },
       boss: { coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 3.2 }, boss2: { coat: true, face: 'boss', skin: '#e9b39d', scale: 2.3 } }[e.spr];
     if (S) o = MD.makeDick(S);
     else if (e.spr === 'heli') { o = MD.makeHeli(); }
@@ -61,8 +61,8 @@ function makeView(e) {
   dyn.add(o); return o;
 }
 let tuftIM = null, tuftN = 0;
-const TUFT_MAX = 600;
-function resetTufts() { if (tuftIM) level.remove(tuftIM); tuftIM = new THREE.InstancedMesh(tuftGeo, tuftMat, TUFT_MAX); tuftIM.count = 0; tuftIM.castShadow = true; tuftIM.frustumCulled = false; tuftN = 0; level.add(tuftIM); }
+const TUFT_MAX = 900;
+function resetTufts() { if (tuftIM) level.remove(tuftIM); tuftIM = new THREE.InstancedMesh(tuftGeo, tuftMat, TUFT_MAX); tuftIM.count = 0; tuftIM.castShadow = !isTouch; tuftIM.frustumCulled = false; tuftN = 0; level.add(tuftIM); }
 function addTuft(e) {
   if (!tuftIM || tuftN >= TUFT_MAX) return;
   const s = e.spr === 'bush' ? 1.25 : 0.85 + ((e.seed || 0) % 3) * 0.1;
@@ -131,6 +131,7 @@ function syncViews() {
       if (o.isSprite && e.alpha !== undefined) o.material.opacity = e.alpha;
       if (e.spr === 'blast') { const k = 1 - clamp((e.fade || 0) / 22, 0, 1); o.scale.setScalar(2 + k * 5); o.material.opacity = 1 - k; }
       if (e.spr === 'heli' && ud.rotor) ud.rotor.rotation.y += 0.5;
+      if (ud.spin) ud.spin.rotation.y += 0.008;
       if (ud.strobe) ud.strobe.visible = t % 40 < 4;
       if (e.faceA !== undefined && !o.isSprite) o.rotation.y = e.faceA;
       if (ud.flag) ud.flag.rotation.y = Math.sin(t * 0.05) * 0.2;

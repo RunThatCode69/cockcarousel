@@ -1,7 +1,7 @@
 // Assembles parts → src/game.js, bundles three + game with esbuild, inlines into one HTML file.
 import fs from 'fs'; import { execSync } from 'child_process';
 const root = new URL('.', import.meta.url).pathname;
-const order = ['a_head', 'b_world', 'c_views', 'd_weapon', 'e_hud', 'f_game', 'g_screens', 'h_missions', 'i_main'];
+const order = ['a_head', 'b_world', 'c_views', 'd_weapon', 'e_hud', 'f_game', 'f2_v4', 'g_screens', 'h_missions', 'i_main'];
 let src = order.map(n => fs.readFileSync(root + 'parts/' + n + '.js', 'utf8')).join('\n');
 const dbg = process.argv.includes('--dbg') && fs.existsSync(root + 'parts/dbg.js') ? fs.readFileSync(root + 'parts/dbg.js', 'utf8') : '';
 src = src.replace('//__DBG__', dbg);

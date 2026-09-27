@@ -70,6 +70,7 @@ function bestTarget(cone = 0.27 - 0.08 * (player ? player.ads : 0) + 0.08) {
 }
 function fire() {
   const p = player;
+  if (M.state === 'gunship') { gunshipFire(); return; }
   if (!p.canFire || p.fireCd > 0 || p.reloading) return;
   // headbutt if something is right in your face
   const near = bestTarget(0.7);
@@ -120,7 +121,7 @@ function applyPickup(e) {
   if (e.type === 'lotion') { const g = growBy(0.5); announce('LOTIONED UP', `+${g}"  ` + pickOne(['back to full mast', 'pump pump pump', 'smooth.', 'he\'s growing, sarge', 'extra grip']), 36); sfx('loot'); sfx('squish'); stats.lotion = (stats.lotion || 0) + 1; }
   if (e.type === 'pill') { growBy(1); p.hardT = 900; announce('RAGING', 'no shrinkage for 15 seconds', 40); sfx('streak'); }
 }
-function reload() { const p = player; if (p.reloading || p.ammo === MAG || !p.canFire) return; p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
+function reload() { const p = player; if (M.state === 'gunship') { gunshipSwap(); return; } if (p.reloading || p.ammo === MAG || !p.canFire) return; p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
 function headbutt(e) {
   const p = player; p.buttT = 22; p.fireCd = 26; p.recoil = 0.6; stats.shots++; stats.hits++;
   sfx('butt'); shake = 8;
@@ -136,7 +137,7 @@ function damageEnt(e, dmg, butt) {
 }
 function killEnt(e, butt) {
   e.dead = true; e.deadT = t; e.attackT = 0;
-  if (e.type === 'target') { sfx('snap'); stats.targets = (stats.targets || 0) + 1; return; }
+  if (e.type === 'target') { sfx('snap'); stats.targets = (stats.targets || 0) + 1; if (e.onDeath) e.onDeath(e); return; }
   if (e.kind === 'enemy') {
     stats.kills++; sfx('kill'); sfx('xp'); hitT = 12; hitKill = true; xpPop(e.type === 'boss' ? 500 : e.type === 'ice' ? 250 : 69); killFeed(`YOU  ⟶  ${NAMES[e.type] || e.type}`); burst3d(e.x, e.y, (e.z || 0) + e.h * 0.5, 10, 'drop');
     const p = player; p.streak++;
@@ -144,7 +145,7 @@ function killEnt(e, butt) {
     if (s) { sfx('streak'); announce(s.line, s.sub, 44); streakReward(s.n); if (s.n === 7) p.streak = 0; }
     if (Math.random() < 0.3) say(pickOne(['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
     if (e.type === 'ice') announce('SHRINKAGE OVER', 'welcome back, big guy', 40);
-    if (e.type !== 'boss' && e.type !== 'target') maybeDrop(e);
+    if (e.type !== 'boss' && e.type !== 'target' && M.state !== 'gunship') maybeDrop(e);
     if (e.type === 'boss' && e.onDeath) e.onDeath(e);
   }
   if (e.onDeath && e.kind !== 'enemy') e.onDeath(e);
@@ -175,6 +176,11 @@ function wrapHit(k, src) {
 }
 function die(why) {
   state = 'dead'; stateT = 0; deathQuote = pickOne(DEATHS); sfx('die'); player.streak = 0; hurtFx(6); shake = 14;
+  if (why === 'friendly') deathQuote = ['Five blue-on-blues. The team would like a word. From the ground. In pieces.', 'Captain Prick'];
+  if (why === 'team') deathQuote = ['You were one mile up. They were one metre from a condom.', 'TV Operator'];
+  if (why === 'spotted') deathQuote = ['They saw your pubes. Everybody saw your pubes.', 'Captain MacMillilitre'];
+  if (why === 'hazard') deathQuote = ['Too much chlamydia. We said go around.', 'Captain MacMillilitre'];
+  if (why === 'sunk') deathQuote = ['You went down with the ship. Very traditional. Very wet.', 'Captain Prick'];
   if (why === 'trap') deathQuote = ['SNAP. The cheese was never real.', 'Sarge'];
   if (why === 'sauce') deathQuote = ['Death by hot sauce. You went out spicy.', 'Sarge'];
   if (why === 'ice') deathQuote = ['It\'s cold, okay?! IT\'S COLD.', 'you, to no one'];
@@ -186,7 +192,7 @@ function die(why) {
 // ---------- per-frame gameplay ----------
 function updatePlayer() {
   const p = player;
-  const mv = M.state === 'play' || M.state === 'crawl';
+  const mv = M.state === 'play' || M.state === 'crawl' || M.state === 'gunship';
   let fx = 0, fy = 0, turn = 0;
   if (mv && p.canMove) {
     if (keys.KeyW || keys.ArrowUp) fx += 1; if (keys.KeyS || keys.ArrowDown) fx -= 1;
@@ -229,7 +235,8 @@ function updatePlayer() {
     if (ahead === 'w' && !p.crouch) { p.hintT = t; announce(isTouch ? 'TAP CROUCH!' : 'C TO CROUCH!', 'get low. lower. like a worm.', 34); }
   }
   const dx = (Math.cos(p.a) * fx - Math.sin(p.a) * fy) * sp, dy = (Math.sin(p.a) * fx + Math.cos(p.a) * fy) * sp;
-  if (len > 0.05) { moveBody(p, dx, dy, 0.25); p.walkT += ts; p.moving = lerp(p.moving, 1, 0.2); } else p.moving = lerp(p.moving, 0, 0.2);
+  if (M.state === 'gunship') { p.x += dx * 2.6; p.y += dy * 2.6; }
+  else if (len > 0.05) { moveBody(p, dx, dy, 0.25); p.walkT += ts; p.moving = lerp(p.moving, 1, 0.2); } else p.moving = lerp(p.moving, 0, 0.2);
   if (M.state === 'rails') { p.x += M.railSpeed * ts; p.moving = lerp(p.moving, 0.4, 0.1); p.walkT += ts * 0.6; }
   // conveyors
   if (c === '^') moveBody(p, 0, -0.035 * ts, 0.25); if (c === 'v') moveBody(p, 0, 0.035 * ts, 0.25);
@@ -361,13 +368,14 @@ function throwNade() {
   const p = player; if (!p || p.nades <= 0 || !p.canFire || p.throwT > 0 || !(M.state === 'play' || M.state === 'rails')) return;
   p.nades--; p.throwT = 28; sfx('pin'); say('YOU', pickOne(['NUT OUT!', 'NUT OUT!', 'Frag— I mean, NUT OUT!', 'Throwing a ball!']), 90);
   const up = clamp(p.lookP / 170, -0.6, 1);
-  setTimeout(() => { if (!player || state !== 'game') return; nades.push({ x: p.x + Math.cos(p.a) * 0.4, y: p.y + Math.sin(p.a) * 0.4, z: 0.55, vx: Math.cos(p.a) * 0.13, vy: Math.sin(p.a) * 0.13, vz: 0.045 + up * 0.035, fuse: 100, spr: 'nut', h: 0.28, w: 0.28, seed: 0 }); }, 180);
+  setTimeout(() => { if (!player || state !== 'game') return; nades.push({ x: p.x + Math.cos(p.a) * 0.4, y: p.y + Math.sin(p.a) * 0.4, z: 0.6, vx: Math.cos(p.a) * 0.12, vy: Math.sin(p.a) * 0.12, vz: 0.062 + up * 0.035, fuse: 100, spr: 'nut', h: 0.28, w: 0.28, seed: 0 }); }, 180);
 }
 function updateNades() {
   for (const n of nades) {
     const nx = n.x + n.vx * ts, ny = n.y + n.vy * ts;
-    if (solid(nx, n.y)) { n.vx *= -0.5; sfx('bounce'); } else n.x = nx;
-    if (solid(n.x, ny)) { n.vy *= -0.5; sfx('bounce'); } else n.y = ny;
+    const hits = (x, y) => solid(x, y) && wallH(cell(x | 0, y | 0)) > n.z;   // low walls: a lobbed nut sails over
+    if (hits(nx, n.y)) { n.vx *= -0.5; sfx('bounce'); } else n.x = nx;
+    if (hits(n.x, ny)) { n.vy *= -0.5; sfx('bounce'); } else n.y = ny;
     n.z += n.vz * ts; n.vz -= 0.004 * ts;
     if (n.z < 0.05) { n.z = 0.05; if (n.vz < -0.01) sfx('bounce'); n.vz = Math.abs(n.vz) * 0.35; n.vx *= 0.7; n.vy *= 0.7; }
     n.fuse -= ts;
@@ -438,6 +446,7 @@ function scatterProps(types, n, avoid = [], seed = 1) {
 function startMission(i, stageIdx = 0) {
   missionIdx = i;
   M = MISSIONS[i - 1]();
+  c3.style.filter = ''; gsShells = [];
   M.idx = i; M.state = 'play'; M.stage = -1; M.flags = {}; M.timer = null; M.checkpoint = 0;
   loadMap(M.map);
   ents = []; globs = []; eproj = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
@@ -448,12 +457,12 @@ function startMission(i, stageIdx = 0) {
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
     const ch = map[y][x];
     if (ch === 'e') { spawnPickup('eggplant', x + 0.5, y + 0.5); map[y][x] = '.'; }
-    if (ch === ',') { const n = 1 + ((x * 7 + y * 13) % 2); for (let k = 0; k < n; k++) spawnDeco('pube', x + 0.2 + ((x * 31 + k * 17 + y * 3) % 60) / 100, y + 0.2 + ((y * 29 + k * 23 + x * 5) % 60) / 100, 0.75, 0.75, { seed: (x + y + k) % 3, far: 10 }); }
+    if (ch === ',') { const n = MW * MH > 2000 ? 1 : 1 + ((x * 7 + y * 13) % 2); for (let k = 0; k < n; k++) spawnDeco('pube', x + 0.2 + ((x * 31 + k * 17 + y * 3) % 60) / 100, y + 0.2 + ((y * 29 + k * 23 + x * 5) % 60) / 100, 0.75, 0.75, { seed: (x + y + k) % 3, far: 10 }); }
     if (ch === 'h') { spawnDeco('chair', x + 0.5, y + 0.5, 0.7, 0.7); map[y][x] = '.'; }
     if (ch === 'q') { spawnDeco('plant', x + 0.5, y + 0.5, 0.9, 0.7); map[y][x] = '.'; }
   }
   buildMini();
-  dyn.clear(); for (const k in pools) { pools[k].free.length = 0; pools[k].used.length = 0; }
+  disposeTree(dyn); dyn.clear(); for (const k in pools) { pools[k].free.length = 0; pools[k].used.length = 0; }
   buildLevel();
   if (M.props) for (const [ty, x, y, o] of M.props) spawnProp(ty, x, y, o || {});
   if (M.scatter) for (const [types, n, avoid, seed] of M.scatter) scatterProps(types, n, avoid, seed);
@@ -485,10 +494,13 @@ function missionClear() {
 }
 function updateGame() {
   stats.frames++; hintT++; objT++;
+  if (M.clockOn) M.clock += ts;
   if (M.timer !== null && M.timer !== undefined) { M.timer -= ts; if (M.timer <= 0) { M.timer = 0; if (M.onTimeout) M.onTimeout(); } }
   updatePlayer();
   if (state !== 'game') return;
   updateGlobs();
+  if (M.state === 'gunship') gunshipTick();
+  hazardTick(); if (M.always) M.always();
   updateEnemies();
   updateParts3(); updateShells(); updateNades(); for (const x of xps) x.life--; xps = xps.filter(x => x.life > 0); if (flashT > 0) flashT--;
   if (state !== 'game') return;

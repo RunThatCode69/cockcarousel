@@ -51,6 +51,7 @@ function renderWorld() {
   camera.rotation.set(clamp(pitch * PX2RAD, -1.35, 1.35), -p.a - Math.PI / 2, roll);
   if (shake > 0.3) { camera.position.x += rand(-1, 1) * shake * 0.004; camera.position.y += rand(-1, 1) * shake * 0.004; }
   camera.fov = 72 * (fovK / 0.66); camera.updateProjectionMatrix();
+  if (M.state === 'gunship') gunshipCamera();
   // shadows follow you
   sun.target.position.set(p.x, 0, p.y); sun.position.set(p.x - 18, 34, p.y - 12);
   muzzleLight.position.set(p.x + Math.cos(p.a) * 0.6, camH * YS, p.y + Math.sin(p.a) * 0.6); muzzleLight.intensity = flashT > 0 ? 4 * flashT : 0;
@@ -66,7 +67,7 @@ function renderWorld() {
   renderer.info.reset();
   renderer.clear();
   renderer.render(scene, camera);
-  if (M.state !== 'crawl' && M.state !== 'cut' && state !== 'dead') { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
+  if (M.state !== 'crawl' && M.state !== 'cut' && M.state !== 'gunship' && state !== 'dead') { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
 }
 function draw() {
   ctx = hctx; setCtx(hctx);
