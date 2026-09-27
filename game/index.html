@@ -48,6 +48,7 @@
   const mod = (a, n) => ((a % n) + n) % n;
 
   let state = 'title', t = 0, overT = 0, scroll = 0;
+  let deathBy = '', dfl = 0;             // what killed you, and how deflated you are (bee sting)
   let speed, dist, loot, score = 0, best = 0, newBest = false;
   let objs, parts, gap, player, shake = 0, playT = 0;
   let duckKey = false, duckTouch = null;
@@ -150,6 +151,10 @@
       case 'splat': tone(rand(200, 320), 60, 0.12, 'sine', 0.08); break;
       case 'spurt': tone(700, 250, 0.18, 'sine', 0.1); break;
       case 'thunder': tone(90, 30, 0.8, 'sawtooth', 0.12); break;
+      case 'deflate': tone(520, 70, 1.6, 'sine', 0.1); tone(260, 40, 1.6, 'sawtooth', 0.03); break;
+      case 'snip': tone(1400, 900, 0.05, 'square', 0.08); tone(900, 1500, 0.05, 'square', 0.08, 0.06); tone(300, 60, 0.4, 'sawtooth', 0.08, 0.12); break;
+      case 'drip': tone(900, 500, 0.08, 'sine', 0.06); break;
+      case 'schlorp': tone(150, 500, 0.2, 'sine', 0.12); tone(500, 120, 0.35, 'sine', 0.12, 0.2); break;
       case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.28, 'triangle', 0.12, i * 0.13)); tone(200, 60, 0.6, 'sine', 0.15, 0.55); break;
     }
   }
@@ -174,7 +179,7 @@
     const p = player;
     if (p.jumps < 2) {
       p.vy = p.jumps ? JUMP * 0.85 : JUMP;
-      if (p.jumps === 1) { p.flip = 0.001; sfx('flip'); } else sfx('jump');
+      if (p.jumps === 1) { p.flip = 0.001; sfx('flip'); sfx('drip'); parts.push({ k: 'p', x: PX + 30, y: p.y - 90 * growth(), vx: -speed * 0.3, vy: -1.2, txt: 'precum!', life: 45, max: 45 }); } else sfx('jump');
       p.jumps++; p.onGround = false;
       dust(PX - 10, 0, 4);
     }
@@ -242,20 +247,22 @@
 
   function win() {
     state = 'win'; winT = t; msg = null; objs = []; duckTouch = null;
-    const p = player; p.y = 0; p.vy = 0; p.winX = 0; p.arrived = false; p.flip = 0; p.jumps = 0; p.onGround = true;
+    const p = player; p.y = 0; p.vy = 0; p.winX = 0; p.fly = 0; p.arrived = false; p.flip = 0; p.jumps = 0; p.onGround = true;
     sfx('win');
   }
   function nextLevel() {
     bonus += goal() * 10;
     level++; loot = 0; ldist = 0; lastPct = 0; objs = []; fxp = []; gap = 600; playT = 0; msg = null;
     if (level > maxLevel && level <= LEVELS.length) { maxLevel = level; try { localStorage.setItem('cc_unlocked', maxLevel); } catch (e) {} }
-    const p = player; p.y = 0; p.vy = 0; p.winX = 0; p.arrived = false;
+    const p = player; p.y = 0; p.vy = 0; p.winX = 0; p.fly = 0; p.arrived = false;
     state = 'playing'; sfx('boing'); showBanner();
   }
-  function die() {
-    state = 'over'; overT = t; shake = 16; globs = []; splats = []; msg = null;
+  function die(by) {
+    state = 'over'; overT = t; shake = 16; globs = []; splats = []; msg = null; deathBy = by || ''; dfl = 0;
     const p = player; p.vy = 0; p.y = 0; p.deadRot = 0; p.deadX = 0; p.onGround = true;
-    sfx('spurt');
+    if (deathBy === 'bee') sfx('deflate');
+    else if (deathBy === 'trap') { sfx('snip'); p.headX = 6; p.headY = -86 * growth(); p.headVx = 7; p.headVy = -13; p.headRot = 0; }
+    else sfx('spurt');
     score = Math.floor(dist) + loot * 10 + bonus;
     if (score > best) { best = score; newBest = true; try { localStorage.setItem('cc_best', best); } catch (e) {} }
   }
@@ -276,7 +283,10 @@
         if (!p.onGround) { p.squash = 1; dust(PX - 10, 0, 6); sfx('land'); }
         p.y = 0; p.vy = 0; p.onGround = true; p.jumps = 0; p.flip = 0;
       }
-      if (p.flip > 0) p.flip = Math.min(1, p.flip + 0.045);
+      if (p.flip > 0) {
+        p.flip = Math.min(1, p.flip + 0.045);
+        if (p.flip < 1 && t % 2 === 0) { const a = p.flip * Math.PI * 2, g = growth(); parts.push({ k: 'j', x: PX + Math.sin(a) * 60 * g, y: p.y - 32 - Math.cos(a) * 60 * g, vx: -speed * 0.3 + Math.cos(a) * 3, vy: -Math.sin(a) * 3 - 1, r: rand(2.5, 4.5), life: 40, max: 40 }); }
+      }
       if (p.onGround && t % 6 === 0) dust(PX - 14, 0, 1);
 
       gap -= speed;
@@ -296,7 +306,7 @@
         const ol = o.x + pad, or = o.x + o.w - pad, ot = -(o.y + o.h) + pad, ob = -o.y;
         if (R > ol && L < or && B > ot && T < ob) {
           if (o.type === 'eggplant') { o.got = true; loot++; sparkle(o.x + 9, -o.y - 12); sfx('loot'); onLoot(); if (state !== 'playing') break; }
-          else { die(); break; }
+          else { die(o.type); break; }
         }
       }
     } else if (state === 'title') {
@@ -305,7 +315,14 @@
       const age = t - overT;
       p.deadRot = Math.sin(age * 0.9) * 0.08 * Math.max(0, 1 - age / OVER_DELAY);   // trembling
       p.squash = 0.35 + Math.abs(Math.sin(age * 0.45)) * 0.3;
-      if (age < OVER_DELAY - 20 && age % 3 === 0) {
+      if (deathBy === 'bee') {
+        dfl = Math.min(1, dfl + 0.011);
+        p.deadRot = Math.sin(age * 0.5) * 0.05 * (1 - dfl);
+        if (age % 5 === 0 && dfl < 1) parts.push({ k: 'p', x: PX + 20 + rand(-10, 10), y: -40 - rand(0, 40), vx: 1.5, vy: -1.5, txt: 'psss', life: 30, max: 30 });
+      } else if (deathBy === 'trap') {
+        p.headVy += 0.5; p.headX += p.headVx; p.headY += p.headVy; p.headRot += 0.25;
+        if (age < 70 && age % 3 === 0) parts.push({ k: 'c', x: PX + 4, y: -70 * growth(), vx: rand(-3, 5), vy: rand(-6, -1), rot: 0, vr: 0, c: '#e0245e', heart: false, life: 60, max: 60 });
+      } else if (age < OVER_DELAY - 20 && age % 3 === 0) {
         const [tx, ty] = tipScreen();
         for (let i = 0; i < 2; i++) globs.push({ x: tx, y: ty, vx: rand(-9, 14), vy: rand(-17, 1), r: rand(4, 9), life: rand(14, 42) });
         if (age % 12 === 0) sfx('spurt');
@@ -324,11 +341,17 @@
       for (const sp of splats) for (const d of sp.drips) d.len = Math.min(d.max, d.len + d.sp);
     } else if (state === 'win') {
       speed = 3; scroll += speed;
-      const target = BOOTY_X - PX - 62 * growth();
+      const target = BOOTY_X - PX - 250;
       if (!p.arrived) {
-        p.winX = Math.min(target, p.winX + 5);
-        if (p.winX >= target) { p.arrived = true; winT = t; shake = 18; sfx('boing'); burst(BOOTY_X, -90, 40); }
-        if (t % 4 === 0) dust(PX + p.winX - 14, 0, 2);
+        if (p.fly === 0 && p.winX < target) {
+          p.winX = Math.min(target, p.winX + 5);
+          if (t % 4 === 0) dust(PX + p.winX - 14, 0, 2);
+          if (p.winX >= target) { p.flyStart = t; }
+        } else {
+          if (p.fly === 0) { sfx('boing'); dust(PX + p.winX, 0, 10); }
+          p.fly = Math.min(1, p.fly + 1 / 45);
+          if (p.fly >= 1) { p.arrived = true; winT = t; shake = 22; sfx('schlorp'); burst(BOOTY_X, -110, 46); }
+        }
       } else {
         if (t % 10 === 0) parts.push({ k: 'c', x: BOOTY_X + rand(-70, 70), y: rand(-160, -40), vx: rand(-1, 1), vy: rand(-3, -1), rot: 0, vr: 0, c: '#ff5d8f', heart: true, life: 80, max: 80 });
         if (t % 5 === 0) { const j = JOKE_RAIN[Math.floor(rand(0, JOKE_RAIN.length))]; if (t % 90 === 0) parts.push({ k: 'p', x: rand(100, 800), y: rand(-200, -60), vx: 0, vy: -1, txt: j, life: 60, max: 60 }); }
@@ -343,6 +366,7 @@
       q.x += q.vx; q.y += q.vy; q.life--;
       if (q.k === 'c') { q.vy = Math.min(1.2, q.vy + 0.12); q.vx *= 0.97; q.rot += q.vr; }
       if (q.k === 'd') q.r += 0.4;
+      if (q.k === 'j') q.vy += 0.25;
       if (q.k === 's') { q.vx *= 0.9; q.vy *= 0.9; }
     }
     parts = parts.filter(q => q.life > 0);
@@ -419,13 +443,21 @@
     [[-24, -40 + wave], [28, -40 + wave]].forEach(([hx, hy]) => { E(hx, hy, 4.5, 4.5); fs(SKIN, INK, 1.8); });
     ctx.lineCap = 'round';
 
-    // shaft (leans back a touch)
-    ctx.save(); ctx.translate(2, -14); ctx.rotate(-0.12 + wob);
+    // shaft (leans back a touch; flops over and shrivels when deflated)
+    const dfl = o.deflate || 0;
+    ctx.save(); ctx.translate(2, -14); ctx.rotate(-0.12 + wob - dfl * 1.35); ctx.scale(1 - dfl * 0.3, 1 - dfl * 0.5);
     rr(-13, -56, 26, 60, 11); fs(SKIN);
-    // head
-    E(0, -55, 15.5, 13); fs(HEAD);
-    ctx.beginPath(); ctx.moveTo(-15, -52); ctx.quadraticCurveTo(0, -42, 15, -52); ctx.strokeStyle = HEAD2; ctx.lineWidth = 2.5; ctx.stroke();
-    E(5, -60, 3.2, 2); fs('#fff', null);
+    if (dfl > 0.3) { ctx.strokeStyle = SKIN2; ctx.lineWidth = 1.5; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-8, -50 + i * 12); ctx.quadraticCurveTo(0, -46 + i * 12, 8, -50 + i * 12); ctx.stroke(); } }
+    if (o.cut) {
+      // freshly snipped: a bandage where the head used to be
+      rr(-14, -62, 28, 14, 4); fs('#fff', INK, 2); E(0, -55, 3, 3); fs('#e0245e', null);
+      ctx.strokeStyle = '#ffb3c9'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-8, -62); ctx.lineTo(8, -48); ctx.moveTo(8, -62); ctx.lineTo(-8, -48); ctx.stroke();
+    } else {
+      // head
+      E(0, -55, 15.5, 13); fs(HEAD);
+      ctx.beginPath(); ctx.moveTo(-15, -52); ctx.quadraticCurveTo(0, -42, 15, -52); ctx.strokeStyle = HEAD2; ctx.lineWidth = 2.5; ctx.stroke();
+      E(5, -60, 3.2, 2); fs('#fff', null);
+    }
     // face
     if (o.dead) {
       ctx.strokeStyle = INK; ctx.lineWidth = 2.2;
@@ -712,12 +744,30 @@
     }
     const gsz = state === 'title' ? 1 : growth();
     if (state === 'over') {
-      drawDick(PX, 0, gsz, { rot: p.deadRot, flap: true, squash: p.squash });
+      drawDick(PX, 0, gsz, { rot: p.deadRot, flap: deathBy !== 'bee', dead: deathBy === 'bee' && dfl > 0.5, squash: p.squash, deflate: deathBy === 'bee' ? dfl : 0, cut: deathBy === 'trap' });
+      if (deathBy === 'trap') {   // the head, flying off into the sunset
+        ctx.save(); ctx.translate(PX + p.headX, p.headY); ctx.rotate(p.headRot); ctx.scale(gsz, gsz);
+        E(0, 0, 15.5, 13); fs(HEAD); E(5, -5, 3.2, 2); fs('#fff', null);
+        E(-5, -2, 3, 3.5); fs('#fff', INK, 1.4); E(6, -2, 3, 3.5); fs('#fff', INK, 1.4); E(-4, -1.5, 1.5, 1.8); fs(INK, null); E(7, -1.5, 1.5, 1.8); fs(INK, null);
+        E(0.5, 5, 3, 3.5); fs('#7a2a4a', INK, 1.5);
+        ctx.restore();
+      }
     } else if (state === 'win') {
-      const jig = p.arrived ? Math.sin((t - winT) * 0.5) * Math.max(0, 1 - (t - winT) / 60) : 0;
+      const jig = p.arrived ? Math.sin((t - winT) * 0.5) * Math.max(0, 1 - (t - winT) / 60) * 1.6 : 0;
+      const target = BOOTY_X - PX - 250;
+      if (!p.arrived) {
+        if (p.fly === 0) drawDick(PX + p.winX, 0, gsz, { flap: true });
+        else {
+          const u = p.fly, x0 = PX + target, x = x0 + (BOOTY_X - x0) * u, y = -114 * u - Math.sin(u * Math.PI) * 230;
+          drawDick(x, y, gsz * (1 - u * 0.7), { rot: u * Math.PI * 2 * 1.5, flap: true });
+        }
+      }
       drawBooty(BOOTY_X, 0, 1.1, jig);
-      const hump = p.arrived ? Math.abs(Math.sin((t - winT) * 0.25)) * 6 : 0;
-      drawDick(PX + p.winX + hump, p.y, gsz, { flap: !p.arrived, squash: p.arrived ? 0.3 : 0 });
+      if (p.arrived) {   // just the balls sticking out of the crack, wiggling
+        ctx.save(); ctx.translate(BOOTY_X, -100); ctx.rotate(Math.sin((t - winT) * 0.35) * 0.2); ctx.scale(gsz * 0.5, gsz * 0.5);
+        E(-9, 4, 14, 12); fs(SKIN); E(11, 4, 14, 12); fs(SKIN);
+        ctx.restore();
+      }
     } else {
       const bob = state === 'title' ? Math.sin(t * 0.1) * 1.5 : 0;
       const air = !p.onGround;
@@ -747,6 +797,7 @@
         ctx.restore();
       }
       else if (q.k === 's') { E(q.x, q.y, 3, 3); ctx.fillStyle = '#fff27a'; ctx.fill(); }
+      else if (q.k === 'j') { E(q.x, q.y, q.r, q.r * 1.3); fs('#f7f4ec', '#e6e0d2', 1.2); }
       else if (q.k === 'p') { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(-ANG); txt(q.txt, 0, 0, 22, '#ffd23f'); ctx.restore(); }
       ctx.globalAlpha = 1;
     }
@@ -805,14 +856,22 @@
       }
       // globs still flying at the camera
       for (const q of globs) { E(q.x, q.y, q.r, q.r * 0.9); fs(CUM, CUM2, 1.5); }
-      if (age < 40) txt('oh no... don\'t stop...', W / 2, 110, 40, '#ffd23f');
+      if (deathBy === 'bee') {
+        if (age < 30) txt('bzzz... uh oh', W / 2, 110, 40, '#ffd23f');
+        else if (age < 80) txt('PSSSSSSSSSS', W / 2, 110, 50 + Math.sin(age * 0.5) * 4, '#ffd23f');
+        else if (age < OVER_DELAY) { const k = Math.min(1, (age - 80) / 10); ctx.save(); ctx.translate(W / 2, 110); ctx.scale(k, k); txt('DEFLATED', 0, 0, 74, '#7ed6df'); ctx.restore(); }
+      } else if (deathBy === 'trap') {
+        if (age < 20) txt('SNIP!', W / 2, 110, 50 + age * 2, '#fff');
+        else if (age < OVER_DELAY) { const k = Math.min(1, (age - 20) / 8); ctx.save(); ctx.translate(W / 2, 110); ctx.scale(k, k); ctx.rotate(Math.sin(age * 0.3) * 0.05); txt('CIRCUMCISED', 0, 0, 78, '#e0245e', 'center', '#3a0010'); ctx.restore(); }
+        if (age < 40) { ctx.fillStyle = `rgba(255,40,60,${(40 - age) / 40 * 0.35})`; ctx.fillRect(0, 0, W, H); }
+      } else if (age < 40) txt('oh no... don\'t stop...', W / 2, 110, 40, '#ffd23f');
       else if (age < OVER_DELAY) txt('OHHHHH', W / 2, 110, 60 + Math.sin(age * 0.4) * 6, '#ffd23f');
       if (age > OVER_DELAY) {
         const k = Math.min(1, (age - OVER_DELAY) / 12);
         ctx.save(); ctx.translate(W / 2, H / 2 - 50); ctx.scale(k, k); ctx.translate(-W / 2, -(H / 2 - 50));
         rr(W / 2 - 250, 80, 500, 290, 26); fs('#fff6e0', INK, 4);
         txt('GAME OVER', W / 2, 135, 62, '#ff5d8f');
-        txt('you came too soon', W / 2, 185, 28, INK, 'center', null);
+        txt(deathBy === 'bee' ? 'stung. never been softer.' : deathBy === 'trap' ? 'the tip is gone. sold separately.' : 'you came too soon', W / 2, 185, 28, INK, 'center', null);
         txt(`${Math.floor(dist)} m  ·  ${loot} eggplants  ·  level ${level}`, W / 2, 225, 24, INK, 'center', null);
         txt(`SCORE ${score}`, W / 2, 272, 40, '#ffd23f');
         txt(newBest ? '★ NEW BEST! ★' : `Best ${best}`, W / 2, 320, 26, newBest ? '#e8628b' : INK, 'center', null);
@@ -834,9 +893,12 @@
           txt(level === LEVELS.length ? (isTouch ? 'Tap for the grand finale' : 'SPACE for the grand finale')
                                       : `${isTouch ? 'Tap' : 'SPACE'} for level ${level + 1}: ${nxt}`, W / 2, H - 60, 30, '#fff');
         }
+      } else if (p.fly > 0) {
+        txt('GERONIMOOOOO', W / 2, 110, 48 + p.fly * 12, '#ffd23f');
       } else {
         txt('ohhh here it comes...', W / 2, 110, 44, '#ffd23f');
       }
+      if (p.arrived && t - winT < 35) txt('SCHLORP!', BOOTY_X - 120, TRACK_Y + 60, 40 - (t - winT) * 0.5, '#fff');
     }
     else if (state === 'end') {
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 0, W, H);
