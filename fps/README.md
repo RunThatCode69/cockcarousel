@@ -2,7 +2,9 @@
 
 A browser first-person shooter parody of Call of Duty 4, in the Cock Carousel universe. You are the dick. You are also the gun. Sequel to *Cum of Duty: Wrong Hole* (`/sperm`).
 
-One file, no build step, no libraries, no external assets: `index.html` is a Canvas 2D raycaster (Wolfenstein-style pseudo-3D) with every wall, sprite and HUD element drawn procedurally and every sound made from Web Audio oscillators. 960×540 virtual resolution, letterboxed; portrait phones get the rotated canvas, same as Slide Rush.
+One file, no build step, no libraries, no external assets: `index.html` is a Canvas 2D raycaster (Wolfenstein-style pseudo-3D) with textured, fogged floors and ceilings (a small floor caster), parallax skies, ~30 procedurally drawn props per level (barrels, sandbags, tents, palms, portholes, water coolers, burning cars…), 3D particles, wall splats, hit markers, a kill feed and a compass. Every wall, sprite and HUD element is drawn with canvas at load and every sound is a Web Audio oscillator. 960×540 virtual resolution, letterboxed; portrait phones get the rotated canvas, same as Slide Rush.
+
+Your weapon is the **DICK-47**: a dick-shaped rifle held in both hands. The magazine is the balls. Reloading is a three-part CoD-style animation — mag out (the balls drop), fresh mag in, rack the tip — with sounds for each step. It recoils, flashes a glob at the muzzle, ejects drops, sways when you sprint and, if you leave it alone, drips.
 
 ## Controls
 
