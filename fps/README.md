@@ -6,7 +6,9 @@ A browser first-person shooter parody of Call of Duty 4, in the Cock Carousel un
 
 The **DICK-47** is a 3D view model: a thick veiny shaft for a barrel, the head for a muzzle, the balls for a magazine, a heart-ring rear sight and a front post on the tip. It's held in camo sleeves and gloves, with your left hand on the shaft. Hip fire, aim-down-sights (you look down the shaft), sprint, crouch, reload (balls drop out, fresh pair in, rack the tip), nut-nade throws and melee.
 
-**The enemy:** Condom Troopers are the main bad guys now. They shoot condoms; each hit rolls one further down you (the WRAPPED meter). Fully wrapped and you're out: WRAPPED, mission failed. Stop getting hit and it slides back off.
+**Length:** every shot shrinks the DICK-47 a little (9.0" down to 2.7"), and a smaller dick hits softer (down to half damage). Kills sometimes drop **lotion** (+4.5") or, rarely, **the little blue pill** (full size and no shrinkage for 15 s). Eggplants and care packages top you up too. If you're shriveled with no lotion nearby, command air-drops some. The rifle fires faster now and holds 12.
+
+**The enemy:** Condom Troopers are the main bad guys now. Crabs are back alongside them as the rushers. They shoot condoms; each hit rolls one further down you (the WRAPPED meter). Fully wrapped and you're out: WRAPPED, mission failed. Stop getting hit and it slides back off.
 
 **Finding your way:** a yellow chevron path on the ground leads to the objective, a light beacon marks it, the compass points along the route and an on-screen heart shows the distance.
 
@@ -33,7 +35,7 @@ Generous auto-aim (about a 15° cone), big enemies, slow projectiles. It is much
 
 **Killstreaks** — 3: *Ultrasound online* (enemies on the minimap). 5: *Care Package* (a crate of eggplants, full heal). 7: *Precision Hairstrike* (a giant pube falls and wipes the room).
 
-**Enemies** — Crab (melee rusher), Bee (fast, erratic, shoots stingers), Mousetrap (sits still, lunges), Condom Trooper (wraps you: slow for 2 s), Chili (throws hot sauce, area denial), Ice Cube (mini-boss: "shrinkage" halves your damage while near), and Imran Jackoff.
+**Enemies** — Crab (melee rusher), Bee (fast, erratic, shoots stingers), Mousetrap (sits still, lunges), Condom Trooper (shoots condoms; see WRAPPED above), Chili (throws hot sauce, area denial), Ice Cube (mini-boss: "shrinkage" halves your damage while near), and Imran Jackoff.
 
 ## v2 detail pass
 

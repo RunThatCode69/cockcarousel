@@ -150,9 +150,9 @@ const M2 = () => {
       bakeSign('sign_bush', 'THE BUSH', 'keep out. seriously.', '#fff6e0', INK); bakeSign('sign_look', 'OVERLOOK', 'one shot', YEL, INK);
       for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (map[y][x] === ',' && (x * 7 + y * 5) % 4 === 0) spawnProp('bush', x + 0.5, y + 0.5, { passable: true, far: 12 });
       spawnEnemy('condom', 24, 18, { ai: 'patrol', path: [[24, 18], [32, 18], [32, 20], [24, 20]] });
-      spawnEnemy('condom', 22, 8, { ai: 'patrol', path: [[22, 7.5], [33, 7.5], [33, 13.5], [22, 13.5]] });
+      spawnEnemy('crab', 22, 8, { ai: 'patrol', path: [[22, 7.5], [33, 7.5], [33, 13.5], [22, 13.5]] });
       spawnEnemy('condom', 31, 11, { ai: 'patrol', path: [[31, 9], [31, 13], [22, 13], [22, 9]] });
-      spawnEnemy('condom', 3, 2, { ai: 'patrol', path: [[3, 2], [12, 2], [12, 7], [3, 7]] });
+      spawnEnemy('crab', 3, 2, { ai: 'patrol', path: [[3, 2], [12, 2], [12, 7], [3, 7]] });
       spawnEnemy('condom', 16, 2, { ai: 'patrol', path: [[16.5, 2], [16.5, 15]] });
       spawnEnemy('trap', 26.5, 10.5); spawnEnemy('trap', 6.5, 12.5); spawnEnemy('trap', 8, 18.5);
       boss = spawnNpc('boss2', 27.5, 2.5, 1.8, 1.4, { r: 0.8, hp: 1, wp: 0, path: [[22, 2.5], [33, 2.5]],
@@ -169,7 +169,7 @@ const M2 = () => {
       { obj: 'Sneak through the grass to the overlook', done: () => near(27.5, 7.8, 1.6), end() { M.goal.hidden = true; say('MACMILLI', 'There he is. Imran Jackoff. The fur coat. Both arms, for now.', 240); } },
       { obj: 'One shot, one squirt: hit Jackoff', at: [27.5, 7.8, -Math.PI / 2], pre() { M.goal.hidden = true; }, start() { boss.shootable = true; boss.far = 60; say('MACMILLI', 'Account for the wind. And the Coriolis effect. And his feelings. ...Take the shot.', 300); }, done: () => M.flags.bossHit,
         end() { announce('ONE SHOT, ONE SQUIRT', 'you blew his arm clean off', 44); say('MACMILLI', "Target down... no. He's lost an arm. Bloody hell, Leftenant.", 240); say('JACKOFF', 'MY ARM! MY BEAUTIFUL WANKING ARM!', 200); } },
-      { obj: 'Everyone is awake. Get back to the LZ.', at: [27.5, 7.8, Math.PI / 2], pre() { M.goal.hidden = true; boss.flee = true; boss.spr = 'boss'; }, start() { M.goal = { x: 3, y: 19 }; spawnWave([['condom', 30, 9], ['bee', 24, 12], ['condom', 29, 17], ['condom', 21, 19], ['bee', 14, 19]]); for (const e of ents) if (e.kind === 'enemy' && e.ai !== 'chase') { e.ai = 'chase'; e.sightMul = 4; } say('MACMILLI', "They know we're here. Rubbers AND bees. Forget stealth. RUN. Back to the LZ.", 240); },
+      { obj: 'Everyone is awake. Get back to the LZ.', at: [27.5, 7.8, Math.PI / 2], pre() { M.goal.hidden = true; boss.flee = true; boss.spr = 'boss'; }, start() { M.goal = { x: 3, y: 19 }; spawnWave([['condom', 30, 9], ['crab', 24, 12], ['crab', 29, 17], ['condom', 21, 19], ['bee', 14, 19]]); for (const e of ents) if (e.kind === 'enemy' && e.ai !== 'chase') { e.ai = 'chase'; e.sightMul = 4; } say('MACMILLI', "They know we're here. Rubbers AND crabs. Forget stealth. RUN. Back to the LZ.", 240); },
         tick() {
           // the bird comes in low over the treeline, flares and hovers at the LZ
           if (!M.flags.heli && player.x < 16) { M.flags.heli = spawnDeco('heli', -6, 15, 1, 1, { z: 3.2, far: 80, heliT: 0 }); announce('CHOPPER INBOUND', 'get to the LZ', 40); say('PILOT', 'Big Bird, inbound. Pop smoke, pop smoke.', 200); say('MACMILLI', 'Chopper! Get to the LZ, Leftenant!', 200); sfx('chop'); }
@@ -268,7 +268,7 @@ const M4 = () => {
   put(g, 0, 17, 'P'); put(g, 33, 2, 'P');
   let wave = 0, serving = 4;
   const SPAWNS = [[2, 13], [13, 13], [7, 21.5], [13, 21.5]];
-  const waves = [[['condom', 0], ['condom', 1], ['bee', 2]], [['condom', 0], ['condom', 3], ['bee', 1], ['bee', 2]], [['condom', 1], ['condom', 2], ['condom', 3], ['bee', 0], ['bee', 3]]];
+  const waves = [[['condom', 0], ['condom', 1], ['crab', 2]], [['condom', 0], ['crab', 3], ['crab', 1], ['bee', 2]], [['condom', 1], ['condom', 2], ['crab', 3], ['crab', 0], ['bee', 3]]];
   const nextWave = () => { const w = waves[wave]; if (!w) return; spawnWave(w.map(([ty, s]) => [ty, SPAWNS[s][0], SPAWNS[s][1]])); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } wave++; serving++; bakeBoard(serving); announce(`NOW SERVING: ${serving}`, 'your number is 69. nobody is rushing.', 40); };
   return {
     map: g, heights: { '#': 1.8, A: 0.7, G: 1.5, P: 1.8 }, tex: { '#': 'tile', A: 'velvet', G: 'door', P: 'poster' }, variants: { '#': ['clinicposter', 6] }, floor: 'lino', ceil: 'ceiltile', floorOf: (x, y) => (x <= 14 && y >= 12) ? 'carpet' : null, pal: PAL.clinic, start: [7.5, 20.5, -Math.PI / 2], par: 190, music: 'muzak', amb: 'room',
@@ -320,7 +320,7 @@ const M5 = () => {
     stages: [
       { obj: 'Hold them off until the bridge', start() { M.state = 'rails'; player.a = Math.PI; M.flags.spawnT = 0; },
         tick() {
-          if (t - M.flags.spawnT > (diff === 'regular' ? 70 : 95) && player.x < 50) { M.flags.spawnT = t; const r = Math.random(), ty = r < 0.5 ? 'condom' : r < 0.8 ? 'bee' : 'crab'; spawnEnemy(ty, player.x - 9, rand(3.5, 6.5), { ai: 'chase', speedMul: ty === 'crab' ? 2.2 : 1.6, sightMul: 5 }); }
+          if (t - M.flags.spawnT > (diff === 'regular' ? 70 : 95) && player.x < 50) { M.flags.spawnT = t; const r = Math.random(), ty = r < 0.4 ? 'condom' : r < 0.65 ? 'bee' : 'crab'; spawnEnemy(ty, player.x - 9, rand(3.5, 6.5), { ai: 'chase', speedMul: ty === 'crab' ? 2.2 : 1.6, sightMul: 5 }); }
           for (const e of ents) if (e.kind === 'enemy' && e.x < player.x - 14) e.gone = true;
           if (player.x > 25 && !M.flags.mid) { M.flags.mid = true; say('SOUP', 'Bridge! We\'re almost across!', 180); say('PRICK', 'Don\'t say that. Never say that.', 180); }
         },

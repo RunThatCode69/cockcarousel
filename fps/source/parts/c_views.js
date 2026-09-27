@@ -39,7 +39,7 @@ function makeView(e) {
     if (S) o = MD.makeDick(S);
     else if (e.spr === 'heli') { o = MD.makeHeli(); }
   } else if (e.kind === 'pickup') {
-    o = { eggplant: MD.makeEggplant, crate: MD.makeCrate, ticket: MD.makeTicket, pistol: MD.makePistol }[e.type]?.();
+    o = { eggplant: MD.makeEggplant, crate: MD.makeCrate, ticket: MD.makeTicket, pistol: MD.makePistol, lotion: MD.makeLotion, pill: MD.makePill }[e.type]?.();
   } else if (e.kind === 'deco') {
     if (e.spr === 'heli') { o = MD.makeHeli(); o.scale.setScalar(1.5); }
     else if (MD.PROP3D[e.spr]) o = MD.PROP3D[e.spr]();

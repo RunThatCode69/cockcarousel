@@ -112,6 +112,15 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
   if (M.state !== 'crawl') {
     const ax = W - 24, ay = H - 40;
     txt('DICK-47', ax, ay - 44, 16, PINK, 'right', null);
+    { // LENGTH: shots shrink it, lotion pumps it back up
+      const k = p.size || 1, bw = 150, bx = ax - bw, by = ay - 84, low = k < 0.5;
+      txt('LENGTH', bx, by - 10, 13, '#fff', 'left', null);
+      txt(`${(k * 9).toFixed(1)}"`, ax, by - 10, 18, p.hardT > 0 ? CYAN : low ? '#ff4d6d' : YEL, 'right', null);
+      rr(bx, by, bw, 12, 6); fs('rgba(0,0,0,0.45)', '#fff', 1.5);
+      if (k > 0.02) { rr(bx + 2, by + 2, (bw - 4) * k, 8, 4); fs(p.hardT > 0 ? CYAN : low && t % 30 < 15 ? '#ff4d6d' : SKIN, null); }
+      if (p.hardT > 0) txt(`RAGING ${Math.ceil(p.hardT / 60)}s`, bx, by + 26, 13, CYAN, 'left', null);
+      if (low && M.state === 'play') { ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 0.2); txt('SHRIVELED — FIND LOTION', W / 2, H - 186, 22, '#ff9bb8', 'center', INK); ctx.globalAlpha = 1; }
+    }
     for (let i = 0; i < 3; i++) { E(ax - 150 - i * 20, ay - 44, 7, 8); fs(i < p.nades ? SKIN : 'rgba(255,255,255,0.15)', i < p.nades ? INK : null, 1.5); }
     if (!isTouch) txt('G', ax - 210, ay - 44, 13, '#fff', 'center', null);
     txt(p.reloading ? 'RELOADING' : `${p.ammo}`, ax - (p.reloading ? 0 : 36), ay - 12, p.reloading ? 22 : 44, p.ammo === 0 && !p.reloading ? '#ff4d6d' : '#fff', 'right');

@@ -2,7 +2,7 @@
 // ================================================================
 //  GAMEPLAY — player, weapon, enemies, streaks, pickups, screens
 // ================================================================
-const MAG = 8, DMG = 35, GLOB_SPEED = 0.3;
+const MAG = 12, DMG = 35, GLOB_SPEED = 0.3;
 let state = 'title', player = null, ents = [], globs = [], eproj = [], puddles = [], stats = null, stateT = 0;
 let unlockedM = 1, bestM = {}, diff = 'easy', deathQuote = ['', ''], deathTitle = 'YOU DIED', pauseFrom = null, missionIdx = 1;
 try { unlockedM = clamp(+localStorage.getItem('mw_unlocked') || 1, 1, 5); } catch (e) {}
@@ -36,7 +36,7 @@ const RANKS = [[85, 'GENERAL ERECTION', 'she wants more'], [70, 'MAJOR WOOD', 'w
 function newPlayer(x, y, a) {
   return { x, y, a, hp: 100, lastHit: -999, ammo: MAG, reloading: false, reloadT: 0, fireCd: 0, recoil: 0, walkT: 0, moving: 0, bobY: 0,
     wrapT: 0, shrink: 0, ultraT: 0, streak: 0, buttT: 0, aimLock: false, speedMul: 1, invul: false, canFire: true, canMove: true,
-    lookP: 0, ads: 0, sprint: 0, crouch: false, nades: 3, throwT: 0, kick: 0, stepN: 0, jz: 0, jv: 0, wrap: 0, lastWrap: 0, hintT: 0 };
+    lookP: 0, ads: 0, sprint: 0, crouch: false, nades: 3, throwT: 0, kick: 0, stepN: 0, jz: 0, jv: 0, wrap: 0, lastWrap: 0, hintT: 0, size: 1, hardT: 0, dropT: -9999 };
 }
 function spawnEnemy(type, x, y, o = {}) {
   const d = ENEMY[type];
@@ -75,7 +75,7 @@ function fire() {
   const near = bestTarget(0.7);
   if (near && dist(p, near) < 1.35 && M.state !== 'showdown') { headbutt(near); return; }
   if (p.ammo <= 0) { reload(); return; }
-  p.ammo--; p.fireCd = 15; p.recoil = 1; p.drip = 0; p.kick -= 7 * (1 - 0.5 * p.ads); stats.shots++; ejectShell(); flashT = 3;
+  p.ammo--; shrinkShot(); p.fireCd = 9; p.recoil = 1; p.drip = 0; p.kick -= 7 * (1 - 0.5 * p.ads); stats.shots++; ejectShell(); flashT = 3;
   const tgt = bestTarget();
   let a = p.a;
   if (tgt) { a = angleTo(p, tgt); }
@@ -86,11 +86,45 @@ function fire() {
   sfx('shoot');
   if (p.ammo === 0 && M.state !== 'showdown') setTimeout(() => { if (state === 'game' && player === p && p.ammo === 0) reload(); }, 250);
 }
+// every shot costs you a little length. lotion puts it back.
+const SIZE_MIN = 0.3, SIZE_STEP = 0.012;
+const sizeMul = () => player ? 0.5 + 0.5 * player.size : 1;
+function shrinkShot() {
+  const p = player; if (M.state === 'showdown' || p.hardT > 0) return;
+  const was = p.size; p.size = Math.max(SIZE_MIN, p.size - SIZE_STEP);
+  if (was > 0.75 && p.size <= 0.75 && !M.flags.sizeTip) { M.flags.sizeTip = true; say('PRICK', "It's getting smaller, son. Every shot costs you. Find lotion.", 240); }
+  if (was > 0.45 && p.size <= 0.45) { announce('SHRINKAGE', pickOne(['find lotion. now.', 'it\'s cold out here, okay?', 'is it in yet?', 'damage way down']), 40); sfx('deflate'); }
+}
+function growBy(k, why) {
+  const p = player; const was = p.size; p.size = Math.min(1, p.size + k);
+  return Math.round((p.size - was) * 9 * 10) / 10;
+}
+// kills sometimes drop lotion; when you're tiny and there's none around, command drops a crate of it
+function maybeDrop(e) {
+  const p = player; const need = p.size < 0.6;
+  if (Math.random() > (need ? 0.4 : 0.2)) return;
+  const type = Math.random() < 0.15 ? 'pill' : 'lotion';
+  if (M.state === 'rails') { applyPickup({ type }); return; }   // in the truck: it lands right in your lap
+  const d = spawnPickup(type, e.x, e.y); if (!walkable(e.x, e.y)) { d.x = p.x; d.y = p.y; }
+}
+function lotionDrop() {
+  const p = player; if (M.state !== 'play' || p.size > 0.45 || t - p.dropT < 900) return;
+  if (ents.some(e => e.kind === 'pickup' && !e.got && (e.type === 'lotion' || e.type === 'pill') && dist(e, p) < 12)) return;
+  p.dropT = t;
+  const x = p.x + Math.cos(p.a) * 1.8, y = p.y + Math.sin(p.a) * 1.8; const ok = walkable(x, y);
+  const c = spawnPickup('lotion', ok ? x : p.x, ok ? y : p.y); c.z = 3; c.fall = true; sfx('drop');
+  say('SARGE', 'LOTION DROP INBOUND. Somebody lube this man up!', 200);
+}
+function applyPickup(e) {
+  const p = player;
+  if (e.type === 'lotion') { const g = growBy(0.5); announce('LOTIONED UP', `+${g}"  ` + pickOne(['back to full mast', 'pump pump pump', 'smooth.', 'he\'s growing, sarge', 'extra grip']), 36); sfx('loot'); sfx('squish'); stats.lotion = (stats.lotion || 0) + 1; }
+  if (e.type === 'pill') { growBy(1); p.hardT = 900; announce('RAGING', 'no shrinkage for 15 seconds', 40); sfx('streak'); }
+}
 function reload() { const p = player; if (p.reloading || p.ammo === MAG || !p.canFire) return; p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
 function headbutt(e) {
   const p = player; p.buttT = 22; p.fireCd = 26; p.recoil = 0.6; stats.shots++; stats.hits++;
   sfx('butt'); shake = 8;
-  damageEnt(e, 60 * (p.shrink > 0 ? 0.5 : 1), true);
+  damageEnt(e, 60 * (p.shrink > 0 ? 0.5 : 1) * sizeMul(), true);
   if (e.kind === 'enemy' && !e.dead) { const a = angleTo(p, e); moveBody(e, Math.cos(a) * 0.6, Math.sin(a) * 0.6, e.r); }
 }
 function damageEnt(e, dmg, butt) {
@@ -110,6 +144,7 @@ function killEnt(e, butt) {
     if (s) { sfx('streak'); announce(s.line, s.sub, 44); streakReward(s.n); if (s.n === 7) p.streak = 0; }
     if (Math.random() < 0.3) say(pickOne(['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
     if (e.type === 'ice') announce('SHRINKAGE OVER', 'welcome back, big guy', 40);
+    if (e.type !== 'boss' && e.type !== 'target') maybeDrop(e);
     if (e.type === 'boss' && e.onDeath) e.onDeath(e);
   }
   if (e.onDeath && e.kind !== 'enemy') e.onDeath(e);
@@ -206,6 +241,7 @@ function updatePlayer() {
   p.drip = Math.min(1, (p.drip || 0) + 0.004 * ts);
   if (t - p.lastHit > 180 && p.hp < 100 && p.hp > 0) p.hp = Math.min(100, p.hp + 0.45 * ts);
   if (p.wrap > 0 && t - (p.lastWrap || 0) > 90) p.wrap = Math.max(0, p.wrap - 0.006 * ts);   // it slides back off if you stop getting hit
+  p.hardT -= ts; lotionDrop();
   if (fireHeld && M.state !== 'crawl') { p.sprint = 0; fire(); }
   p.aimLock = !!bestTarget();
   // pickups
@@ -214,8 +250,9 @@ function updatePlayer() {
     if (e.fall) { e.z = Math.max(0, e.z - 0.05 * ts); if (e.z === 0) { e.fall = false; shake = 6; sfx('splat'); } continue; }
     if (dist(p, e) < 0.75) {
       e.got = true;
-      if (e.type === 'eggplant') { p.hp = Math.min(100, p.hp + 35); announce('+35 HP', pickOne(['ooh... it\'s growing', 'delicious', 'that\'s a big boy now', 'getting harder already?']), 34); sfx('loot'); stats.eggs = (stats.eggs || 0) + 1; }
-      if (e.type === 'crate') { p.hp = 100; p.nades = Math.max(p.nades, 3); announce('FULL HEAL', 'a whole crate of eggplants (and some nuts)', 40); sfx('loot'); }
+      if (e.type === 'lotion' || e.type === 'pill') applyPickup(e);
+      if (e.type === 'eggplant') { growBy(0.15); p.hp = Math.min(100, p.hp + 35); announce('+35 HP', pickOne(['ooh... it\'s growing', 'delicious', 'that\'s a big boy now', 'getting harder already?']), 34); sfx('loot'); stats.eggs = (stats.eggs || 0) + 1; }
+      if (e.type === 'crate') { growBy(1); p.hp = 100; p.nades = Math.max(p.nades, 3); announce('FULL HEAL', 'a whole crate of eggplants (and some nuts)', 40); sfx('loot'); }
       if (e.type === 'ticket') { announce('TICKET #69', 'now serving: 4', 40); sfx('loot'); M.flags.ticket = true; }
       if (e.type === 'pistol') { sfx('click'); M.flags.pistol = true; }
       if (e.onGet) e.onGet(e);
@@ -233,7 +270,7 @@ function updateGlobs() {
     g.x = nx; g.y = ny; g.life -= ts; g.y3 += g.vy3 * ts; g.z = g.y3 / YS;
     for (const e of ents) {
       if (!alive(e)) continue;
-      if (dist(g, e) < e.r + 0.15) { g.life = 0; stats.hits++; damageEnt(e, DMG * (player.shrink > 0 ? 0.5 : 1)); break; }
+      if (dist(g, e) < e.r + 0.15) { g.life = 0; stats.hits++; damageEnt(e, DMG * (player.shrink > 0 ? 0.5 : 1) * sizeMul()); break; }
     }
   }
   globs = globs.filter(g => g.life > 0);

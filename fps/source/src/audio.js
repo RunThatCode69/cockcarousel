@@ -84,6 +84,8 @@ function sfx(n) {
     case 'chop': hiss(0.09, 0.35, 0, 'lowpass', 500, 120, 1); tone(70, 55, 0.1, 'sine', 0.2); break;
     case 'step': hiss(0.06, 0.12, 0, 'lowpass', 900, 200, 1); break;
     case 'tick': tone(1800, 1400, 0.02, 'square', 0.03); hiss(0.1, 0.05, 0.02, 'bandpass', 2000, 2500, 2); break;
+    case 'deflate': tone(600, 90, 0.7, 'sawtooth', 0.07); tone(420, 70, 0.7, 'sine', 0.12, 0.05); break;
+    case 'squish': for (let i = 0; i < 3; i++) { hiss(0.09, 0.3, i * 0.13, 'bandpass', 900, 500, 3); tone(260, 520, 0.08, 'sine', 0.1, i * 0.13); } break;
     case 'drop': tone(900, 200, 0.5, 'sine', 0.1); hiss(0.4, 0.4, 0.5, 'lowpass', 1200, 80); break;
     case 'ultra': for (let i = 0; i < 4; i++) tone(1200, 1800, 0.1, 'sine', 0.07, i * 0.15); break;
     case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.28, 'triangle', 0.14, i * 0.13)); tone(200, 60, 0.6, 'sine', 0.2, 0.55); break;

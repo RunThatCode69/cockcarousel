@@ -191,6 +191,24 @@ export function makeEggplant() {
   g.add(at(ink(new THREE.ConeGeometry(0.08, 0.07, 6), toon('#57b947')), 0, 0.19, 0));
   root.userData = { spin: g, kind: 'eggplant' }; return root;
 }
+// lotion: a pump bottle. pumps you back up.
+export function makeLotion() {
+  const root = new THREE.Group(), g = new THREE.Group(); root.add(g); g.position.y = 0.2;
+  const c = bake(128, 128, () => { ctx.fillStyle = '#f4f7ff'; ctx.fillRect(0, 0, 128, 128); rr(10, 30, 108, 64, 10); fs('#7ec8ff', INK, 4); txt('LOTION', 64, 52, 24, '#fff', 'center', INK); txt('extra grip', 64, 78, 14, INK, 'center', null); });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const body = ink(new THREE.CylinderGeometry(0.085, 0.095, 0.26, 18), new THREE.MeshToonMaterial({ map: t, gradientMap: ramp }), 0.012); g.add(body);
+  g.add(at(ink(new THREE.CylinderGeometry(0.03, 0.03, 0.06, 10), toon('#ffffff'), 0.008), 0, 0.16, 0));
+  g.add(at(ink(new THREE.BoxGeometry(0.07, 0.025, 0.035), toon('#ffffff'), 0.008), 0.025, 0.2, 0));
+  g.add(at(ink(new THREE.CylinderGeometry(0.008, 0.008, 0.05, 6), toon('#ffffff'), 0.004), 0.06, 0.19, 0).rotateZ(1.2));
+  root.userData = { spin: g, kind: 'lotion' }; return root;
+}
+// the little blue pill: full size and it won't shrink for a while
+export function makePill() {
+  const root = new THREE.Group(), g = new THREE.Group(); root.add(g); g.position.y = 0.3; g.rotation.z = 0.6;
+  const cap = ink(new THREE.CapsuleGeometry(0.07, 0.12, 6, 14), toon('#3f7cff'), 0.012); g.add(cap);
+  const shine = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 6), new THREE.MeshBasicMaterial({ color: '#fff' })); shine.position.set(0.04, 0.06, 0.05); g.add(shine);
+  root.userData = { spin: g, kind: 'pill' }; return root;
+}
 export function makeCrate() {
   const root = new THREE.Group();
   const c = bake(128, 128, () => { ctx.fillStyle = '#c98b4b'; ctx.fillRect(0, 0, 128, 128); ctx.strokeStyle = '#7a4d20'; ctx.lineWidth = 8; ctx.strokeRect(4, 4, 120, 120); ctx.beginPath(); ctx.moveTo(4, 4); ctx.lineTo(124, 124); ctx.moveTo(124, 4); ctx.lineTo(4, 124); ctx.stroke(); rr(26, 50, 76, 28, 4); fs('#fff6e0', '#7a4d20', 3); txt('EGGPLANTS', 64, 64, 13, '#7a4d20', 'center', null); });
