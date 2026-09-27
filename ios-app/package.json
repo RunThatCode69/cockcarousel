@@ -1,0 +1,23 @@
+{
+  "name": "cock-carousel-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cock Carousel: Slide Rush — iOS wrapper (Capacitor)",
+  "scripts": {
+    "setup": "bash setup.sh",
+    "sync": "npx cap sync ios",
+    "open": "npx cap open ios",
+    "assets": "npx @capacitor/assets generate --ios --iconBackgroundColor '#ffd6e7' --splashBackgroundColor '#ffd6e7'",
+    "pull-game": "cp ../game/index.html www/index.html && node tools/offline-font.mjs && npx cap sync ios",
+    "beta": "bash release.sh beta",
+    "release": "bash release.sh release"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/assets": "^3.0.5"
+  }
+}

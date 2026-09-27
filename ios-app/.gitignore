@@ -1,0 +1,10 @@
+node_modules/
+ios/App/Pods/
+ios/App/build/
+ios/App/App.xcworkspace/xcuserdata/
+build/
+*.ipa
+*.dSYM.zip
+fastlane/report.xml
+fastlane/*.p8
+.env

@@ -1,0 +1,12 @@
+{
+  "appId": "com.cockcarousel.sliderush",
+  "appName": "Cock Carousel",
+  "webDir": "www",
+  "backgroundColor": "#ffd6e7",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "allowsLinkPreview": false,
+    "backgroundColor": "#ffd6e7"
+  }
+}

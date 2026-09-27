@@ -1,0 +1,55 @@
+default_platform(:ios)
+
+PROJECT   = "../ios/App/App.xcodeproj"
+WORKSPACE = "../ios/App/App.xcworkspace"
+
+def api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_filepath: ENV.fetch("ASC_KEY_PATH", "./AuthKey.p8"),
+    in_house: false
+  )
+end
+
+def build
+  # Automatic signing driven by the API key: no Xcode clicking, no certificates to manage by hand.
+  update_code_signing_settings(path: PROJECT, use_automatic_signing: true, team_id: ENV.fetch("APPLE_TEAM_ID"))
+  increment_build_number(xcodeproj: PROJECT, build_number: Time.now.strftime("%Y%m%d%H%M"))
+  build_app(
+    workspace: WORKSPACE,
+    scheme: "App",
+    export_method: "app-store",
+    xcargs: "-allowProvisioningUpdates -authenticationKeyPath #{File.expand_path(ENV.fetch('ASC_KEY_PATH', './AuthKey.p8'))} -authenticationKeyID #{ENV.fetch('ASC_KEY_ID')} -authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID')}",
+    export_options: { signingStyle: "automatic", teamID: ENV.fetch("APPLE_TEAM_ID") }
+  )
+end
+
+platform :ios do
+  desc "Build and push to TestFlight"
+  lane :beta do
+    api_key
+    build
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  desc "Build, upload, set metadata + screenshots, submit for App Store review"
+  lane :release do
+    api_key
+    build
+    upload_to_app_store(
+      force: true,                       # no HTML preview prompt
+      submit_for_review: true,
+      automatic_release: true,           # goes live the moment Apple approves
+      skip_binary_upload: false,
+      overwrite_screenshots: true,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false,
+        content_rights_contains_third_party_content: false
+      }
+    )
+  end
+end
