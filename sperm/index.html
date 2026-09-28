@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Cum of Duty: Wrong Hole</title>
+<title>Seed Team Six: Wrong Hole</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@
   let streak = 0, boostT = -999, pink = 0;   // hearts-in-a-row combo and the 'she came' surge
   const BOOST_LEN = 110;
   const MOANS = ['ohhh... yes...', 'mmm. keep going.', 'oh god. OH GOD.', 'don\'t you dare stop', 'again. do it again.'];
-  try { best = +localStorage.getItem('cod_best') || 0; } catch (e) {}
+  try { best = +localStorage.getItem('sts_best') || 0; } catch (e) {}
 
   const MISSIONS = {
     1: { name: 'OPERATION BROWN EYE', obj: 'Get out of the butthole.', len: 11000, wall: '#7d4034', inner: '#d3867a', deep: '#b76b60', pick: 'lube drops' },
@@ -62,37 +62,37 @@
   };
   const SCRIPT = {
     1: [
-      [0.02, 'PRICK', "Swimmer, you're in the rectum. Swim toward the light."],
-      [0.12, 'PRICK', 'Watch the corn. It never digests. Ever.'],
+      [0.02, 'RAMROD', "Swimmer, you're in the rectum. Swim toward the light."],
+      [0.12, 'RAMROD', 'Watch the corn. It never digests. Ever.'],
       [0.24, 'SWIMMER', 'Captain, something just farted on me.'],
-      [0.28, 'PRICK', "That's the enemy, son. Hold your breath."],
-      [0.4, 'PRICK', "Hemorrhoids on the walls. Don't touch the angry grapes."],
-      [0.55, 'PRICK', "You're doing great. This is still the wrong hole."],
+      [0.28, 'RAMROD', "That's the enemy, son. Hold your breath."],
+      [0.4, 'RAMROD', "Hemorrhoids on the walls. Don't touch the angry grapes."],
+      [0.55, 'RAMROD', "You're doing great. This is still the wrong hole."],
       [0.68, 'SWIMMER', 'Is that... a peanut?'],
-      [0.72, 'PRICK', 'She had pad thai. Keep moving.'],
-      [0.86, 'PRICK', 'Sphincter ahead. Wait for it to open. Do NOT get clenched.'],
-      [0.95, 'PRICK', "Almost out. Don't look back. Seriously. Don't."],
+      [0.72, 'RAMROD', 'She had pad thai. Keep moving.'],
+      [0.86, 'RAMROD', 'Sphincter ahead. Wait for it to open. Do NOT get clenched.'],
+      [0.95, 'RAMROD', "Almost out. Don't look back. Seriously. Don't."],
     ],
     2: [
-      [0.02, 'PRICK', 'Good news: right hole. Bad news: 200 million other guys had the same idea.'],
-      [0.18, 'PRICK', "White blood cells inbound. They think you're an infection. Rude."],
-      [0.33, 'PRICK', 'Mucus wall. Push through it like your father would.'],
+      [0.02, 'RAMROD', 'Good news: right hole. Bad news: 200 million other guys had the same idea.'],
+      [0.18, 'RAMROD', "White blood cells inbound. They think you're an infection. Rude."],
+      [0.33, 'RAMROD', 'Mucus wall. Push through it like your father would.'],
       [0.48, 'SWIMMER', "Captain, it's getting tight."],
-      [0.52, 'PRICK', "That's the cervix, son. Everyone's first time is tight."],
-      [0.64, 'PRICK', 'Spermicide clouds. Purple means death. Like a grape.'],
-      [0.77, 'PRICK', 'Copper wire ahead. She said she had an IUD. Dodge it anyway.'],
-      [0.9, 'PRICK', 'Ovulation Station in sight. This is it. Make your father proud.'],
+      [0.52, 'RAMROD', "That's the cervix, son. Everyone's first time is tight."],
+      [0.64, 'RAMROD', 'Spermicide clouds. Purple means death. Like a grape.'],
+      [0.77, 'RAMROD', 'Copper wire ahead. She said she had an IUD. Dodge it anyway.'],
+      [0.9, 'RAMROD', 'Ovulation Station in sight. This is it. Make your father proud.'],
       [0.97, 'EGG', 'come here, big boy'],
     ],
   };
   const TAUNTS = ['later, loser', 'my dad is a lawyer', 'see you at the egg. jk you won\'t', 'nice tail. did your mom pick it?', 'swim faster, grandpa'];
   const QUOTES = [
-    ["'Life... uh... finds a way.'", 'Dr. Ian Malcolm, probably'],
-    ["'Every sperm is sacred.'", 'some monks'],
+    ["'A swimmer swims. There is nothing else in the job description.'", 'Captain Ramrod, staring at a wall'],
+    ["'There are no bad swimmers. Only bad tunnels.'", 'a poster in the barracks'],
     ["'You miss 100% of the eggs you don\'t swim to.'", 'Wayne Gretzky. Michael Scott.'],
-    ["'Never go in dry.'", 'Captain Prick'],
+    ["'Never go in dry.'", 'Captain Ramrod'],
     ["'It\'s not the size of the sperm, it\'s the motion of the tail.'", 'nobody, ever'],
-    ["'PULL OUT. PULL OUT.'", 'Captain Prick, ignored'],
+    ["'PULL OUT. PULL OUT.'", 'Captain Ramrod, ignored'],
     ["'The only easy day was yesterday. Yesterday you were in a ball.'", 'Navy SEALs, ish'],
     ["'He died as he lived: in someone\'s butt.'", 'his eulogy'],
     ["'Two hundred million went in. Zero came out. Including you.'", 'after-action report'],
@@ -148,8 +148,8 @@
   function drawRadio() {
     if (!radio) return;
     const shown = radio.text.slice(0, Math.floor(radio.f * 1.4));
-    const names = { PRICK: 'Capt. Prick', SWIMMER: 'Sgt. Swimmer', RIVAL: 'Some Other Sperm', EGG: 'The Egg' };
-    const cols = { PRICK: '#ffd23f', SWIMMER: '#7ed6df', RIVAL: '#ff9f43', EGG: '#ff5d8f' };
+    const names = { RAMROD: 'Capt. Ramrod', SWIMMER: 'Sgt. Swimmer', RIVAL: 'Some Other Sperm', EGG: 'The Egg' };
+    const cols = { RAMROD: '#ffd23f', SWIMMER: '#7ed6df', RIVAL: '#ff9f43', EGG: '#ff5d8f' };
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; rr(W / 2 - 400, H - 78, 800, 58, 12); ctx.fill();
     txt(names[radio.who] + ':', W / 2 - 384, H - 49, 20, cols[radio.who], 'left', null);
     txt(shown, W / 2 - 384 + ctx.measureText(names[radio.who] + ': ').width + 8, H - 49, 20, '#fff', 'left', null);
@@ -233,11 +233,11 @@
     if (state === 'intro') { sf++; introTick(); return; }
     if (state === 'birth') {
       const k = t - birthT;
-      if (k === 200) say('PRICK', "Swimmer? It's me. I got out of the butt. I'm a doctor now. PUSH.", 200);
+      if (k === 200) say('RAMROD', "Swimmer? It's me. I got out of there. I'm a doctor now. PUSH.", 200);
       if (k > 200 && popT < 0) {
-        [[25, 'PRICK', "She's crowning. That's not a hat, son."], [50, 'PRICK', 'Breathe. No, not you. HER.'], [75, 'PRICK', 'I can see a helmet!']].forEach(([f, who, text]) => { if (push >= f && !pushed.has(f)) { pushed.add(f); say(who, text, 130); } });
+        [[25, 'RAMROD', "She's crowning. That's not a hat, son."], [50, 'RAMROD', 'Breathe. No, not you. HER.'], [75, 'RAMROD', 'I can see a helmet!']].forEach(([f, who, text]) => { if (push >= f && !pushed.has(f)) { pushed.add(f); say(who, text, 130); } });
         if (push < 100) push = Math.max(0, push - 0.35);
-        else { popT = t; shake = 16; sfx('pop'); radio = null; radioQ = []; say('PRICK', "It's a... sperm? Congratulations. He has your helmet.", 400);
+        else { popT = t; shake = 16; sfx('pop'); radio = null; radioQ = []; say('RAMROD', "It's a... sperm? Congratulations. He has your helmet.", 400);
           for (let i = 0; i < 40; i++) parts.push({ x: 560, y: 330, vx: rand(-6, 6), vy: rand(-8, -1), r: rand(3, 6), c: pickOne(['#ff5d8f', '#ffd23f', '#7ed6df', '#fff']), life: 90, max: 90 }); }
       }
       if (popT > 0 && t - popT === 40) sfx('cry');
@@ -278,11 +278,11 @@
       if (!hit) continue;
       switch (o.type) {
         case 'drop': case 'heart':
-          if (!o.got) { o.got = true; pickups++; sfx('pick'); if (PICK_LINES[pickups]) say('PRICK', PICK_LINES[pickups], 120);
+          if (!o.got) { o.got = true; pickups++; sfx('pick'); if (PICK_LINES[pickups]) say('RAMROD', PICK_LINES[pickups], 120);
             parts.push({ x: sx, y: o.y, vx: 0, vy: -1.5, r: 0, txt: '+10', c: '#ffd23f', life: 40, max: 40 });
             if (o.type === 'heart' && !boosting) {
               streak++;
-              if (streak >= 5) { streak = 0; boostT = t; pink = 1; shake = 10; sfx('moan'); radio = null; radioQ = []; say('EGG', pickOne(MOANS), 110); say('PRICK', 'She came. Ride the wave, Swimmer!', 130); score += 250;
+              if (streak >= 5) { streak = 0; boostT = t; pink = 1; shake = 10; sfx('moan'); radio = null; radioQ = []; say('EGG', pickOne(MOANS), 110); say('RAMROD', 'She came. Ride the wave, Swimmer!', 130); score += 250;
                 for (let i = 0; i < 24; i++) parts.push({ x: PX, y: p.y, vx: rand(-6, 6), vy: rand(-6, 6), r: 0, heart: true, c: '#ff5d8f', life: 60, max: 60 }); }
             } }
           break;
@@ -308,7 +308,7 @@
     } else {
       const ex = M.len - scroll, ec = center(M.len);
       if (Math.hypot(ex - PX, ec - p.y) < 90 + PR) { state = 'end'; endT = t; score += 5000 + pickups * 10; sfx('win'); radio = null; radioQ = [];
-        if (score > best) { best = score; try { localStorage.setItem('cod_best', best); } catch (e) {} } }
+        if (score > best) { best = score; try { localStorage.setItem('sts_best', best); } catch (e) {} } }
     }
 
     // scripted radio
@@ -319,9 +319,9 @@
   // ---------- Intro ----------
   const INTRO = [
     { len: 320 },
-    { len: 680, subs: [[20, 'PRICK', "Swimmer. Wake up. It's go time."], [130, 'SWIMMER', 'Where are we, Captain?'], [220, 'PRICK', 'Classified. Somewhere warm. Somewhere wet.'], [330, 'PRICK', 'Two hundred million of us went in. One comes out a father.'], [450, 'PRICK', 'Gear up. On the rope in ten.'], [560, 'PRICK', 'Bravo Six... going dark.']] },
-    { len: 540, subs: [[10, 'PRICK', 'On the rope, Swimmer. Go, go, go.'], [120, 'SWIMMER', "Captain, I can't see shit."], [210, 'PRICK', "That's the fog of war, son."], [310, 'SWIMMER', 'It smells like... war.'], [410, 'PRICK', 'Keep going. Almost at the LZ.']] },
-    { len: 640, subs: [[15, 'SWIMMER', '...Captain.'], [95, 'PRICK', 'Yeah.'], [150, 'SWIMMER', "This isn't the ship."], [230, 'PRICK', 'No, son.'], [300, 'PRICK', "That's an asshole."], [400, 'PRICK', 'New mission: get out. Find the right hole. Make a baby.'], [520, 'SWIMMER', 'Copy that. Oscar Mike.']] },
+    { len: 680, subs: [[20, 'RAMROD', "Swimmer. Wake up. It's go time."], [130, 'SWIMMER', 'Where are we, Captain?'], [220, 'RAMROD', 'Classified. Somewhere warm. Somewhere wet.'], [330, 'RAMROD', 'Two hundred million of us went in. One comes out a father.'], [450, 'RAMROD', 'Gear up. On the rope in ten.'], [560, 'RAMROD', 'Cut the chatter. Next voice you hear is mine.']] },
+    { len: 540, subs: [[10, 'RAMROD', 'On the rope, Swimmer. Go, go, go.'], [120, 'SWIMMER', "Captain, I can't see shit."], [210, 'RAMROD', "That's the fog of war, son."], [310, 'SWIMMER', 'It smells like... war.'], [410, 'RAMROD', 'Keep going. Almost at the LZ.']] },
+    { len: 640, subs: [[15, 'SWIMMER', '...Captain.'], [95, 'RAMROD', 'Yeah.'], [150, 'SWIMMER', "This isn't the ship."], [230, 'RAMROD', 'No, son.'], [300, 'RAMROD', "That's an asshole."], [400, 'RAMROD', 'New mission: get out. Find the right hole. Make a baby.'], [520, 'SWIMMER', 'Copy that. Oscar Mike.']] },
   ];
   function introTick() {
     const sc = INTRO[scene];
@@ -567,9 +567,9 @@
     ctx.fillStyle = '#3a434f'; for (let i = 0; i < 12; i++) { E(20, 20 + i * 44, 4, 4); ctx.fill(); E(150, 20 + i * 44, 4, 4); ctx.fill(); E(820, 20 + i * 44, 4, 4); ctx.fill(); E(940, 20 + i * 44, 4, 4); ctx.fill(); }
     ctx.strokeStyle = '#1a1f26'; ctx.lineWidth = 5; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, 20 + i * 14); ctx.bezierCurveTo(300, 40 + i * 14, 600, 10 + i * 14, W, 30 + i * 14); ctx.stroke(); }
     ctx.strokeStyle = '#2c343d'; ctx.lineWidth = 3; for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 430); ctx.lineTo(x + 20, H); ctx.stroke(); }
-    // bench + Captain Prick across from you
+    // bench + Captain Ramrod across from you
     ctx.fillStyle = '#4a3b2a'; rr(20, 330, 150, 26, 6); ctx.fill(); ctx.fillRect(40, 350, 14, 70); ctx.fillRect(130, 350, 14, 70);
-    drawSperm(95, 300, 2.3, { hat: true, stache: true, ph: t * 0.15, mouth: talking('PRICK') ? 'o' : undefined });
+    drawSperm(95, 300, 2.3, { hat: true, stache: true, ph: t * 0.15, mouth: talking('RAMROD') ? 'o' : undefined });
     if (sf > 440) { ctx.strokeStyle = CREAM; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(120, 300); ctx.lineTo(200, 240); ctx.stroke(); }
     // a squadmate on the far bench, facing the door
     ctx.fillStyle = '#4a3b2a'; rr(800, 340, 150, 26, 6); ctx.fill();
@@ -680,8 +680,8 @@
     ctx.beginPath(); ctx.moveTo(600, 200); ctx.lineTo(640, 150); ctx.moveTo(660, 210); ctx.lineTo(700, 160); ctx.stroke();
     ctx.strokeStyle = '#f9c3ad'; ctx.lineWidth = 5; ctx.stroke();
     ctx.fillStyle = '#8d99a6'; ctx.fillRect(636, 140, 14, 10); ctx.fillRect(696, 150, 14, 10);
-    // Dr. Prick with a catcher's mitt
-    drawSperm(760, 330 + Math.sin(t * 0.1) * 3, 2, { hat: true, stache: true, ph: t * 0.15, mouth: talking('PRICK') ? 'o' : undefined });
+    // Dr. Ramrod with a catcher's mitt
+    drawSperm(760, 330 + Math.sin(t * 0.1) * 3, 2, { hat: true, stache: true, ph: t * 0.15, mouth: talking('RAMROD') ? 'o' : undefined });
     ctx.fillStyle = '#c98b4b'; E(700, 330, 26, 30); fs('#c98b4b', INK, 2.5); E(700, 330, 14, 18); fs('#a8683a', INK, 1.5);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(740, 300); ctx.lineTo(752, 290); ctx.stroke();
     E(760, 288, 12, 5); fs('#7ed6df', INK, 1.5); txt('MD', 760, 288, 8, INK, 'center', null);
@@ -719,7 +719,7 @@
     if (state === 'title') {
       night(); sea(360); ship(560, 400); chopper(300 + Math.sin(t * 0.02) * 20, 170 + Math.sin(t * 0.08) * 6, { door: true }); rain();
       ctx.save(); ctx.translate(W / 2, 100 + Math.sin(t * 0.05) * 4); ctx.rotate(Math.sin(t * 0.03) * 0.03);
-      txt('CUM OF DUTY', 0, 0, 82, '#ffd23f'); ctx.restore();
+      txt('SEED TEAM SIX', 0, 0, 76, '#ffd23f'); ctx.restore();
       txt('~ Wrong Hole ~', W / 2, 165, 36, '#fff');
       if (Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to deploy' : 'Press SPACE to deploy', W / 2, 250, 32, '#fff');
       ctx.fillStyle = 'rgba(0,0,0,0.55)'; rr(W / 2 - 300, H - 100, 600, 70, 16); ctx.fill();
@@ -801,7 +801,7 @@
         if (k > 70) txt("She's pregnant.", W / 2, 210, 34, '#fff');
         if (k > 110) txt("Congratulations. It's a... you.", W / 2, 258, 28, '#ff5d8f', 'center', null);
         if (k > 150) txt(`SCORE ${score}   ·   BEST ${best}`, W / 2, 310, 26, '#fff', 'center', null);
-        if (k > 190) txt('Captain Prick was never seen again. He is still in the butt.', W / 2, 350, 20, '#ffd23f', 'center', null);
+        if (k > 190) txt('Captain Ramrod was never seen again. He is still in there.', W / 2, 350, 20, '#ffd23f', 'center', null);
         if (k > 120 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? 'Tap to see what happens next' : 'SPACE to see what happens next', W / 2, 440, 30, '#fff');
       }
     }
