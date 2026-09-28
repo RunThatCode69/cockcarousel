@@ -143,10 +143,11 @@ function syncViews() {
   for (let i = dyn.children.length - 1; i >= 0; i--) { const o = dyn.children[i]; if (o.userData.pooled) continue; if (!seen.has(o)) dyn.remove(o); }
   // pooled transient things
   releasePools();
-  for (const g of globs) { const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.scale.setScalar(1); o.position.set(g.x, g.y3 !== undefined ? g.y3 : 0.6, g.y); }
+  for (const g of globs) { if (player && dist(g, player) < 0.8) continue;   // a glob right at the muzzle filled half the screen: only show it once it's out in front
+    const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.scale.setScalar(0.09); o.position.set(g.x, g.y3 !== undefined ? g.y3 : 0.6, g.y); }
   for (const q of eproj) { const o = pooled(q.spr, () => { const m = q.spr === 'bottle' ? MD.makeBottle() : q.spr === 'condomshot' ? MD.makeCondomShot() : MD.makeStinger(); m.userData.pooled = true; return m; }); o.position.set(q.x, (q.z || 0.5) * YS, q.y); o.rotation.y = Math.atan2(q.vx, q.vy) + Math.PI; if (q.spr === 'bottle') o.rotation.x += 0.3; if (q.spr === 'condomshot') o.rotation.z += 0.25; }
-  for (const r of rockets) { const o = pooled('rocket', () => { const m = MD.makeDildoRocket(); m.userData.pooled = true; return m; }); o.position.set(r.x, r.y3, r.y); o.rotation.set(0, -r.a, 0); }
-  for (const n of nades) { if (n.impact) { const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.position.set(n.x, n.z * YS, n.y); o.scale.setScalar(1.4); continue; }
+  for (const r of rockets) { if (player && dist(r, player) < 1.2) continue; const o = pooled('rocket', () => { const m = MD.makeDildoRocket(); m.userData.pooled = true; return m; }); o.position.set(r.x, r.y3, r.y); o.rotation.set(0, -r.a, 0); }
+  for (const n of nades) { if (player && dist(n, player) < 0.9) continue; if (n.impact) { const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.position.set(n.x, n.z * YS, n.y); o.scale.setScalar(0.14); continue; }
     const o = pooled('nut', () => { const m = MD.makeNut(); m.userData.pooled = true; return m; }); o.position.set(n.x, n.z * YS, n.y); o.rotation.x += 0.3; }
   for (const q of puddles) { const o = pooled('puddle', () => { const m = new THREE.Mesh(puddleGeo, puddleMat); m.userData.pooled = true; m.receiveShadow = true; return m; }); o.position.set(q.x, 0.01, q.y); }
   for (const q of parts3) { const o = pooled('p_' + q.spr, () => { const s = new THREE.Sprite(partMats[q.spr] || partMats.drop); s.userData.pooled = true; return s; }); o.position.set(q.x, q.z * YS, q.y); const sz = q.spr === 'puff' ? 0.5 : 0.09; o.scale.set(sz, sz, 1); }

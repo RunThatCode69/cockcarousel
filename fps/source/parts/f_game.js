@@ -394,7 +394,7 @@ function updateNades() {
 }
 // ---------- XP popups ("+69") ----------
 let xps = [], flashT = 0, shells = [];
-function ejectShell() { const p = player; burst3d(p.x + Math.cos(p.a + 0.6) * 0.3, p.y + Math.sin(p.a + 0.6) * 0.3, camH - 0.05, 1, 'drop', 0.03); }
+function ejectShell() { }   // (the old ejected-shell particle spawned right in front of the camera and flashed half the screen)
 function updateShells() {}
 function xpPop(v) { xps.push({ v, life: 70 }); }
 // ---------- 3D particles, wall splats, props ----------
