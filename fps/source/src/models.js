@@ -247,6 +247,90 @@ export function makeHeli() {
   beam.position.set(1.3, -2.6, 0); g.add(beam);
   g.userData = { rotor, strobe }; return g;
 }
+// ---------- CH-47-style tandem-rotor transport ("the Big Bird"). Nose is +x, wheels sit on y = 0. ~9 units long. ----------
+export function makeChinook() {
+  const root = new THREE.Group();
+  const skin = (() => {   // olive drab with panel lines, rivets, stencils, exhaust soot
+    const c = bake(512, 256, () => {
+      ctx.fillStyle = '#6a7447'; ctx.fillRect(0, 0, 512, 256);
+      for (let i = 0; i < 900; i++) { ctx.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,230' : '0,0,0'},${Math.random() * 0.05})`; ctx.fillRect(Math.random() * 512, Math.random() * 256, 2 + Math.random() * 10, 1 + Math.random() * 4); }
+      ctx.strokeStyle = 'rgba(20,24,12,0.55)'; ctx.lineWidth = 1.5;
+      for (let x = 20; x < 512; x += 46) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 256); ctx.stroke(); }
+      for (const y of [40, 120, 200]) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(20,24,12,0.5)'; for (let x = 20; x < 512; x += 46) for (let y = 6; y < 256; y += 9) ctx.fillRect(x - 3, y, 1.5, 1.5);
+      txt('S.A.S. AIR SAUSAGE', 250, 160, 22, 'rgba(15,15,10,0.8)', 'center', null);
+      txt('NO STEP', 90, 60, 11, 'rgba(15,15,10,0.7)', 'center', null); txt('BIG BIRD 69', 420, 225, 14, 'rgba(15,15,10,0.7)', 'center', null);
+      const g2 = ctx.createLinearGradient(0, 0, 0, 60); g2.addColorStop(0, 'rgba(10,10,8,0.6)'); g2.addColorStop(1, 'rgba(10,10,8,0)'); ctx.fillStyle = g2; ctx.fillRect(0, 0, 150, 60);
+    });
+    const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.wrapS = tx.wrapT = THREE.RepeatWrapping;
+    return new THREE.MeshStandardMaterial({ map: tx, roughness: 0.7, metalness: 0.15, emissive: '#2a3018', emissiveIntensity: 0.6 });
+  })();
+  const dark = new THREE.MeshStandardMaterial({ color: '#2b2e24', roughness: 0.8, metalness: 0.2 });
+  const metal = new THREE.MeshStandardMaterial({ color: '#8a8d86', roughness: 0.4, metalness: 0.7 });
+  const glass = new THREE.MeshStandardMaterial({ color: '#9fc4d8', roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.75 });
+  const black = new THREE.MeshStandardMaterial({ color: '#141414', roughness: 0.9 });
+  const add = (m, x, y, z) => { m.position.set(x, y, z); m.castShadow = true; root.add(m); return m; };
+  const L = 4.3, CY = 1.72;   // half-length of the cabin, cabin centre height
+  // fuselage: a long rounded box (extruded rounded-rect section)
+  const W = 1.2, Hh = 1.02, r = 0.34, sec = new THREE.Shape();
+  sec.moveTo(-W + r, -Hh); sec.lineTo(W - r, -Hh); sec.quadraticCurveTo(W, -Hh, W, -Hh + r); sec.lineTo(W, Hh - r); sec.quadraticCurveTo(W, Hh, W - r, Hh); sec.lineTo(-W + r, Hh); sec.quadraticCurveTo(-W, Hh, -W, Hh - r); sec.lineTo(-W, -Hh + r); sec.quadraticCurveTo(-W, -Hh, -W + r, -Hh);
+  const bodyGeo = new THREE.ExtrudeGeometry(sec, { depth: L * 2, bevelEnabled: true, bevelSize: 0.07, bevelThickness: 0.07, bevelSegments: 2, curveSegments: 6 });
+  bodyGeo.translate(0, 0, -L); bodyGeo.rotateY(Math.PI / 2);
+  add(new THREE.Mesh(bodyGeo, skin), 0, CY, 0);
+  // nose: rounded, with a stepped cockpit and a big framed windscreen
+  const nose = add(new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), skin), L + 0.05, CY - 0.15, 0); nose.rotation.z = -Math.PI / 2; nose.scale.set(0.95, 1.05, 1.22);
+  const ws = add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 2.1), glass), L + 0.45, CY + 0.6, 0); ws.rotation.z = -0.6;
+  [-0.62, 0, 0.62].forEach(z => { const f = add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.75, 0.05), dark), L + 0.5, CY + 0.6, z); f.rotation.z = -0.6; });
+  [-1, 1].forEach(sd => add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 0.04), glass), L - 0.55, CY + 0.55, sd * 1.24));
+  // cabin portholes, crew door
+  for (let i = 0; i < 7; i++) [-1, 1].forEach(sd => { const w = add(new THREE.Mesh(new THREE.CircleGeometry(0.16, 14), glass), L - 1.8 - i * 0.95, CY + 0.35, sd * 1.285); w.rotation.y = sd > 0 ? 0 : Math.PI; });
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.3, 0.04), black), L - 1.05, CY - 0.2, 1.29);
+  // forward pylon (low, over the cockpit) and the tall aft pylon — the Chinook silhouette
+  add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 1.0), skin), L - 0.9, CY + 1.25, 0);
+  add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.3, 1.2), skin), -L + 0.9, CY + 1.65, 0);
+  const fin = add(new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 0.8), skin), -L + 0.35, CY + 2.35, 0); fin.rotation.z = 0.4;
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, L * 1.4, 10), skin), 0, CY + 1.32, 0).rotation.z = Math.PI / 2;   // drive-shaft tunnel
+  // engines on the aft pylon: intakes forward, sooty exhausts aft
+  [-1, 1].forEach(sd => {
+    const eng = add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 2.1, 16), skin), -L + 1.0, CY + 1.4, sd * 0.98); eng.rotation.z = Math.PI / 2;
+    add(new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.05, 8, 18), metal), -L + 2.05, CY + 1.4, sd * 0.98).rotation.y = Math.PI / 2;
+    add(new THREE.Mesh(new THREE.CircleGeometry(0.28, 16), black), -L + 2.07, CY + 1.4, sd * 0.98).rotation.y = Math.PI / 2;
+    const ex = add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.45, 12), dark), -L - 0.15, CY + 1.4, sd * 0.98); ex.rotation.z = Math.PI / 2;
+  });
+  // fuel sponsons down both sides
+  [-1, 1].forEach(sd => { const sp = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.4, L * 1.2, 6, 14), skin), 0.2, 0.92, sd * 1.3); sp.rotation.z = Math.PI / 2; sp.scale.set(1, 1, 0.7); });
+  // landing gear
+  const wheel = new THREE.CylinderGeometry(0.33, 0.33, 0.22, 16);
+  for (const [x, z] of [[L - 1.4, 0.95], [L - 1.4, -0.95], [-L + 1.6, 1.15], [-L + 1.6, -1.15]]) { const w = add(new THREE.Mesh(wheel, black), x, 0.33, z); w.rotation.x = Math.PI / 2; add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.5, 8), metal), x, 0.62, z); }
+  // the cabin: floor, walls, ceiling, front bulkhead, ribs — open at the back so you can see out of the ramp
+  const cab = new THREE.MeshStandardMaterial({ color: '#5a5c4c', roughness: 0.95, emissive: '#1e1f16', side: THREE.DoubleSide });
+  const cabFloor = new THREE.MeshStandardMaterial({ color: '#46473d', roughness: 1, emissive: '#15150f' });
+  add(new THREE.Mesh(new THREE.BoxGeometry(L * 2 - 0.3, 0.06, 2.2), cabFloor), -0.1, 0.72, 0);
+  add(new THREE.Mesh(new THREE.BoxGeometry(L * 2 - 0.3, 0.06, 2.2), cab), -0.1, CY + 0.97, 0);
+  [-1, 1].forEach(sd => add(new THREE.Mesh(new THREE.BoxGeometry(L * 2 - 0.3, 1.95, 0.05), cab), -0.1, CY, sd * 1.13));
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.95, 2.2), cab), L - 0.3, CY, 0);
+  for (let i = 0; i < 8; i++) { const x = L - 0.8 - i * 0.95; [-1, 1].forEach(sd => add(new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.95, 0.08), dark), x, CY, sd * 1.08)); add(new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 2.2), dark), x, CY + 0.92, 0); }   // ribs
+  const webbing = new THREE.MeshStandardMaterial({ color: '#9a3030', roughness: 1, emissive: '#2a0808' });
+  [-1, 1].forEach(sd => { add(new THREE.Mesh(new THREE.BoxGeometry(L * 1.5, 0.1, 0.42), webbing), -0.4, 1.2, sd * 0.86); add(new THREE.Mesh(new THREE.BoxGeometry(L * 1.5, 0.55, 0.05), webbing), -0.4, 1.55, sd * 1.08); });
+  const cabinLight = new THREE.Mesh(new THREE.BoxGeometry(L * 1.4, 0.05, 0.1), new THREE.MeshBasicMaterial({ color: '#ff6a5a' })); cabinLight.position.set(-0.3, CY + 0.92, 0); root.add(cabinLight);
+  // rear ramp, hinged at the cabin floor. rotation.z: 0 = closed (up), ~1.84 = lowered to the ground
+  const ramp = new THREE.Group(); ramp.position.set(-L - 0.02, 0.72, 0); root.add(ramp);
+  const rp = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.0, 2.2), skin); rp.position.set(0, 1.0, 0); rp.castShadow = true; ramp.add(rp);
+  const tread = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.9, 1.9), dark); tread.position.set(0.07, 1.0, 0); ramp.add(tread);
+  // two three-blade rotors, counter-rotating, with motion-blur discs
+  const blade = new THREE.BoxGeometry(4.4, 0.05, 0.34), bladeM = new THREE.MeshStandardMaterial({ color: '#1e1e1e', roughness: 0.7 });
+  const mkRotor = (x, y) => { const g = new THREE.Group(); g.position.set(x, y, 0); root.add(g);
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.45, 12), metal), x, y - 0.22, 0);
+    for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(blade, bladeM); b.position.x = 2.2; b.rotation.x = 0.08; const arm = new THREE.Group(); arm.rotation.y = i * Math.PI * 2 / 3; arm.add(b); g.add(arm); }
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(4.5, 40), new THREE.MeshBasicMaterial({ color: '#111', transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide })); disc.rotation.x = -Math.PI / 2; g.add(disc);
+    return g; };
+  const rotorF = mkRotor(L - 0.9, CY + 1.7), rotorB = mkRotor(-L + 0.9, CY + 2.6);
+  const lamp = (c, x, y, z) => { const l = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshBasicMaterial({ color: c, fog: false })); l.position.set(x, y, z); root.add(l); return l; };
+  lamp('#ff3040', 1.5, 0.92, 1.72); lamp('#30ff60', 1.5, 0.92, -1.72); const strobe = lamp('#ffffff', -L + 0.2, CY + 2.95, 0);
+  const beam = new THREE.Mesh(new THREE.ConeGeometry(1.8, 6, 16, 1, true), new THREE.MeshBasicMaterial({ color: '#fff6c8', transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(L + 0.6, -2.2, 0); beam.rotation.z = 0.35; root.add(beam);
+  root.userData = { rotorF, rotorB, ramp, strobe, beam, kind: 'chinook', rotor: rotorF };
+  return root;
+}
 export function makeTuft(seed = 0) {   // a tuft of "tall grass". Curly, brown. You know what it is.
   const g = new THREE.Group(); const mat = toon('#3a2a1a');
   for (let i = 0; i < 7; i++) {
@@ -316,7 +400,7 @@ export function bakeModel(root, extraKeep = []) {
   const ud = root.userData;
   const keep = new Set([root, ...extraKeep]);
   const addK = o => { if (!o) return; if (Array.isArray(o)) o.forEach(addK); else if (o.isObject3D) keep.add(o); };
-  ['body', 'shaft', 'arms', 'claws', 'wings', 'bottle', 'bar', 'spin', 'board', 'rotor', 'flag'].forEach(k => addK(ud[k]));
+  ['body', 'shaft', 'arms', 'claws', 'wings', 'bottle', 'bar', 'spin', 'board', 'rotor', 'flag', 'rotorF', 'rotorB', 'ramp', 'beam', 'strobe'].forEach(k => addK(ud[k]));
   root.updateMatrixWorld(true);
   const owner = o => { let p = o.parent; while (p && !keep.has(p)) p = p.parent; return p || root; };
   const buckets = new Map();   // owner -> Map(material -> [{mesh}])

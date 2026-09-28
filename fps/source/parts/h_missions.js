@@ -307,37 +307,48 @@ const M2 = () => {
           if (M.timer && M.timer < 60 * 50 && hung && !M.flags.hungGone) { M.flags.hungGone = true; hung.leaving = true; say('MACMILLI', 'The HUNG is pulling off! Must need a refuel. Or a cuddle.', 200); }
         },
         done: () => M.flags.evac, end() { M.timer = null; say('PILOT', 'Big Bird on station! Pop smoke!', 180); M.goal = { x: 51.5, y: 35.5 }; } },
-      { obj: 'Run to the helicopter!', at: [52.5, 28.5, Math.PI / 2],
-        start() { M.goal = { x: 51.5, y: 35.5 };
-          heli = M.flags.heli = spawnDeco('heli', 30, 44, 1, 1, { z: 3.2, far: 90, heliT: 0 }); mac.stay = false; sfx('chop');
+      { obj: 'Big Bird is down! Run up the back ramp of the Chinook!', at: [52.5, 28.5, Math.PI / 2],
+        start() {
+          M.goal = null; mac.stay = false; sfx('chop');
+          heli = M.flags.heli = spawnDeco('chinook', 14, 36.6, 1, 1, { z: 5.5, far: 140, heliT: 0, faceA: Math.PI, beam: true });
+          say('PILOT', 'Big Bird, final approach. Ramp coming down. Get your arses in.', 220);
         },
         tick() {
-          const hl = heli; hl.heliT++; const k = Math.min(1, hl.heliT / 300);
-          hl.x = lerp(30, 51.5, ease(k)); hl.y = lerp(44, 35.5, ease(k)); hl.z = lerp(3.2, 0.62, ease(Math.min(1, k * 1.15))) + (k >= 1 ? Math.sin(t * 0.1) * 0.02 : 0); hl.faceA = 0;
-          if (t % 9 === 0) sfx('chop'); if (k >= 1) { hl.landed = true; if (t % 6 === 0) burst3d(hl.x + rand(-1.2, 1.2), hl.y + rand(-1.2, 1.2), 0.05, 1, 'puff', 0.06); }
+          const hl = heli; hl.heliT++; const k = Math.min(1, hl.heliT / 420);
+          hl.x = lerp(14, 52, ease(k)); hl.y = 36.6; hl.z = lerp(5.5, 0, ease(Math.min(1, k * 1.08))) + (k >= 1 ? 0 : Math.sin(t * 0.06) * 0.03);
+          hl.tilt = k < 0.75 ? -0.12 : lerp(-0.12, 0.14, (k - 0.75) / 0.25) * (k >= 1 ? 0 : 1);   // nose down on the way in, flare at the end
+          if (t % 7 === 0) sfx('chop');
+          if (k > 0.6 && t % 3 === 0) burst3d(hl.x + rand(-4, 4), hl.y + rand(-4, 4), 0.05, 1, 'puff', 0.12);   // downwash
+          if (k >= 1 && !hl.landed) { hl.landed = true; hl.rampK = 1; hl.beam = false; shake = 6; M.goal = { x: 57.6, y: 36.6 }; say('PILOT', 'Ramp\'s down! GO GO GO!', 150); announce('RAMP DOWN', 'run up the back of the chopper', 36); }
+          if (hl.landed) { mac.stay = true; mac.x = lerp(mac.x, 53.2, 0.02); mac.y = lerp(mac.y, 35.9, 0.02); }
           if (hung) hungTick();
         },
-        done: () => heli.landed && near(51.5, 35.5, 2.0), end() { say('PILOT', 'Get in, get in!', 140); } },
+        done: () => heli.landed && near(57.6, 36.6, 1.7), end() { say('PILOT', 'Everybody in? Lifting!', 140); } },
       { obj: 'Extraction', checkpoint: false,
         start() {
           M.state = 'cut'; player.canMove = false; player.canFire = false; M.goal = null; M.flags.boardT = t; M.always = null;
           for (const e of ents) if (e.kind === 'enemy') e.frozen = true;
           M.flags.gunner = spawnNpc('soup', 0, 0, 1.3, 1, { far: 60 });
+          mac.stay = true;
         },
         tick() {
           const hl = heli, f = t - M.flags.boardT;
-          const up = Math.max(0, f - 60);
-          hl.z = 0.62 + up * up * 0.00012 + up * 0.004; hl.x = 51.5 + up * 0.012; hl.y = 35.5 - up * 0.02;
-          player.x = lerp(player.x, hl.x + 0.2, 0.15); player.y = lerp(player.y, hl.y - 1.3, 0.15);
-          camH = lerp(camH, 0.35 + hl.z, 0.2); player.a = lerpA(player.a, -Math.PI / 2 + 0.35, 0.04); pitch = lerp(pitch, f > 80 ? -110 : 0, 0.03);
-          const gn = M.flags.gunner; gn.x = hl.x + 1.1; gn.y = hl.y - 1.0; gn.z = hl.z - 0.2; gn.faceA = Math.PI + 0.4;
-          mac.x = hl.x - 0.6; mac.y = hl.y - 0.9; mac.z = hl.z - 0.2;
-          if (t % 8 === 0) sfx('chop');
-          if (f === 70) say('MACMILLI', 'Everybody on? GO! GO!', 140);
-          if (f === 170) say('MACMILLI', "Mark my words, Leftenant: fifteen years from now he's going to be very upset about that arm.", 320);
-          if (f > 360) whiteOut = Math.min(1, (f - 360) / 60);
+          // walk up the ramp to the front of the cabin, sit, and look back out of the open ramp as it lifts
+          const inX = hl.x - 1.6, floor = 0.64 / YS;
+          if (f < 90) { const q = ease(f / 90); player.x = lerp(57.6, inX, q); player.y = lerp(player.y, hl.y, 0.1); camH = 0.5 + floor * Math.min(1, q * 2); player.a = lerpA(player.a, Math.PI, 0.2); pitch = lerp(pitch, 0, 0.1); }
+          else { player.a = lerpA(player.a, 0, 0.06); pitch = lerp(pitch, -20, 0.03); }
+          if (f === 110) hl.rampK = 0.6;
+          const up = Math.max(0, f - 130);
+          hl.z = up * up * 0.00008 + up * 0.003; hl.x = 52 - up * 0.012; hl.tilt = Math.min(0.1, up * 0.0012);
+          if (f >= 90) { player.x = hl.x - 1.6; player.y = hl.y; camH = 0.42 + floor + hl.z; }
+          mac.x = hl.x + 0.3; mac.y = hl.y - 0.75; mac.z = hl.z + floor; mac.faceA = 0;
+          const gn = M.flags.gunner; gn.x = hl.x + 3.1; gn.y = hl.y + 0.45; gn.z = hl.z + floor; gn.faceA = Math.PI / 2;
+          if (t % 7 === 0) sfx('chop');
+          if (f === 80) say('MACMILLI', 'Everybody on? GO! GO!', 140);
+          if (f === 200) say('MACMILLI', "Mark my words, Leftenant: fifteen years from now he's going to be very upset about that arm.", 320);
+          if (f > 420) whiteOut = Math.min(1, (f - 420) / 60);
         },
-        done: () => t - M.flags.boardT > 430, end() { whiteOut = 0; camH = 0.5; pitch = 0; } },
+        done: () => t - M.flags.boardT > 490, end() { whiteOut = 0; camH = 0.5; pitch = 0; } },
     ],
   };
   // the HUNG-24: circles over the road and the plaza, strafes you with stingers

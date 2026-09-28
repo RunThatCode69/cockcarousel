@@ -63,7 +63,7 @@ v4 made every mission several times longer (about 5 minutes each for a first pla
    - Through the Pubyat Heights apartments to the overlook, and one shot at Jackoff in the plaza.
    - The HUNG-24 attack chopper strafes you down the fire exit.
    - **Hold the carousel for 100 seconds** while Mac, with a crab-bitten leg, covers the road.
-   - The bird lands and you lift out.
+   - A tandem-rotor Chinook ("Big Bird") flares in and drops its rear ramp. You run up it, sit down, and watch Pubyat fall away out of the back.
 3. **Crew Expandable** (Crew Expendable). MV Blue Balls.
    - Ride in ("Crew?" "Expendable.") and fast-rope onto the helipad.
    - Sweep the deck with minigun support from the chopper.

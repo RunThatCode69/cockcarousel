@@ -42,6 +42,7 @@ function makeView(e) {
     o = { eggplant: MD.makeEggplant, crate: MD.makeCrate, ticket: MD.makeTicket, pistol: MD.makePistol, lotion: MD.makeLotion, pill: MD.makePill }[e.type]?.();
   } else if (e.kind === 'deco') {
     if (e.spr === 'heli') { o = MD.makeHeli(); o.scale.setScalar(1.5); }
+    else if (e.spr === 'chinook') { o = MD.makeChinook(); o.scale.setScalar(e.scale || 1); }
     else if (MD.PROP3D[e.spr]) o = MD.PROP3D[e.spr]();
     else if (SIGNS[e.spr]) { const s = SIGNS[e.spr]; o = MD.makeSign(s[0], s[1], s[2], s[3]); o.rotation.y = Math.atan2(M.start[0] - e.x, M.start[1] - e.y); }
     else if (e.spr === 'sign') o = MD.makeSign('SIGN', '');
@@ -131,6 +132,7 @@ function syncViews() {
       if (o.isSprite && e.alpha !== undefined) o.material.opacity = e.alpha;
       if (e.spr === 'blast') { const k = 1 - clamp((e.fade || 0) / 22, 0, 1); o.scale.setScalar(2 + k * 5); o.material.opacity = 1 - k; }
       if (e.spr === 'heli' && ud.rotor) ud.rotor.rotation.y += 0.5;
+      if (ud.kind === 'chinook') { o.rotation.z = e.tilt || 0; ud.rotorF.rotation.y += 0.55; ud.rotorB.rotation.y -= 0.55; ud.ramp.rotation.z = lerp(ud.ramp.rotation.z, (e.rampK || 0) * 1.84, 0.04); ud.beam.visible = !!e.beam; }
       if (ud.spin) ud.spin.rotation.y += 0.008;
       if (ud.strobe) ud.strobe.visible = t % 40 < 4;
       if (e.faceA !== undefined && !o.isSprite) o.rotation.y = e.faceA;
