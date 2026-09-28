@@ -29,6 +29,11 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
   - The DILDO-7 rocket launcher: 4 rockets, with more from care packages.
   - The CUM-203 underbarrel grenade launcher: 3 shells.
 
+**v4.5.** Changes in this update:
+- **Voices:** radio lines are spoken aloud by the browser's built-in voices, with a different pitch and speed per character, and British voices for the S.A.S. Press `O` to turn them off.
+- **Talking faces:** characters' mouths flap while they talk.
+- **Kit:** Prick, Mac, Soup, Gas and Gropes wear plate carriers, pouches and radios, and carry dick-rifles. Mac carries a scoped one.
+
 ## Controls
 
 | | Desktop | Phone |
@@ -47,6 +52,7 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
 | Headbutt | `V` / `F`, or just shoot with an enemy in your face | shoot with an enemy in your face |
 | Pause | `ESC` / `P` | `II` button |
 | Sound | `M`, or the SOUND button on the title | pause menu / title button |
+| Character voices on/off | `O` | (follows sound) |
 
 Generous auto-aim (about a 15° cone), big enemies, slow projectiles. It is much easier than CoD on purpose. Health is CoD-style: 100 HP, regenerates after 3 seconds without damage, jam-smear on the screen instead of blood, red vignette when low.
 

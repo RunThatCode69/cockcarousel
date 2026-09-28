@@ -55,6 +55,16 @@ export function faceTex(kind) {
     const yell = () => { E(64, 96, 16, 18); fs('#7a2a4a', INK, 5); E(64, 104, 10, 6); fs('#ff9bb5', null); };
     const frown = () => { ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(46, 102); ctx.quadraticCurveTo(64, 84, 82, 102); ctx.stroke(); };
     const stache = (col = INK, k = 1) => { ctx.strokeStyle = col; ctx.lineWidth = 12 * k; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(64, 74); ctx.quadraticCurveTo(64 - 26 * k, 60, 64 - 44 * k, 84); ctx.moveTo(64, 74); ctx.quadraticCurveTo(64 + 26 * k, 60, 64 + 44 * k, 84); ctx.stroke(); };
+    const talk = kind.endsWith('_talk'), base = talk ? kind.slice(0, -5) : kind;
+    if (talk) {   // mouth open mid-word, for lip flaps while they're on the radio
+      switch (base) {
+        case 'prick': eyes(false); yell(); stache('#e6e0ea', 1.35); break;
+        case 'sarge': eyes(true); frown(); stache(INK, 1); break;
+        case 'boss': case 'bossyell': eyes(true); yell(); ctx.strokeStyle = '#c96a80'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(84, 26); ctx.lineTo(100, 70); ctx.stroke(); break;
+        default: eyes(base === 'angry'); yell();
+      }
+      return;
+    }
     switch (kind) {
       case 'happy': eyes(); smile(); break;
       case 'yell': eyes(true); yell(); break;
@@ -107,8 +117,27 @@ export function makeDick(o = {}) {
   if (o.cigar) { const c = cylBetween(new THREE.Vector3(0.05, 0.3, 0.13), new THREE.Vector3(0.16, 0.28, 0.24), 0.018, '#6b4a2a'); shaft.add(c); shaft.add(sphere(0.02, '#ff7a3a', 0.165, 0.28, 0.245, 1, 1, 1, false, new THREE.MeshBasicMaterial({ color: '#ff7a3a' }))); }
   if (o.coat) { const fur = toon('#6b4a2a'); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; body.add(sphere(0.09, null, Math.cos(a) * 0.26, 0.24 + (i % 3) * 0.1, Math.sin(a) * 0.2, 1, 1, 1, true, fur)); } body.add(sphere(0.25, null, 0, 0.3, 0, 1, 0.8, 0.85, true, toon('#7a5632'))); const collar = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.07, 8, 16), toon('#8a6a44')); collar.rotation.x = Math.PI / 2; collar.position.y = 0.55; body.add(collar); }
   if (o.pistol) { const p = ink(G.box(0.05, 0.06, 0.16), toon('#3a3a4a')); p.position.set(0.19, 0.44, 0.08); body.add(p); root.userData.pistol = p; }
+  if (o.gear) {   // plate carrier, mag pouches, a radio with an antenna, a belt
+    const vc = toon(o.gearC || '#4f5a3a'), dk = toon('#2e3226');
+    const vest = ink(new THREE.CylinderGeometry(0.17, 0.18, 0.18, 14), vc, 0.012); vest.position.y = 0.07; shaft.add(vest);
+    for (let i = -1; i <= 1; i++) { const pch = ink(G.box(0.07, 0.09, 0.05), dk, 0.006); pch.position.set(i * 0.075, 0.06, 0.17); shaft.add(pch); }
+    const rad = ink(G.box(0.05, 0.08, 0.04), dk, 0.005); rad.position.set(-0.15, 0.1, -0.06); shaft.add(rad);
+    shaft.add(cylBetween(new THREE.Vector3(-0.16, 0.14, -0.07), new THREE.Vector3(-0.22, 0.5, -0.1), 0.006, '#1a1a1a', false));
+    const belt = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.025, 6, 20), dk); belt.rotation.x = Math.PI / 2; belt.position.y = 0.26; body.add(belt);
+    if (o.hat === 'helmet') { const nvg = ink(G.box(0.08, 0.05, 0.06), dk, 0.005); nvg.position.set(0, 0.9, 0.12); shaft.add(nvg); }
+  }
+  let heldGun = null;
+  if (o.gun) {   // everybody's rifle is a dick too. obviously.
+    heldGun = new THREE.Group(); heldGun.position.set(0.04, 0.32, 0.27); body.add(heldGun);
+    const sk = toon(o.skin || SKIN);
+    const sh = ink(G.cyl(0.035, 0.035, o.gun === 'sniper' ? 0.62 : 0.4, 10), sk, 0.008); sh.rotation.x = Math.PI / 2; sh.position.z = o.gun === 'sniper' ? 0.16 : 0.08; heldGun.add(sh);
+    const tip = ink(new THREE.SphereGeometry(0.048, 10, 8), toon(HEAD), 0.008); tip.position.z = o.gun === 'sniper' ? 0.48 : 0.3; heldGun.add(tip);
+    const grip = ink(G.box(0.03, 0.08, 0.04), toon('#2a2626'), 0.004); grip.position.set(0, -0.05, -0.04); grip.rotation.x = 0.3; heldGun.add(grip);
+    [-1, 1].forEach(sd => heldGun.add(at(ink(new THREE.SphereGeometry(0.04, 8, 6), sk, 0.006), sd * 0.03, -0.045, 0.0)));
+    if (o.gun === 'sniper') { const sc2 = ink(G.cyl(0.02, 0.02, 0.16, 8), toon('#1e1e1e'), 0.003); sc2.rotation.x = Math.PI / 2; sc2.position.set(0, 0.05, 0.08); heldGun.add(sc2); }
+  }
   const sc = o.scale || 1; root.scale.setScalar(sc);
-  root.userData = Object.assign(root.userData, { body, shaft, arms, face, kind: 'dick', faceKind: o.face || 'happy' });
+  root.userData = Object.assign(root.userData, { body, shaft, arms, face, kind: 'dick', faceKind: o.face || 'happy', baseFace: o.face || 'happy', heldGun });
   return root;
 }
 export function setFace(model, kind) { const f = model.userData.face; if (!f || model.userData.faceKind === kind) return; f.material.map = faceTex(kind); f.material.needsUpdate = true; model.userData.faceKind = kind; }

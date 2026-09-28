@@ -177,7 +177,7 @@ function wrapHit(k, src) {
   if (!M.flags.wrapTip) { M.flags.wrapTip = true; say('PRICK', "That's a condom, son. Get fully wrapped and you're out of the fight. Keep moving.", 260); }
 }
 function die(why) {
-  state = 'dead'; stateT = 0; deathQuote = pickOne(DEATHS); sfx('die'); player.streak = 0; hurtFx(6); shake = 14;
+  hushVoices(); state = 'dead'; stateT = 0; deathQuote = pickOne(DEATHS); sfx('die'); player.streak = 0; hurtFx(6); shake = 14;
   if (why === 'friendly') deathQuote = ['Five blue-on-blues. The team would like a word. From the ground. In pieces.', 'Captain Prick'];
   if (why === 'team') deathQuote = ['You were one mile up. They were one metre from a condom.', 'TV Operator'];
   if (why === 'spotted') deathQuote = ['They saw your pubes. Everybody saw your pubes.', 'Captain MacMillilitre'];
@@ -449,7 +449,7 @@ function scatterProps(types, n, avoid = [], seed = 1) {
 function startMission(i, stageIdx = 0) {
   missionIdx = i;
   M = MISSIONS[i - 1]();
-  c3.style.filter = ''; gsShells = [];
+  c3.style.filter = ''; gsShells = []; hushVoices();
   M.idx = i; M.state = 'play'; M.stage = -1; M.flags = {}; M.timer = null; M.checkpoint = 0;
   loadMap(M.map);
   ents = []; globs = []; eproj = []; rockets = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
@@ -529,7 +529,8 @@ function toCanvas(e) {
 }
 addEventListener('keydown', e => {
   audio();
-  if (e.code === 'KeyM') setMuted(!AUD.muted);
+  if (e.code === 'KeyM') { setMuted(!AUD.muted); if (AUD.muted) hushVoices(); }
+  if (e.code === 'KeyO') toggleVoices();
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   keys[e.code] = true;
   if (e.repeat) return;
@@ -603,7 +604,7 @@ document.addEventListener('pointerlockchange', () => { locked = document.pointer
 // long-press on the look side = hold to fire
 setInterval(() => { if (look.id !== null && !look.moved && performance.now() - look.t0 > 350 && state === 'game') fireHeld = true; }, 60);
 
-function pause() { if (state !== 'game') return; pauseFrom = state; state = 'pause'; joy.active = false; fireHeld = false; }
+function pause() { hushVoices(); if (state !== 'game') return; pauseFrom = state; state = 'pause'; joy.active = false; fireHeld = false; }
 function unpause() { state = 'game'; look.da = 0; }
 function newGame() { startBrief(1); }
 function startBrief(i) { missionIdx = i; state = 'brief'; stateT = 0; briefLines = MISSIONS[i - 1]().brief; briefN = 0; }

@@ -155,3 +155,27 @@ function updateRockets() {
   }
   rockets = rockets.filter(r => !r.dead);
 }
+
+// ---------- voices: the radio lines are read out by the browser's built-in speech synth, one voice per character ----------
+const VOICE = { on: (() => { try { return localStorage.getItem('mw_voices') !== '0'; } catch (e) { return true; } })(), primed: false };
+const VP = { PRICK: { p: 0.72, r: 0.95, gb: 1 }, MACMILLI: { p: 0.62, r: 0.86, gb: 1 }, SARGE: { p: 0.5, r: 1.1, gb: 1 }, JACKOFF: { p: 0.35, r: 0.8 }, PILOT: { p: 1.05, r: 1.15 }, SOUP: { p: 1.2, r: 1.1, gb: 1 }, GAS: { p: 0.95, r: 1.05, gb: 1 }, GROPES: { p: 0.85, r: 1.0, gb: 1 }, 'TV OP': { p: 0.9, r: 1.05 }, YOU: { p: 1.3, r: 1.1 } };
+function pickVoice(gb) {
+  const vs = window.speechSynthesis ? speechSynthesis.getVoices() : []; if (!vs.length) return null;
+  const want = gb ? /en[-_]GB/i : /en[-_](US|AU|CA)/i;
+  return vs.find(v => want.test(v.lang) && /male|daniel|arthur|oliver|george|fred|alex/i.test(v.name)) || vs.find(v => want.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+function speakLine(who, text) {
+  if (!VOICE.on || AUD.muted || !window.speechSynthesis) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, ', ').replace(/[—–]/g, ', ').replace(/'/g, '\''));
+    const v = VP[who] || { p: 1, r: 1 }; u.pitch = v.p; u.rate = v.r; u.volume = 0.95;
+    const vo = pickVoice(v.gb); if (vo) u.voice = vo;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function hushVoices() { try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} }
+function toggleVoices() { VOICE.on = !VOICE.on; try { localStorage.setItem('mw_voices', VOICE.on ? '1' : '0'); } catch (e) {} if (!VOICE.on) hushVoices(); announce(VOICE.on ? 'VOICES ON' : 'VOICES OFF', 'press O to toggle', 26); }
+// iPhone: speech only works after a tap, so prime it on the first one
+const primeVoices = () => { if (VOICE.primed || !window.speechSynthesis) return; VOICE.primed = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); speechSynthesis.getVoices(); } catch (e) {} };
+addEventListener('pointerdown', primeVoices, { once: false }); addEventListener('keydown', primeVoices);

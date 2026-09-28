@@ -4,7 +4,7 @@ function say(who, text, life = 240) { radioQ.push({ who, text, life }); }
 // combat barks: only when the radio is quiet, and at most one every 15 seconds — no wall of chatter
 let lastChat = -9999;
 function chatter(who, text, life = 150) { if (radio || radioQ.length || t - lastChat < 900) return; lastChat = t; radioQ.push({ who, text, life }); }
-function radioTick() { if (radio && --radio.life <= 0) radio = null; if (!radio && radioQ.length) { radio = radioQ.shift(); radio.max = radio.life; if (M && M.state === 'play') sfx('tick'); } }
+function radioTick() { if (radio && --radio.life <= 0) radio = null; if (!radio && radioQ.length) { radio = radioQ.shift(); radio.max = radio.life; speakLine(radio.who, radio.text); if (M && M.state === 'play') sfx('tick'); } }
 function announce(text, sub = '', big = 46) { announceQ.push({ text, sub, big, life: 150, max: 150 }); }
 function setObjective(s) { if (s && s !== objText && state === 'game') sfx('select'); objText = s; objT = 0; }
 function hurtFx(n) { for (let i = 0; i < n; i++) { const edge = Math.random() < 0.5; jam.push({ x: edge ? (Math.random() < 0.5 ? rand(-20, 120) : rand(W - 120, W + 20)) : rand(0, W), y: edge ? rand(0, H) : (Math.random() < 0.5 ? rand(-20, 100) : rand(H - 100, H + 20)), r: rand(40, 110), life: 240, max: 240, s: Math.random() * 6 }); } }

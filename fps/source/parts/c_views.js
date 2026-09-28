@@ -7,6 +7,7 @@ function bakeSign(name, text, sub, bg, fg) { SIGNS[name] = [text, sub, bg, fg]; 
 let boardN = 4, boardTex = null;
 function bakeBoard(n) { boardN = n; if (boardTex) { paintBoard(); boardTex.needsUpdate = true; } }
 function paintBoard() { const c = boardTex.image; const g = c.getContext('2d'); const old = A2.ctx; setCtx(g); g.clearRect(0, 0, 256, 140); rr(6, 6, 244, 128, 12); fs('#1a1a2a', INK, 6); txt('NOW SERVING', 128, 40, 26, CYAN, 'center', null); txt(String(boardN), 128, 96, 56, '#ff4d6d', 'center', null); setCtx(old); }
+const WHO_SPR = { PRICK: ['prick'], MACMILLI: ['mac'], SARGE: ['sarge'], SOUP: ['soup'], GAS: ['gas'], GROPES: ['gropes'], JACKOFF: ['boss', 'boss2'] };
 const H3 = { crab: 0.32, bee: 0.95, condom: 0.6, chili: 0.55, ice: 0.4, trap: 0.1, target: 0.72, boss: 1.1 };   // where a glob should hit, per type (metres)
 const spriteCache = new Map();
 function spriteFromPainter(name, painter, pose = {}, additive = false) {
@@ -33,8 +34,8 @@ function makeView(e) {
       case 'boss': o = MD.makeDick({ coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 2.3 }); break;
     }
   } else if (e.kind === 'npc') {
-    const S = { sarge: { hat: 'drill', face: 'sarge', scale: 1.2 }, prick: { hat: 'boonie', face: 'prick', skin: '#cfc0cc', head: '#b992a8', cigar: true, scale: 1.2 },
-      soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15 }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15 }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1 }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15 }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15 },
+    const S = { sarge: { hat: 'drill', face: 'sarge', scale: 1.2, gear: true, gearC: '#6b6a4a', pistol: true }, prick: { hat: 'boonie', face: 'prick', skin: '#cfc0cc', head: '#b992a8', cigar: true, scale: 1.2, gear: true, gun: 'rifle' },
+      soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15, gear: true, gun: 'rifle' }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15, gear: true, gearC: '#5a6a3a', gun: 'sniper' }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1, gear: true }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15, gear: true, gearC: '#3e4a5a', gun: 'rifle' }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15, gear: true, gun: 'rifle' },
       boss: { coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 3.2 }, boss2: { coat: true, face: 'boss', skin: '#e9b39d', scale: 2.3 } }[e.spr];
     if (S) o = MD.makeDick(S);
     else if (e.spr === 'heli') { o = MD.makeHeli(); }
@@ -118,10 +119,12 @@ function syncViews() {
         case 'dick': {
           const walk = moving ? Math.sin(wk) : 0;
           ud.body.position.y = Math.abs(walk) * 0.05; ud.body.rotation.z = walk * 0.06;
-          ud.arms.forEach((a, i) => { a.rotation.x = e.attackT > 0 ? -1.3 : walk * (i ? 0.5 : -0.5); a.rotation.z = e.attackT > 0 ? (i ? 0.4 : -0.4) : 0; });
-          if (e.type === 'boss' || e.spr === 'boss' || e.spr === 'boss2') MD.setFace(o, e.attackT > 0 ? 'bossyell' : 'boss');
-          else if (e.spr === 'sarge') MD.setFace(o, 'sarge');
-          else MD.setFace(o, e.attackT > 0 ? 'yell' : (ud.faceKind === 'dead' ? 'happy' : ud.faceKind));
+          if (ud.heldGun) ud.arms.forEach((a, i) => { a.rotation.set(0, (i ? -1.15 : 1.15) + walk * 0.08, 0); });   // both hands forward on the rifle
+          else ud.arms.forEach((a, i) => { a.rotation.x = e.attackT > 0 ? -1.3 : walk * (i ? 0.5 : -0.5); a.rotation.z = e.attackT > 0 ? (i ? 0.4 : -0.4) : 0; });
+          const base = ud.baseFace || 'happy', talking = radio && radio.life > 12 && WHO_SPR[radio.who] && WHO_SPR[radio.who].includes(e.spr) && (radio.max - radio.life) < radio.text.length * 2.2;
+          if (talking) MD.setFace(o, ((t >> 2) + (e.seed || 0)) % 3 ? base + '_talk' : base);
+          else if (e.type === 'boss' || e.spr === 'boss' || e.spr === 'boss2') MD.setFace(o, e.attackT > 0 ? 'bossyell' : 'boss');
+          else MD.setFace(o, e.attackT > 0 ? (e.spr === 'sarge' ? 'sarge' : 'yell') : base);
           if (ud.shaft) ud.shaft.rotation.x = -0.1 + Math.sin(t * 0.05 + (e.seed || 0)) * 0.03;
           break;
         }
