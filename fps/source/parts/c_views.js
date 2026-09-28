@@ -18,7 +18,7 @@ function spriteFromPainter(name, painter, pose = {}, additive = false) {
 }
 const bigPubeGeo = (() => { const pts = []; for (let k = 0; k <= 30; k++) { const q = k / 30; pts.push(new THREE.Vector3(Math.sin(q * 11) * 0.8 * (1 - q * 0.3), q * 5, Math.cos(q * 9) * 0.6)); } return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 0.12, 8); })();
 const tuftGeo = (() => { const t = MD.makeTuft(0); const geos = []; t.children.forEach(m => { const g = m.geometry.clone(); geos.push(g); }); return mergeGeometries(geos); })();
-const tuftMat = MD.toon('#3a2a1a');
+const tuftMat = MD.toon('#3a2a1b');   // (own material: the grass colour changes per mission)
 function makeView(e) {
   let o = null;
   if (e.kind === 'enemy') {
@@ -63,7 +63,7 @@ function makeView(e) {
 }
 let tuftIM = null, tuftN = 0;
 const TUFT_MAX = 900;
-function resetTufts() { if (tuftIM) level.remove(tuftIM); tuftIM = new THREE.InstancedMesh(tuftGeo, tuftMat, TUFT_MAX); tuftIM.count = 0; tuftIM.castShadow = !isTouch; tuftIM.frustumCulled = false; tuftN = 0; level.add(tuftIM); }
+function resetTufts() { tuftMat.color.set((M && M.pal && M.pal.tuftC) || '#3a2a1b'); if (tuftIM) level.remove(tuftIM); tuftIM = new THREE.InstancedMesh(tuftGeo, tuftMat, TUFT_MAX); tuftIM.count = 0; tuftIM.castShadow = !isTouch; tuftIM.frustumCulled = false; tuftN = 0; level.add(tuftIM); }
 function addTuft(e) {
   if (!tuftIM || tuftN >= TUFT_MAX) return;
   const s = e.spr === 'bush' ? 1.25 : 0.85 + ((e.seed || 0) % 3) * 0.1;
@@ -133,7 +133,7 @@ function syncViews() {
       if (e.spr === 'blast') { const k = 1 - clamp((e.fade || 0) / 22, 0, 1); o.scale.setScalar(2 + k * 5); o.material.opacity = 1 - k; }
       if (e.spr === 'heli' && ud.rotor) ud.rotor.rotation.y += 0.5;
       if (ud.kind === 'chinook') { o.rotation.z = e.tilt || 0; ud.rotorF.rotation.y += 0.55; ud.rotorB.rotation.y -= 0.55; ud.ramp.rotation.z = lerp(ud.ramp.rotation.z, (e.rampK || 0) * 1.84, 0.04); ud.beam.visible = !!e.beam; }
-      if (ud.spin) ud.spin.rotation.y += 0.008;
+      if (ud.spin) { if (ud.spin.userData.slow) ud.spin.rotation.z += 0.0015; else ud.spin.rotation.y += 0.008; }
       if (ud.strobe) ud.strobe.visible = t % 40 < 4;
       if (e.faceA !== undefined && !o.isSprite) o.rotation.y = e.faceA;
       if (ud.flag) ud.flag.rotation.y = Math.sin(t * 0.05) * 0.2;

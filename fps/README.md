@@ -14,6 +14,13 @@ The **DICK-47** is a 3D view model: a thick veiny shaft for a barrel, the head f
 
 Source: `fps/source/` — run `npm install && npm run build` there, then copy `build/index.html` over `fps/index.html`. Previous versions are in `archive/` (`fps-v1` … `fps-v3.2`, each also a git tag).
 
+**v4.3 look pass.** Art direction came from frames of CoD4 playthroughs: the look and mood only, no assets.
+- **Post-processing:** a colour grade (desaturated, contrasty, teal shadows and warm highlights, vignette, fine grain) on every device, plus bloom on desktop.
+- **Bootie Camp:** an overcast British base with pines, hills, blue corrugated hangars and telegraph poles, and a plywood killhouse with spray-painted arrows.
+- **Pubyat:** grey daytime overcast, straw-coloured grass, Soviet panel blocks and a rusty yellow Ferris wheel behind the carousel. There's a sniper scope when you aim.
+- **The ship:** white-painted steel, roofed lower decks, a red emergency-lit crew corridor, grey and rust containers, and lightning.
+- **The bridge:** blue sky, mountains and pine forest, with black smoke columns that go grey and ashen for the finale.
+
 ## Controls
 
 | | Desktop | Phone |

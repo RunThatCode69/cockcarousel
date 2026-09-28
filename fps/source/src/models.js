@@ -377,6 +377,13 @@ export const PROP3D = {
     g.add(at(ink(G.box(2.2, 1.1, 1.1), m), 0, 0.8, 0)); for (const [x, z] of [[-0.7, 0.55], [0.7, 0.55], [-0.7, -0.55], [0.7, -0.55]]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.12, 12), toon('#1e1e24')); w.rotation.x = Math.PI / 2; w.position.set(x, 0.2, z); g.add(w); } return g; },
   tombstone: () => { const g = new THREE.Group(); const m = canvasMat(64, 96, () => { ctx.fillStyle = '#8a8698'; ctx.fillRect(0, 0, 64, 96); txt('RIP', 32, 34, 18, INK, 'center', null); txt('lil guy', 32, 58, 11, INK, 'center', null); });
     const s = ink(G.box(0.5, 0.7, 0.14), m, 0.02); s.position.y = 0.35; g.add(s); const top = ink(new THREE.CylinderGeometry(0.25, 0.25, 0.14, 12, 1, false, 0, Math.PI), toon('#8a8698'), 0.02); top.rotation.set(Math.PI / 2, 0, Math.PI / 2); top.position.y = 0.7; g.add(top); return g; },
+  ferris: () => { const g = new THREE.Group(), spin = new THREE.Group(); g.add(spin); const R = 7, rust = new THREE.MeshStandardMaterial({ color: '#b8962a', roughness: 0.8, metalness: 0.3 }), dk = new THREE.MeshStandardMaterial({ color: '#5a4a2a', roughness: 0.9 });
+    spin.position.y = R + 1.2;
+    [-0.5, 0.5].forEach(z => { const rim = new THREE.Mesh(new THREE.TorusGeometry(R, 0.12, 6, 40), rust); rim.position.z = z; spin.add(rim); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, R, 5), rust); sp.position.set(Math.cos(a) * R / 2, Math.sin(a) * R / 2, z); sp.rotation.z = a - Math.PI / 2; spin.add(sp); } });
+    spin.add(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.4, 12), dk).rotateX(Math.PI / 2));
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; const gd = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.9), new THREE.MeshStandardMaterial({ color: i % 2 ? '#c9b040' : '#8a5a3a', roughness: 0.9 })); gd.position.set(Math.cos(a) * R, Math.sin(a) * R - 0.5, 0); spin.add(gd); }
+    [-1, 1].forEach(sd => [-1, 1].forEach(z => { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, R + 2.2, 6), rust); leg.position.set(sd * 1.9, (R + 1.2) / 2, z * 0.9); leg.rotation.z = -sd * 0.26; g.add(leg); }));
+    g.userData.spin = spin; spin.userData.slow = true; return g; },
   carousel: () => { const g = new THREE.Group(), spin = new THREE.Group(); g.add(spin);
     g.add(at(ink(G.cyl(2.3, 2.4, 0.3, 24), toon('#c98b4b')), 0, 0.15, 0));
     g.add(cylBetween(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3.1, 0), 0.18, '#ffd23f'));

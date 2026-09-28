@@ -9,6 +9,11 @@ import { W, H, FONT, INK, SKIN, SKIN2, HEAD, HEAD2, PINK, YEL, PURP, CYAN, CUM, 
   E, fs, poly, rr, heart, txt, txtWrap, mkCanvas, bake, setCtx, TEX, FT, bakeTextures, drawDick, crabArt, condomArt, bossArt, pubeArt } from './art2d.js';
 import { audio, audioTick, hiss, noise, note, pianoBar, playMusic, setAmbience, setMuted, sfx, tone, A as AUD } from './audio.js';
 import * as MD from './models.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
 const wrap = document.getElementById('wrap');
 const c3 = document.getElementById('c3'), cv = document.getElementById('c');

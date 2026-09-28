@@ -17,20 +17,20 @@ const MISSION_META = [
   { name: "No Rushin'", place: 'Fertility clinic, waiting room B', date: 'DAY 4 · 10:30 (appt. 9:00)', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.65, 0.65); condomArt(0, 0, { f: 0 }); ctx.restore(); } },
   { name: 'GAME OVA', place: 'Bridge over the Tubes', date: 'DAY 6 · 11:11', icon: () => iconDick({ coat: true, onearm: true, angry: true, frown: true, scar: true, skin: '#e9b39d', skin2: '#d8927c' }) },
 ];
-const PAL = {
-  camp: { grade: 'rgba(255,170,90,0.25)', ceil: ['#ff9ec4', '#ffd6e7'], fog: '#f2c9b0', fogDist: 15, sun: true, clouds: true, silhouette: 'dunes', silC: '#e0b48a', weather: 'dust' },
-  bush: { grade: 'rgba(80,120,255,0.3)', ceil: ['#241452', '#8a5dba'], fog: '#3a2a5a', fogDist: 14, moon: true, stars: true, silhouette: 'bush', silC: '#1a1226', clouds: true, cloudC: 'rgba(90,60,120,0.6)' },
-  ship: { grade: 'rgba(60,160,200,0.3)', moon: true, clouds: true, cloudC: 'rgba(60,70,100,0.8)', silhouette: 'sea', silC: '#1a2436', weather: 'rain', ceil: ['#0a1020', '#2a3a5a'], fog: '#0d1a2a', fogDist: 10, dark: 0.08 },
-  clinic: { ceil: ['#ffd6e7', '#fff6fa'], fog: '#e8b4d0', fogDist: 28 },
-  bridge: { grade: 'rgba(255,140,60,0.3)', ceil: ['#ff5e3a', '#ffd6a8'], fog: '#ffb37a', fogDist: 18, sun: true, clouds: true, cloudC: 'rgba(255,240,220,0.8)', silhouette: 'city', silC: '#c97a5a' },
-  finale: { grade: 'rgba(255,80,40,0.35)', ceil: ['#2a1a3a', '#ff5e3a'], fog: '#3a2a3a', fogDist: 14, dark: 0.1, silhouette: 'city', silC: '#2a1a2a', weather: 'embers' },
+const PAL = {   // v4.3: CoD-ish palettes — overcast UK, grey pre-dawn Pubyat, storm at sea, fluorescent clinic, smoky sunset bridge
+  camp: { ceil: ['#7d8fa0', '#c9d0d4'], fog: '#aeb7bc', fogDist: 18, sun: true, clouds: true, cloudC: 'rgba(205,210,216,0.95)', silhouette: 'mountains', silC: '#6d7c70', plumes: 1 },
+  bush: { ceil: ['#3e474e', '#9aa2a2'], fog: '#7c8584', fogDist: 16, silhouette: 'bush', silC: '#39443e', clouds: true, cloudC: 'rgba(62,68,74,0.95)', tuftC: '#7a6a40', plumes: 1 },
+  ship: { moon: true, clouds: true, cloudC: 'rgba(40,48,58,0.9)', silhouette: 'sea', silC: '#101820', weather: 'rain', ceil: ['#070b10', '#1c2632'], fog: '#131b24', fogDist: 10, dark: 0.08, lightning: true },
+  clinic: { ceil: ['#e8ece8', '#ffffff'], fog: '#c8ccc8', fogDist: 28 },
+  bridge: { ceil: ['#5d8cc0', '#d8e2ea'], fog: '#b4c0c8', fogDist: 20, sun: true, clouds: true, cloudC: 'rgba(240,242,245,0.95)', silhouette: 'mountains', silC: '#6d7a7c', plumes: 5 },
+  finale: { ceil: ['#3a3a3c', '#8a8680'], fog: '#4a4846', fogDist: 12, dark: 0.1, silhouette: 'mountains', silC: '#2a2a2a', weather: 'embers', plumes: 6 },
 };
-Object.assign(PAL.camp, { hemiSky: '#fff0f5', hemiGround: '#c9a86a', hemiI: 1.3, sunC: '#fff2d8', sunI: 2.4, fogNear: 14, carousel: [60, -40, 1.6] });
-Object.assign(PAL.bush, { hemiSky: '#9a8ad0', hemiGround: '#3a4a2a', hemiI: 1.7, sunC: '#c8d4ff', sunI: 1.6, fogNear: 9, carousel: [26, -40, 2.2] });
-Object.assign(PAL.ship, { hemiSky: '#b0c4e0', hemiGround: '#3a4a5a', hemiI: 1.7, sunC: '#dfe8ff', sunI: 1.6, fogNear: 8 });
-Object.assign(PAL.clinic, { hemiSky: '#ffffff', hemiGround: '#c9a8b8', hemiI: 1.5, sunC: '#fff6f0', sunI: 1.4, fogNear: 16 });
-Object.assign(PAL.bridge, { hemiSky: '#ffd6a8', hemiGround: '#6a5a58', hemiI: 1.2, sunC: '#ffb37a', sunI: 2.4, fogNear: 16, carousel: [40, -60, 2.4] });
-Object.assign(PAL.finale, { hemiSky: '#ff9a6a', hemiGround: '#2a1a2a', hemiI: 0.9, sunC: '#ff7a3a', sunI: 1.8, fogNear: 6 });
+Object.assign(PAL.camp, { hemiSky: '#dfe6ee', hemiGround: '#6a6a58', hemiI: 1.45, sunC: '#fff1dc', sunI: 1.9, fogNear: 16, carousel: [60, -40, 1.6], cod: { sat: 0.8, con: 1.1, shadow: [0.94, 1.0, 1.05], high: [1.03, 1.0, 0.95], vig: 0.35, bloom: 0.25 } });
+Object.assign(PAL.bush, { exposure: 1.55, hemiSky: '#c4ccd0', hemiGround: '#5a5a48', hemiI: 2.0, sunC: '#e6e8e8', sunI: 1.6, fogNear: 10, carousel: [26, -40, 2.2], cod: { sat: 0.7, con: 1.15, shadow: [0.9, 1.02, 1.05], high: [1.0, 1.02, 0.95], vig: 0.45, grain: 0.025, bloom: 0.3 } });
+Object.assign(PAL.ship, { exposure: 1.5, hemiSky: '#9ab0c8', hemiGround: '#3a424c', hemiI: 2.1, sunC: '#c8d8f0', sunI: 1.3, fogNear: 7, cod: { sat: 0.7, con: 1.2, shadow: [0.88, 0.98, 1.1], high: [1.0, 1.0, 1.02], vig: 0.5, grain: 0.025, bloom: 0.45 } });
+Object.assign(PAL.clinic, { hemiSky: '#ffffff', hemiGround: '#b8bcb8', hemiI: 1.5, sunC: '#f6fff4', sunI: 1.3, fogNear: 16, cod: { sat: 0.8, con: 1.1, shadow: [0.96, 1.02, 1.0], high: [1.0, 1.02, 0.97], vig: 0.4, bloom: 0.35 } });
+Object.assign(PAL.bridge, { hemiSky: '#dbe6f0', hemiGround: '#4a4a42', hemiI: 1.35, sunC: '#fff4e4', sunI: 2.3, fogNear: 16, carousel: [40, -60, 2.4], cod: { sat: 0.8, con: 1.12, shadow: [0.94, 0.99, 1.05], high: [1.04, 1.0, 0.95], vig: 0.35, bloom: 0.35 } });
+Object.assign(PAL.finale, { hemiSky: '#c8b8a8', hemiGround: '#2a2622', hemiI: 1.0, sunC: '#ffb070', sunI: 1.6, fogNear: 6, cod: { sat: 0.45, con: 1.25, shadow: [0.95, 0.97, 1.02], high: [1.08, 1.0, 0.92], vig: 0.65, grain: 0.06, bloom: 0.5 } });
 
 // ---------- 1. BOOTIE CAMP ----------
 const M1 = () => {
@@ -73,7 +73,7 @@ const M1 = () => {
   const COURSE = [[29.5, 7.5], [16.6, 4.6], [22.5, 1.4], [26.5, 2.6], [29.6, 1.4]];
   const courseReset = () => { for (const e of courseTg) e.gone = true; ents = ents.filter(e => !e.gone); courseTg = targetsAt(COURSE); player.x = 23.5; player.y = 8.4; player.a = 0; player.crouch = false; M.timer = 60 * 120; M.flags.courseDone = false; M.goal = { x: 29.5, y: 1.5 }; };
   return {
-    map: rows, heights: { '#': 2.0, A: 0.75, G: 1.5, j: 0.3, C: 1.6 }, tex: { '#': 'sand', A: 'crate', G: 'gate', P: 'poster', j: 'wood', C: 'wood' }, variants: { '#': ['recruit', 7], A: ['hesco', 6] }, floor: 'sandfloor', outer: { ground: 'sandfloor', ring: 'desert' }, pal: PAL.camp, start: [7.5, 7.5, -Math.PI / 2], par: 150, music: 'title', amb: 'wind',
+    map: rows, heights: { '#': 2.0, A: 0.75, G: 1.5, j: 0.3, C: 1.6 }, tex: { '#': 'hesco', A: 'sand', G: 'gate', P: 'poster', j: 'wood', C: 'plywood' }, variants: { '#': ['recruit', 7], A: ['crate', 5] }, floor: 'gravel', outer: { ground: 'grass', ring: 'base' }, pal: PAL.camp, start: [7.5, 7.5, -Math.PI / 2], par: 150, music: 'title', amb: 'wind',
     card: ['Day 1 – 06:09:42', "Sgt. 'Soap' MacTugish", '22nd S.A.S. (Sausage Air Service)', 'Crotchenhill, U.K.'],
     props: [['sign', 4.5, 6.5, { spr: 'sign_camp' }], ['sandbags', 2, 3.5], ['sandbags', 13, 3.5], ['sandbags', 5, 3.5], ['sandbags', 10, 3.5], ['flag', 1.5, 1.5], ['tent', 3.5, 17.5], ['tent', 11.5, 17.5], ['palm', 1.5, 10.5], ['palm', 13.5, 18.5],
       ['barrel', 1.5, 13.5], ['barrel', 2.4, 13.6], ['cratestack', 13.5, 11], ['ammobox', 7.5, 12.5, { passable: true }], ['tires', 17, 18.5], ['cactus', 29.5, 18.5], ['cactus', 17, 10.5], ['sandbags', 24, 10.5], ['sandbags', 28, 14.5],
@@ -184,17 +184,17 @@ const M2 = () => {
   };
   const alarm = (why) => { if (M.flags.alarm) return; M.flags.alarm = true; for (const e of ents) if (e.kind === 'enemy' && !e.dead && !e.convoy && dist(e, player) < 14) { e.ai = 'chase'; e.sightMul = 3; } announce('SPOTTED', why || 'so much for the ghillie suit', 40); say('MACMILLI', 'Bollocks. They\'ve seen us. Weapons free.', 180); };
   return {
-    map: g, heights: { '#': 1.9, A: 0.85, C: 1.7, X: 1.0, V: 0.38 }, tex: { '#': 'hedge', A: 'fence', C: 'barracks', X: 'tower', V: 'fence', G: 'door' }, variants: { '#': ['rock', 6] },
+    map: g, heights: { '#': 1.9, A: 0.85, C: 1.7, X: 1.0, V: 0.38 }, tex: { '#': 'hedge', A: 'fence', C: 'panelblock', X: 'concrete', V: 'fence', G: 'door' }, variants: { '#': ['rock', 6] },
     floor: 'dirt', floorOf: (x, y) => (y >= 19 && y <= 22) || (x >= 48 && y >= 23) ? 'asphalt' : (x >= 43 && y <= 17) ? 'lino' : null,
     outer: { ground: 'dirt', ring: 'forest' }, pal: PAL.bush, start: [3.5, 36.5, -Math.PI / 2], par: 420, stealth: true, music: 'night', amb: 'wind',
-    hazards: HAZ, hazardName: 'CHLAMYDIA ZONE',
+    hazards: HAZ, hazardName: 'CHLAMYDIA ZONE', scope: true,
     card: ['15 years earlier', 'Lt. Jack Prick', 'S.A.S. — still had hair then', 'Pubyat, Ukrainian SSR'],
     props: [['sign', 4.5, 37.3, { spr: 'sign_bush' }], ['car', 28.5, 36.5], ['barrel', 19.5, 26.5], ['tent', 29, 26.5], ['rock', 14.5, 33.5], ['rock', 5.5, 25.8],
       ['tombstone', 33.5, 34], ['tombstone', 35.5, 34], ['tombstone', 37.5, 34], ['tombstone', 39.5, 34], ['tombstone', 41.5, 34], ['tombstone', 34.5, 36.5], ['tombstone', 36.5, 36.5], ['tombstone', 38.5, 36.5], ['tombstone', 40.5, 36.5], ['tombstone', 43.5, 36.5],
-      ['sign', 34, 24.6, { spr: 'sign_church' }], ['lantern', 42.5, 31.3, { z: 0.6, passable: true }],
+      ['sign', 34, 24.6, { spr: 'sign_church' }],
       ['sign', 27, 17.4, { spr: 'sign_haz' }], ['sign', 40.5, 17.4, { spr: 'sign_haz' }], ['sign', 25.8, 8, { spr: 'sign_haz' }], ['smoke', 33, 9, { passable: true, z: 0.1 }], ['smoke', 38.5, 5, { passable: true, z: 0.1 }], ['smoke', 29, 13.5, { passable: true, z: 0.1 }], ['smoke', 36.5, 15.5, { passable: true, z: 0.1 }],
-      ['cratestack', 44.5, 2.5], ['desk', 50.5, 2.6], ['barrel', 60.5, 2.5], ['desk', 45, 16.4], ['cratestack', 54.5, 16.5], ['magrack', 57.8, 12.4], ['lantern', 50, 9.5, { z: 0.65, passable: true }],
-      ['carousel', 55.5, 31.5], ['lampost', 49, 26], ['lampost', 61.5, 26], ['lampost', 49, 37.5], ['lampost', 61.5, 37.5], ['barrier', 51, 28], ['barrier', 60, 34.5], ['car', 50, 36.5], ['wreck', 60.5, 28], ['cone', 52.5, 24.5, { passable: true }],
+      ['cratestack', 44.5, 2.5], ['desk', 50.5, 2.6], ['barrel', 60.5, 2.5], ['desk', 45, 16.4], ['cratestack', 54.5, 16.5], ['magrack', 57.8, 12.4],
+      ['carousel', 55.5, 31.5], ['ferris', 67, 33, { passable: true, far: 140, faceA: Math.PI / 2 }], ['lampost', 49, 26], ['lampost', 61.5, 26], ['lampost', 49, 37.5], ['lampost', 61.5, 37.5], ['barrier', 51, 28], ['barrier', 60, 34.5], ['car', 50, 36.5], ['wreck', 60.5, 28], ['cone', 52.5, 24.5, { passable: true }],
       ['lampost', 10, 22.6], ['lampost', 30, 22.6], ['lampost', 50, 18.4], ['wreck', 18, 20.2]],
     brief: ['> PUBYAT. 15 YEARS AGO. 04:20.', 'You are young Lieutenant Prick. Your C.O. is Captain MacMillilitre. He is very old and very calm.', 'Ghillie suits on. We crawl through tall grass that is, and I cannot stress this enough, pubes.',
       'Condom Troopers everywhere. And the crabs. Stay in the grass, stay low, and they can\'t see you.',
@@ -245,7 +245,7 @@ const M2 = () => {
         done: () => near(45.5, 24.2, 1.3) && !M.flags.fly, end() { M.goal = null; M.flags.alarm = false; } },
       { obj: 'THE CONVOY. You\'re in the ditch. Stay still until Mac says GO (you can look around).', count: () => `Convoy passed: ${Math.round(100 * clamp((Math.min(...convoy.map(c => c.x)) + 47) / 113, 0, 1))}%`, at: [44.5, 23.5, Math.PI], pre() { mac.x = 46.2; mac.y = 23.5; },
         start() {
-          mac.stay = true; mac.x = 46.2; mac.y = 23.5; player.crouch = true; player.canMove = false; M.flags.convoyT = t;
+          mac.stay = true; mac.x = 46.2; mac.y = 23.5; player.crouch = true; player.canMove = false; M.flags.convoyT = t; player.invul = true; for (const e of ents) if (e.kind === 'enemy' && !e.dead && !e.convoy) { e.frozen = true; e.convoyHold = true; } eproj = [];
           say('MACMILLI', 'Convoy. Down. DOWN. In the ditch.', 160); say('MACMILLI', 'If you so much as scratch, we\'re both dead.', 220);
           convoy = [];
           for (let i = 0; i < 6; i++) { convoy.push(spawnProp('truck', -2 - i * 7.5, 21, { passable: true, faceA: 0, far: 60 })); }
@@ -260,7 +260,7 @@ const M2 = () => {
           if (t % 20 === 0) sfx('chop');
           if (M.flags.seen && state === 'game') { M.flags.seen = false; die('spotted'); }
         },
-        done: () => convoy.every(c => c.x > 66), end() { for (const c of convoy) c.gone = true; mac.stay = false; player.canMove = true; announce('GO', 'across the road', 40); say('MACMILLI', '...Okay. Go. Across the road. Mind the chlamydia.', 220); } },
+        done: () => convoy.every(c => c.x > 66), end() { for (const c of convoy) c.gone = true; mac.stay = false; player.canMove = true; player.invul = false; for (const e of ents) if (e.convoyHold) { e.frozen = false; e.convoyHold = false; } announce('GO', 'across the road', 40); say('MACMILLI', '...Okay. Go. Across the road. Mind the chlamydia.', 220); } },
       { obj: 'Cross the road north. Go AROUND the green chlamydia clouds (they hurt). Follow the arrows to the apartments.', at: [44.5, 23.2, -Math.PI / 2], pre() { mac.stay = false; player.canMove = true; }, start() { M.goal = { x: 42.5, y: 9.5 }; },
         tick() { if (!M.flags.hzTip && player.y < 18.5) { M.flags.hzTip = true; say('MACMILLI', 'Too much chlamydia in that field. We go around. The long way. Always the long way.', 260); } },
         done: () => near(43, 9.5, 1.3), end() { M.goal = null; } },
@@ -385,8 +385,8 @@ const M3 = () => {
   let heli = null, flood = null, pkg = null;
   const wake = (list) => { for (const e of spawnWave(list)) { e.ai = 'chase'; e.sightMul = 3; } };
   return {
-    map: g, heights: { '#': 1.7, A: 0.7, B: 1.35, C: 1.7, G: 1.5, V: 0.5 }, tex: { '#': 'steel', A: 'rust', B: 'container', C: 'steel', G: 'gate', V: 'rust' }, variants: { '#': ['porthole', 5], C: ['porthole', 7] },
-    floor: 'deck', floorOf: (x, y) => y >= 10 && y <= 18 ? 'lino' : null, outer: { ground: 'water', groundY: -1.6, ring: 'sea' }, pal: PAL.ship, start: [50, 4.5, Math.PI], par: 380, music: 'tense', amb: 'sea',
+    map: g, heights: { '#': 1.7, A: 0.7, B: 1.35, C: 1.7, G: 1.5, V: 0.5 }, tex: { '#': 'steel', A: 'rust', B: 'container', C: 'steel', G: 'gate', V: 'rust' }, variants: { '#': ['porthole', 5], C: ['porthole', 7], B: ['containerrust', 3] },
+    floor: 'deck', floorOf: (x, y) => y >= 10 && y <= 18 ? 'lino' : null, roofs: [[1, 9.5, 55, 18.5, 'steel', 1.7, '#ff5a50'], [1, 18.5, 55, 29, 'steel', 1.7]], indoor: (x, y) => y > 9, areaGrade: (x, y) => y >= 9.5 && y <= 18.5 ? { shadow: [1.35, 0.62, 0.62], high: [1.2, 0.8, 0.78], sat: 0.9 } : null, outer: { ground: 'water', groundY: -1.6, ring: 'sea' }, pal: PAL.ship, start: [50, 4.5, Math.PI], par: 380, music: 'tense', amb: 'sea',
     card: ['Day 3 – 01:00:12', "Sgt. 'Soap' MacTugish", '22nd Sausage Air Service', 'MV Blue Balls — Bering Sea'],
     props: [['lifering', 1.3, 7.5, { passable: true }], ['barrel', 12, 7.4], ['barrel', 12.8, 7.4], ['cratestack', 20.5, 1.6], ['cratestack', 30.5, 7.4], ['barrel', 40, 1.6], ['lifering', 44, 1.2, { passable: true }], ['valve', 21, 7.6, { passable: true }], ['lantern', 11, 4.5, { z: 0.8, passable: true }], ['lantern', 31, 4.5, { z: 0.8, passable: true }], ['lantern', 44, 4.5, { z: 0.8, passable: true }], ['cone', 47, 2, { passable: true }], ['cone', 47, 7, { passable: true }],
       ['desk', 5.5, 3.3], ['lantern', 6, 4, { z: 0.65, passable: true }],
@@ -577,7 +577,7 @@ const M5 = () => {
   let allies = [], boss = null, prick = null, pistol = null, f0 = 0;
   const F = () => t - f0;
   return {
-    map: g, heights: { '#': 0.7, A: 3.2, B: 1.6 }, tex: { '#': 'concrete', A: 'tower', B: 'rust' }, floor: 'asphalt', outer: { ground: 'water', groundY: -7, ring: 'city' }, floorOf: (x) => x >= 157 ? 'rubble' : null, pal: PAL.bridge, start: [3, 5, Math.PI], par: 200, railSpeed: 0.03, music: 'chase', amb: 'wind',
+    map: g, heights: { '#': 0.7, A: 3.2, B: 1.6 }, tex: { '#': 'concrete', A: 'tower', B: 'rust' }, floor: 'asphalt', outer: { ground: 'water', groundY: -7, ring: 'mountains' }, floorOf: (x) => x >= 157 ? 'rubble' : null, pal: PAL.bridge, start: [3, 5, Math.PI], par: 200, railSpeed: 0.03, music: 'chase', amb: 'wind',
     card: ['Day 6 – 11:11:11', "Sgt. 'Soap' MacTugish", '22nd Sausage Air Service', 'Bridge over the Tubes'],
     props: [...railProps,
       ['wreck', 160, 2], ['wreck', 166, 8], ['fire', 160.5, 2.5, { passable: true }], ['smoke', 160.5, 2.3, { passable: true, z: 0.8 }], ['car', 170, 1.5], ['fire', 170, 2.4, { passable: true }], ['smoke', 170, 2.2, { passable: true, z: 0.8 }], ['barrel', 175, 8.5], ['wreck', 176, 3], ['barrier', 163, 8.5], ['cone', 165, 1.5, { passable: true }]],

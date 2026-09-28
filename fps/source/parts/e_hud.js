@@ -32,6 +32,14 @@ function drawHUD() {
   }
   if (p.shrink > 0) { ctx.fillStyle = 'rgba(160,220,255,0.1)'; ctx.fillRect(0, 0, W, H); txt('SHRINKAGE — damage halved', W / 2, 250, 26, '#bfe9f8', 'center', '#1a4a7a'); }
   if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${Math.min(1, flash)})`; ctx.fillRect(0, 0, W, H); }
+  if (M.scope && p.ads > 0.75 && M.state === 'play') {   // sniper scope: black mask, a round view, a fine crosshair with mil dots
+    const r = H * 0.46, cx = W / 2, cy = H / 2; ctx.save(); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(cx, cy, r, 0, TAU, true); ctx.fill();
+    const g = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.85)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+    ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx - r * 0.3, cy); ctx.moveTo(cx + r * 0.3, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy + r * 0.3); ctx.lineTo(cx, cy + r); ctx.stroke();
+    ctx.fillStyle = '#111'; for (let i = 1; i < 5; i++) { E(cx + i * r * 0.06, cy, 2, 2); ctx.fill(); E(cx - i * r * 0.06, cy, 2, 2); ctx.fill(); E(cx, cy + i * r * 0.06, 2, 2); ctx.fill(); }
+    txt('hold breath: you can\'t. you\'re a dick.', cx, cy + r + 18, 14, '#aaa', 'center', null); ctx.restore();
+  }
   if (M.state === 'gunship') { drawGunshipHUD(); drawObjRadio(); drawAnnounce(); return; }
   if (M.state !== 'play' && M.state !== 'rails' && M.state !== 'crawl' && M.state !== 'showdown') return;
   const cy = H / 2;
@@ -63,7 +71,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
   // compass strip
   if (M.state !== 'crawl') {
     const cx = W / 2 + 110, cw = 220, cy0 = 22;
-    ctx.fillStyle = 'rgba(74,29,58,0.55)'; rr(cx - cw / 2, cy0 - 12, cw, 24, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(14,16,18,0.55)'; rr(cx - cw / 2, cy0 - 12, cw, 24, 8); ctx.fill();
     ctx.save(); rr(cx - cw / 2, cy0 - 12, cw, 24, 8); ctx.clip();
     const marks = [['N', -Math.PI / 2], ['E', 0], ['S', Math.PI / 2], ['W', Math.PI]];
     for (const [l, ba] of marks) { const rel = wrapA(ba - p.a); if (Math.abs(rel) < 1.2) txt(l, cx + rel / 1.2 * cw / 2, cy0, 16, '#fff', 'center', null); }
@@ -77,7 +85,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
   if (mini && M.state !== 'crawl') {
     const mw = 118, mh = 118, mx = W - mw - 16, my = 14;
     ctx.save();
-    ctx.fillStyle = 'rgba(74,29,58,0.6)'; rr(mx - 4, my - 4, mw + 8, mh + 8, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(14,16,18,0.6)'; rr(mx - 4, my - 4, mw + 8, mh + 8, 8); ctx.fill();
     rr(mx, my, mw, mh, 4); ctx.clip();
     const sc = 4 * 1.6;
     ctx.translate(mx + mw / 2 - p.x * sc, my + mh / 2 - p.y * sc);
@@ -101,7 +109,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     const ax = W - 24, ay = H - 40;
     txt('DICK-47', ax, ay - 44, 16, PINK, 'right', null);
     { // LENGTH: shots shrink it, lotion pumps it back up
-      const k = p.size || 1, bw = 150, bx = ax - bw, by = ay - 84, low = k < 0.5;
+      const k = p.size || 1, bw = 150, bx = isTouch ? W - 172 : ax - bw, by = isTouch ? 182 : ay - 84, low = k < 0.5;
       txt('LENGTH', bx, by - 10, 13, '#fff', 'left', null);
       txt(`${(k * 9).toFixed(1)}"`, ax, by - 10, 18, p.hardT > 0 ? CYAN : low ? '#ff4d6d' : YEL, 'right', null);
       rr(bx, by, bw, 12, 6); fs('rgba(0,0,0,0.45)', '#fff', 1.5);
@@ -114,7 +122,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     txt(p.reloading ? 'RELOADING' : `${p.ammo}`, ax - (p.reloading ? 0 : 36), ay - 12, p.reloading ? 22 : 44, p.ammo === 0 && !p.reloading ? '#ff4d6d' : '#fff', 'right');
     if (!p.reloading) txt('/ ∞', ax, ay - 8, 22, '#ffd6e7', 'right', null);
     if (!p.reloading) for (let i = 0; i < MAG; i++) { E(ax - 6 - i * 16, ay + 22, 6, 5.5); fs(i < p.ammo ? CUM : 'rgba(255,255,255,0.2)', i < p.ammo ? CUM2 : null, 1.5); }
-    if (isTouch) for (const b of TOUCH_BTNS) { if (M.state === 'rails' && (b.label === 'CROUCH' || b.label === 'AIM')) continue; const on = b.on && b.on(); rr(b.x, b.y, b.w, b.h, 14); fs(on ? 'rgba(255,93,143,0.85)' : 'rgba(74,29,58,0.75)', YEL, 3); txt(b.label + (b.count ? ` ×${b.count()}` : ''), b.x + b.w / 2, b.y + b.h / 2, 20, '#fff', 'center', null); }
+    if (isTouch) for (const b of TOUCH_BTNS) { if (M.state === 'rails' && (b.label === 'CROUCH' || b.label === 'AIM')) continue; const on = b.on && b.on(); rr(b.x, b.y, b.w, b.h, 14); fs(on ? 'rgba(255,93,143,0.85)' : 'rgba(14,16,18,0.75)', YEL, 3); txt(b.label + (b.count ? ` ×${b.count()}` : ''), b.x + b.w / 2, b.y + b.h / 2, 20, '#fff', 'center', null); }
     if (M.state === 'play') {
       // stance: a tiny dick silhouette, standing / crouched / sprinting
       ctx.save(); ctx.translate(40, H - 72); ctx.scale(1, p.crouch ? 0.6 : 1); ctx.rotate(p.sprint * 0.4); ctx.globalAlpha = 0.85; drawDick(0, 0, 0.55, { still: true, face: false }); ctx.restore(); ctx.globalAlpha = 1;
@@ -153,7 +161,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     ctx.globalAlpha = 0.5; E(joy.x0, joy.y0, 60, 60); fs('rgba(255,255,255,0.25)', '#fff', 3);
     E(joy.x0 + joy.dx, joy.y0 + joy.dy, 28, 28); fs(PINK, INK, 3); ctx.globalAlpha = 1;
   }
-  if (isTouch) { rr(W / 2 - 24, 40, 48, 26, 8); fs('rgba(74,29,58,0.6)', null); txt('II', W / 2, 53, 16, '#fff', 'center', null); }
+  if (isTouch) { rr(W / 2 - 24, 40, 48, 26, 8); fs('rgba(14,16,18,0.6)', null); txt('II', W / 2, 53, 16, '#fff', 'center', null); }
   if (!isTouch) txt(muted ? 'M: sound off' : 'M: sound on', W - 16, 152, 13, '#fff', 'right', null);
 }
 
@@ -169,7 +177,7 @@ function drawObjRadio() {
     const hint = st && (M.stageT || 0) > (st.hintAfter || 1500) ? (st.hint || (st.clearAll ? 'Kill them all. When only a few are left, red arrows mark where they are.' : M.goal && !M.goal.hidden ? 'Follow the yellow arrows on the ground and the heart marker.' : '')) : '';
     const hLines = hint ? wrapLines('HINT: ' + hint, 15, 392) : [];
     const h = 30 + lines.length * 22 + (cnt ? 22 : 0) + hLines.length * 18 + 6;
-    ctx.fillStyle = 'rgba(74,29,58,0.78)'; rr(16, 14, 420, h, 10); ctx.fill(); if (objT < 200) { ctx.strokeStyle = t % 20 < 10 ? YEL : '#fff'; ctx.lineWidth = 3; ctx.stroke(); }
+    ctx.fillStyle = 'rgba(14,16,18,0.78)'; rr(16, 14, 420, h, 10); ctx.fill(); if (objT < 200) { ctx.strokeStyle = t % 20 < 10 ? YEL : '#fff'; ctx.lineWidth = 3; ctx.stroke(); }
     txt(objT < 200 ? 'NEW OBJECTIVE' : 'OBJECTIVE', 30, 30, 15, objT < 200 ? YEL : CYAN, 'left', null);
     let y = 52, left = shown.length;
     for (const l of lines) { txt(l.slice(0, Math.max(0, left)), 30, y, size, '#fff', 'left', null); left -= l.length + 1; y += 22; }

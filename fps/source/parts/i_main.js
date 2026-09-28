@@ -11,11 +11,18 @@ function resizeAll() {
   wrap.style.transform = portrait ? 'translate(-50%,-50%) rotate(90deg)' : 'translate(-50%,-50%)';
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const rs = Math.min(dpr, isTouch ? 1.25 : 1.75);
-  renderer.setPixelRatio(rs); renderer.setSize(w, h, false);
+  renderer.setPixelRatio(rs); renderer.setSize(w, h, false); composer.setPixelRatio(rs); composer.setSize(w, h); bloomPass.resolution.set(w / 2, h / 2);
 }
 resize = resizeAll;
 renderer.info.autoReset = false;
-addEventListener('resize', () => resize());
+// iPhone Safari: the toolbar sliding in and out fires a stream of resizes, and dragging can rubber-band the page.
+// Only re-layout once things settle, and never let a touch scroll or zoom the page.
+let rsT = null, lastWH = [innerWidth, innerHeight];
+const onResize = () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(innerWidth - lastWH[0]) < 2 && Math.abs(innerHeight - lastWH[1]) < 2) return; lastWH = [innerWidth, innerHeight]; resize(); }, 180); };
+addEventListener('resize', onResize); addEventListener('orientationchange', () => { lastWH = [0, 0]; onResize(); });
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('dblclick', e => e.preventDefault());
 resize();
 let ambWant = null;
 function syncAudio() {
@@ -46,10 +53,10 @@ const _cv = new THREE.Vector3();
 function renderWorld() {
   const p = player;
   // camera from the v2 camera model: x/y on the grid, camH as eye height, pitch px → radians, roll, fov
-  const bob = p ? p.bobY * 0.004 : 0;
+  const bob = p ? p.bobY * (isTouch ? 0.0015 : 0.004) : 0;
   camera.position.set(p.x, (camH + (p.jz || 0)) * YS + bob, p.y);
   camera.rotation.set(clamp(pitch * PX2RAD, -1.35, 1.35), -p.a - Math.PI / 2, roll);
-  if (shake > 0.3) { camera.position.x += rand(-1, 1) * shake * 0.004; camera.position.y += rand(-1, 1) * shake * 0.004; }
+  if (shake > 0.3) { const k = isTouch ? 0.0015 : 0.004; camera.position.x += rand(-1, 1) * shake * k; camera.position.y += rand(-1, 1) * shake * k; }
   camera.fov = 72 * (fovK / 0.66); camera.updateProjectionMatrix();
   if (M.state === 'gunship') gunshipCamera();
   // shadows follow you
@@ -65,9 +72,9 @@ function renderWorld() {
   updateNav(); syncViews(); updateWeapon();
   sun.shadow.autoUpdate = false; if (!isTouch || t % 2 === 0) sun.shadow.needsUpdate = true;   // phones: shadows every other frame
   renderer.info.reset();
-  renderer.clear();
-  renderer.render(scene, camera);
-  if (M.state !== 'crawl' && M.state !== 'cut' && M.state !== 'gunship' && state !== 'dead') { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
+  vmPass.enabled = M.state !== 'crawl' && M.state !== 'cut' && M.state !== 'gunship' && state !== 'dead' && !(M.scope && player.ads > 0.75);
+  gradePass.uniforms.time.value = (t % 100) * 0.37; gradeTick();
+  composer.render();
 }
 function draw() {
   ctx = hctx; setCtx(hctx);
@@ -78,7 +85,7 @@ function draw() {
     renderWorld();
     // weather + grade on the 2D layer
     const pal = M.pal;
-    if (pal.weather === 'rain' || M.idx === 3) { hctx.strokeStyle = 'rgba(220,235,255,0.45)'; hctx.lineWidth = 2; for (let i = 0; i < 80; i++) { const x = (i * 97 + t * 3 + player.a * 300) % (W + 100) - 50, y = (i * 53 + t * 18) % (H + 40) - 20; hctx.beginPath(); hctx.moveTo(x, y); hctx.lineTo(x - 3, y - 18); hctx.stroke(); } }
+    if (pal.weather === 'rain' && !(M.indoor && M.indoor(player.x, player.y))) { hctx.strokeStyle = 'rgba(220,235,255,0.45)'; hctx.lineWidth = 2; for (let i = 0; i < 80; i++) { const x = (i * 97 + t * 3 + player.a * 300) % (W + 100) - 50, y = (i * 53 + t * 18) % (H + 40) - 20; hctx.beginPath(); hctx.moveTo(x, y); hctx.lineTo(x - 3, y - 18); hctx.stroke(); } }
     if (pal.weather === 'embers') for (let i = 0; i < 40; i++) { const x = (i * 131 + Math.sin(t * 0.02 + i) * 30 + player.a * 200) % (W + 40) - 20, y = (H + 20 - (i * 71 + t * 1.3) % (H + 40)); hctx.globalAlpha = 0.8; E(x, y, 2 + (i % 3), 2 + (i % 3)); fs((i + t / 10 | 0) % 2 ? YEL : '#ff7a3a', null); hctx.globalAlpha = 1; }
     if (pal.weather === 'dust') { hctx.globalAlpha = 0.45; for (let i = 0; i < 30; i++) { const x = (i * 131 + t * 0.7 + player.a * 200) % (W + 40) - 20, y = (i * 71 + Math.sin(t * 0.03 + i) * 20) % H; E(x, y, 2, 1.4); fs('#fff2c4', null); } hctx.globalAlpha = 1; }
     if (player.ads > 0.3) { const k = player.ads; const vg = hctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.85); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(20,0,20,${0.5 * k})`); hctx.fillStyle = vg; hctx.fillRect(0, 0, W, H); }

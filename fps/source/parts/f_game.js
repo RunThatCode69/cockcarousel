@@ -216,7 +216,7 @@ function updatePlayer() {
   const wantSprint = (keys.ShiftLeft || keys.ShiftRight || (joy.active && -joy.dy > 54)) && !wantAds && !fireHeld && M.state === 'play' && !p.crouch;
   p.sprint = lerp(p.sprint, wantSprint && p.moving > 0.3 ? 1 : 0, 0.15);
   if (M.state === 'play') camH = lerp(camH, p.crouch ? 0.33 : 0.5, 0.15);
-  fovK = lerp(fovK, 0.66 - 0.24 * p.ads + 0.05 * p.sprint, 0.25);
+  fovK = lerp(fovK, 0.66 - (M.scope ? 0.48 : 0.24) * p.ads + 0.05 * p.sprint, 0.25);
   p.throwT -= ts;
   p.a += turn * (M.state === 'crawl' ? 0.5 : 1);
   if (M.state === 'rails') { p.a = Math.PI + clamp(wrapA(p.a - Math.PI), -0.75, 0.75); }

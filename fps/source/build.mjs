@@ -18,7 +18,7 @@ const html = `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
 <style>
-  html, body { margin: 0; height: 100%; background: #2a1030; overflow: hidden;
+  html, body { margin: 0; height: 100%; background: #2a1030; overflow: hidden; position: fixed; inset: 0; overscroll-behavior: none; -webkit-text-size-adjust: none;
     touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
   #wrap { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); }
   #wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
