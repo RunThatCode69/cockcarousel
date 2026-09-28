@@ -67,6 +67,7 @@ export function faceTex(kind) {
     }
     switch (kind) {
       case 'happy': eyes(); smile(); break;
+      case 'lady': [[-24, 48], [24, 48]].forEach(([ex, ey]) => { E(64 + ex, ey, 13, 15); fs('#fff', INK, 4); E(64 + ex, ey + 2, 7, 8); fs(INK, null); ctx.strokeStyle = INK; ctx.lineWidth = 4; for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.moveTo(64 + ex + k * 8, ey - 14); ctx.lineTo(64 + ex + k * 11, ey - 22); ctx.stroke(); } }); E(28, 78, 10, 6); fs('#ff9bb5', null); E(100, 78, 10, 6); fs('#ff9bb5', null); ctx.strokeStyle = '#d42a5a'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(48, 90); ctx.quadraticCurveTo(64, 104, 80, 90); ctx.stroke(); break;
       case 'yell': eyes(true); yell(); break;
       case 'angry': eyes(true); frown(); break;
       case 'dead': eyes(false, true); yell(); break;
@@ -369,6 +370,22 @@ export function makeDildoRocket() {
   const cup = ink(new THREE.CylinderGeometry(0.13, 0.1, 0.05, 14), pink2, 0.01); cup.rotation.z = Math.PI / 2; cup.position.x = -0.02; g.add(cup);
   const fl = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 10), new THREE.MeshBasicMaterial({ color: '#ffd28a', transparent: true, opacity: 0.8 })); fl.rotation.z = Math.PI / 2; fl.position.x = -0.22; g.add(fl);
   return g;
+}
+// a cartoon party girl for the Pleasure Dome (adults, dressed for a night out)
+export function makeLady(o = {}) {
+  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+  const skin = toon(o.skin || '#f0c4a0'), dress = toon(o.dress || '#ff5d8f'), hairM = toon(o.hair || '#3a2418');
+  [-1, 1].forEach(sd => { body.add(at(ink(G.cyl(0.035, 0.03, 0.42, 8), skin, 0.01), sd * 0.06, 0.21, 0)); body.add(at(ink(G.box(0.06, 0.04, 0.1), toon('#1a1a1a'), 0.008), sd * 0.06, 0.02, 0.02)); });
+  const skirt = ink(new THREE.ConeGeometry(0.2, 0.34, 14), dress, 0.012); skirt.position.y = 0.52; body.add(skirt);
+  const torso = ink(G.cyl(0.1, 0.12, 0.26, 12), dress, 0.012); torso.position.y = 0.78; body.add(torso);
+  const head = ink(new THREE.SphereGeometry(0.13, 16, 12), skin, 0.012); head.position.y = 1.03; body.add(head);
+  const hairTop = ink(new THREE.SphereGeometry(0.14, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), hairM, 0.01); hairTop.position.y = 1.05; hairTop.rotation.x = -0.35; body.add(hairTop);
+  const hairBack = ink(G.cyl(0.13, 0.08, 0.3, 12), hairM, 0.01); hairBack.position.set(0, 0.92, -0.06); body.add(hairBack);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), new THREE.MeshBasicMaterial({ map: faceTex('lady'), transparent: true, depthWrite: false })); face.position.set(0, 1.02, 0.131); face.userData.face = true; body.add(face);
+  const arms = [];
+  [-1, 1].forEach(sd => { const a = new THREE.Group(); a.position.set(sd * 0.12, 0.86, 0); body.add(a); a.add(cylBetween(new THREE.Vector3(0, 0, 0), new THREE.Vector3(sd * 0.05, -0.3, 0), 0.028, o.skin || '#f0c4a0')); arms.push(a); });
+  root.userData = { body, arms, kind: 'lady' };
+  return root;
 }
 export function makeTuft(seed = 0) {   // a tuft of "tall grass". Curly, brown. You know what it is.
   const g = new THREE.Group(); const mat = toon('#3a2a1a');

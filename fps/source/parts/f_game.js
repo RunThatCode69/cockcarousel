@@ -215,7 +215,7 @@ function updatePlayer() {
   // aim down sights / sprint / crouch
   const wantAds = (adsHeld || adsToggle) && p.canFire && !p.reloading && M.state !== 'crawl';
   p.ads = lerp(p.ads, wantAds ? 1 : 0, 0.2);
-  const wantSprint = (keys.ShiftLeft || keys.ShiftRight || (joy.active && -joy.dy > 54)) && !wantAds && !fireHeld && M.state === 'play' && !p.crouch;
+  const wantSprint = (keys.ShiftLeft || keys.ShiftRight || (joy.active && -joy.dy > 54)) && !wantAds && !fireHeld && M.state === 'play' && !p.crouch && !M.noRun;
   p.sprint = lerp(p.sprint, wantSprint && p.moving > 0.3 ? 1 : 0, 0.15);
   if (M.state === 'play') camH = lerp(camH, p.crouch ? 0.33 : 0.5, 0.15);
   fovK = lerp(fovK, 0.66 - (M.scope ? 0.48 : 0.24) * p.ads + 0.05 * p.sprint, 0.25);

@@ -14,7 +14,7 @@ const MISSION_META = [
   { name: 'Bootie Camp', place: 'S.A.S. HQ, Crotchenhill, U.K.', date: 'DAY 1 · 06:09', icon: () => iconDick({ hat: 'drill', stache: 1.3, angry: true, yell: true }) },
   { name: 'All Girthed Up', place: 'Pubyat, 15 years ago', date: 'DAY -5475 · 04:20', icon: () => { ctx.save(); ctx.translate(0, 8); pubeArt(0, 0, { f: 1 }); ctx.restore(); } },
   { name: 'Crew Expandable', place: 'Cargo ship "MV Blue Balls", Bering Sea', date: 'DAY 3 · 01:00', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.7, 0.7); crabArt(0, 0, { f: 0 }); ctx.restore(); } },
-  { name: "No Rushin'", place: 'Fertility clinic, waiting room B', date: 'DAY 4 · 10:30 (appt. 9:00)', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.65, 0.65); condomArt(0, 0, { f: 0 }); ctx.restore(); } },
+  { name: "No Rushin'", place: 'Terminal 69, Pubyat International', date: 'DAY 4 · 10:30', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.65, 0.65); condomArt(0, 0, { f: 0 }); ctx.restore(); } },
   { name: 'GAME OVA', place: 'Bridge over the Tubes', date: 'DAY 6 · 11:11', icon: () => iconDick({ coat: true, onearm: true, angry: true, frown: true, scar: true, skin: '#e9b39d', skin2: '#d8927c' }) },
 ];
 const PAL = {   // v4.3: CoD-ish palettes — overcast UK, grey pre-dawn Pubyat, storm at sea, fluorescent clinic, smoky sunset bridge
@@ -483,85 +483,87 @@ const M3 = () => {
 
 // ---------- 4. NO RUSHIN' ----------
 const M4 = () => {
-  const g = grid(34, 46);
-  carve(g, 1, 12, 14, 22);                                                   // waiting room
-  [3, 5, 7, 9, 11].forEach(x => { put(g, x, 14, 'h'); put(g, x, 17, 'h'); });
-  put(g, 1, 12, 'q'); put(g, 14, 12, 'q'); put(g, 1, 22, 'q');
-  carve(g, 16, 16, 22, 22); put(g, 15, 19, '.');                             // reception
-  carve(g, 16, 17, 20, 17, 'A');                                             // the counter (velvet)
-  carve(g, 24, 2, 25, 22); put(g, 23, 19, '.');                              // escalator shaft
-  carve(g, 24, 5, 25, 20, '^');
-  carve(g, 4, 1, 32, 3); put(g, 3, 2, 'G');                                  // upstairs hallway, Room 69 gate
-  carve(g, 8, 2, 20, 2, '>');                                                // the walkway, going the wrong way
-  carve(g, 1, 1, 2, 3);                                                      // Room 69
-  put(g, 30, 1, 'e'); put(g, 12, 21, 'e'); put(g, 2, 13, 'e');
-  put(g, 0, 17, 'P'); put(g, 33, 2, 'P');
-  carve(g, 1, 25, 32, 44); put(g, 7, 24, '.'); put(g, 7, 23, 'G');                           // v4: the car park out front (you'll see it from a mile up)
-  let team = [], van = null;
-  const TPATH = [[7, 24], [7, 30.5], [13.5, 30.5], [13.5, 36.5], [21.5, 36.5], [21.5, 41.5], [27, 41.5]];
-  const TLEN = (() => { let l = 0; for (let i = 1; i < TPATH.length; i++) l += Math.hypot(TPATH[i][0] - TPATH[i - 1][0], TPATH[i][1] - TPATH[i - 1][1]); return l; })();
-  const pathAt = s => { for (let i = 1; i < TPATH.length; i++) { const a = TPATH[i - 1], b = TPATH[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]); if (s <= l) return [lerp(a[0], b[0], s / l), lerp(a[1], b[1], s / l), Math.atan2(b[1] - a[1], b[0] - a[0])]; s -= l; } const e = TPATH[TPATH.length - 1]; return [e[0], e[1], 0]; };
-  const EDGE = () => pickOne([[rand(2, 31), 44.3], [rand(2, 31), 44.3], [32.4, rand(27, 43)], [1.6, rand(27, 43)]]);
-  let wave = 0, serving = 4;
-  const SPAWNS = [[2, 13], [13, 13], [7, 21.5], [13, 21.5]];
-  const waves = [[['condom', 0], ['condom', 1], ['crab', 2]], [['condom', 0], ['crab', 3], ['crab', 1], ['bee', 2]], [['condom', 1], ['condom', 2], ['crab', 3], ['crab', 0], ['bee', 3]]];
-  const nextWave = () => { const w = waves[wave]; if (!w) return; spawnWave(w.map(([ty, s]) => [ty, SPAWNS[s][0], SPAWNS[s][1]])); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } wave++; serving++; bakeBoard(serving); announce(`NOW SERVING: ${serving}`, 'your number is 69. nobody is rushing.', 40); };
+  // v4.6: the No Russian parody. Elevator with Jackoff's crew, "remember... no rushin'", a slow walk through the terminal, then the Pleasure Dome.
+  const g = grid(56, 15);
+  carve(g, 1, 6, 3, 8); put(g, 4, 7, 'G');                                    // the elevator
+  carve(g, 5, 2, 40, 12);                                                      // Terminal 69
+  for (const x of [10, 18, 26, 34]) { put(g, x, 4, '#'); put(g, x, 10, '#'); } // pillars
+  for (const x0 of [13, 21, 29]) { carve(g, x0, 2, x0 + 3, 2, 'A'); carve(g, x0, 12, x0 + 3, 12, 'A'); }   // check-in desks
+  for (const x of [8, 9, 15, 16, 23, 24, 31, 32]) { put(g, x, 5, 'h'); put(g, x, 9, 'h'); }            // bench seats
+  put(g, 41, 7, 'G');                                                          // the Pleasure Dome doors
+  carve(g, 42, 3, 54, 11);                                                     // inside
+  let crew = [], boss = null, ladies = [], lights = [];
+  const CREW_OFF = [[0, 0], [-1.2, -0.9], [-1.2, 0.9], [-2.4, 0]];
   return {
-    map: g, heights: { '#': 1.8, A: 0.7, G: 1.5, P: 1.8 }, tex: { '#': 'tile', A: 'velvet', G: 'door', P: 'poster' }, variants: { '#': ['clinicposter', 6] }, floor: 'lino', ceil: 'ceiltile', floorOf: (x, y) => y >= 24 ? 'asphalt' : (x <= 14 && y >= 12) ? 'carpet' : null, pal: PAL.clinic, start: [7.5, 20.5, -Math.PI / 2], par: 190, music: 'muzak', amb: 'room',
-    card: ['Day 4 – 10:30:00 (appt. 9:00)', "Sgt. 'Soap' MacTugish", 'undercover, sort of', 'Fertility Clinic — Waiting Room B'], goal: { x: 19.5, y: 19.5 },
-    props: [['cooler', 13.5, 21.5], ['magrack', 1.5, 20.5], ['posterstand', 1.5, 16.5], ['cooler', 21.5, 21.5], ['board', 21.5, 18.2, { passable: true }], ['magrack', 16.5, 21.5], ['cone', 24.5, 21.5, { passable: true }], ['sign', 28.5, 1.4, { spr: 'sign_69' }], ['posterstand', 31.5, 2.5], ['cooler', 6.5, 1.5], ['magrack', 12.5, 1.5],
-      ['car', 4, 34], ['car', 10, 34], ['car', 17, 34], ['car', 25, 34], ['car', 4, 39.5], ['car', 17, 40], ['car', 29, 38], ['lampost', 10.5, 28], ['lampost', 20.5, 28], ['lampost', 30.5, 28], ['lampost', 10.5, 43], ['barrier', 26, 28.5], ['cone', 8.5, 27, { passable: true }], ['cone', 5.5, 27, { passable: true }], ['van', 28, 42.6, { passable: true }]],
-    brief: ['> FERTILITY CLINIC, WAITING ROOM B. 10:30. APPOINTMENT WAS AT 9.', 'Deep cover. You are here to make a deposit. Nobody is rushing. Nobody has ever rushed here.',
-      'Take a number at reception. Wait your turn. Condom Troopers guard the waiting room; they will try to wrap you.', 'When they call 69, ride the escalator up to Room 69. The walkway may be going the wrong way. That is on purpose.',
-      '> OBJECTIVE: make the deposit. Remember: no Rushin\'.'],
+    map: g, heights: { '#': 2.2, A: 0.8, G: 2.0 }, tex: { '#': 'concrete', A: 'velvet', G: 'door' }, variants: { '#': ['clinicposter', 5] }, floor: 'lino', ceil: 'ceiltile',
+    floorOf: (x) => x >= 42 ? 'carpet' : null, pal: PAL.clinic, start: [2, 7, 0], par: 240, music: 'muzak', amb: 'room', noRun: true,
+    card: ['Day 4 – 10:30:00', "Sgt. 'Soap' MacTugish", 'undercover. very undercover.', 'Terminal 69, Pubyat International'],
+    props: [['plant', 6, 2.6], ['plant', 6, 11.4], ['plant', 39.4, 2.6], ['plant', 39.4, 11.4], ['posterstand', 12, 7.8], ['posterstand', 28, 6.2], ['magrack', 37, 3], ['cooler', 37, 11], ['sign', 38.6, 7, { spr: 'sign_dome' }],
+      ['barrier', 20, 7.6], ['cone', 25, 6, { passable: true }], ['cone', 25, 8, { passable: true }], ['desk', 44, 3.6], ['cooler', 53.4, 3.6], ['plant', 53.4, 10.4], ['plant', 43, 10.4]],
+    brief: ['> TERMINAL 69. PUBYAT INTERNATIONAL. 10:30.', "You've been undercover in Imran Jackoff's crew for six months. You've seen things. Some of them were rubber.",
+      "Today Jackoff is taking the crew somewhere very special. Nobody will say where. Everybody is smiling.", 'Condom Trooper airport security will try to stop you. Stay with the crew. Do not run.',
+      "> OBJECTIVE: remember... no rushin'."],
     init() {
-      bakeSign('sign_69', 'ROOM 69', '← this way', '#fff6e0', PINK); bakeBoard(4);
-      spawnPickup('ticket', 19.5, 19.5);
-      spawnNpc('prick', 21.5, 16.5, 1.15, 0.9, { far: 30 });
-      say('PRICK', 'Remember... no rushin\'.', 200); say('PRICK', "I'm at reception, son. Undercover. The mustache is a disguise.", 240);
+      bakeSign('sign_dome', 'THE PLEASURE DOME', 'arrivals · this way →', '#2a1030', PINK);
+      boss = spawnNpc('boss2', 2.2, 6.6, 1.8, 1.4, { r: 0.8, far: 80 });
+      crew = [boss, spawnNpc('thug', 1.4, 7.8, 1.3, 1, { far: 80 }), spawnNpc('thug', 2.8, 7.8, 1.3, 1, { far: 80 })];
+      const dresses = ['#ff5d8f', '#7a3fb5', '#2ab7a9', '#ffd23f', '#e84a3a', '#3a6ad8', '#ff9ec4', '#1e1e24'];
+      for (let i = 0; i < 12; i++) ladies.push(spawnNpc('lady', 44.5 + (i % 4) * 2.6 + rand(-0.4, 0.4), 4.6 + ((i / 4) | 0) * 2.4 + rand(-0.3, 0.3), 1.3, 0.8, { far: 60, dress: dresses[i % dresses.length], hair: ['#3a2418', '#e8c070', '#1a1a1a', '#b8452a'][i % 4], seed: i * 7, faceA: -Math.PI / 2 + rand(-0.6, 0.6) }));
+      for (const [x, y, c] of [[46, 5, '#ff4d9a'], [51, 9, '#4d9aff'], [48.5, 7, '#ffd23f']]) { const l = new THREE.PointLight(c, 0, 9, 1.4); l.position.set(x, 2.6, y); level.add(l); lights.push(l); }
+    },
+    always() {
+      // the crew strolls: they keep a few metres ahead of you, never faster than a walk
+      if (!boss || M.state !== 'play') return;
+      const lead = Math.min(39.6, Math.max(boss.x, player.x + 2.6));
+      const tx = M.flags.crewHold ? boss.x : lead;
+      boss.x = lerp(boss.x, Math.min(tx, boss.x + 0.022 * ts), 1); boss.y = lerp(boss.y, 7, 0.02); boss.walk = (boss.walk || 0) + ts; boss.faceA = Math.PI / 2;
+      crew.forEach((c, i) => { if (!i) return; const [ox, oy] = CREW_OFF[i]; c.x = lerp(c.x, boss.x + ox, 0.05); c.y = lerp(c.y, boss.y + oy, 0.05); c.walk = (c.walk || 0) + ts; c.faceA = Math.PI / 2; });
     },
     triggers: [
-      { x: 24.5, y: 18, r: 1.6, fn: () => say('PRICK', 'Escalator\'s going up. Let it carry you. No rushin\'.', 220) },
-      { x: 20, y: 2, r: 1.5, fn: () => { say('PRICK', 'That walkway is going the wrong way.', 160); say('PRICK', '...Walk anyway.', 140); announce('WRONG WAY', 'nobody is rushing', 40); } },
-      { x: 5, y: 2, r: 1.5, fn: () => say('PRICK', 'Room 69. Go on in. Take your time. That\'s a joke. Please hurry.', 220) },
+      { x: 12, y: 7, r: 3, fn: () => { for (const e of spawnWave([['condom', 17, 2.8], ['condom', 17, 11.2], ['crab', 20, 3.5]])) { e.ai = 'chase'; e.sightMul = 4; } say('JACKOFF', 'Airport security. Deal with it. Slowly.', 180); } },
+      { x: 22, y: 7, r: 3, fn: () => { for (const e of spawnWave([['condom', 28, 3], ['condom', 28, 11], ['condom', 31, 7], ['bee', 27, 7]])) { e.ai = 'chase'; e.sightMul = 4; } } },
+      { x: 31, y: 7, r: 3, fn: () => { for (const e of spawnWave([['condom', 37, 3.5], ['condom', 37, 10.5], ['crab', 38, 7], ['condom', 35, 3]])) { e.ai = 'chase'; e.sightMul = 4; } say('JACKOFF', 'Nearly there, gentlemen. Nobody. Rush.', 180); } },
     ],
     stages: [
-      { obj: 'Follow the minimap route to reception and grab a ticket (take a number)', done: () => M.flags.ticket, end() { M.goal = null; say('PRICK', 'Sixty-nine. Nice. Now sit tight — they\'re calling four.', 220); } },
-      { obj: 'Wait your turn: kill each wave in the waiting room until they call 69', clearAll: true, count: () => `Now serving: ${serving} · Wave ${Math.min(wave, waves.length)}/${waves.length} · Enemies left: ${aliveEnemies().length}`, at: [7.5, 20.5, -Math.PI / 2], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'ticket') e.got = true; M.goal = null; }, start() { M.flags.waveT = t; nextWave(); },
-        tick() { if (noEnemies() && wave < waves.length && t - M.flags.waveT > 90) { M.flags.waveT = t; nextWave(); } },
-        done: () => wave >= waves.length && noEnemies(), end() { serving = 69; bakeBoard(69); announce('NOW SERVING: 69', 'that\'s you. finally.', 46); openGate(3, 2); say('PRICK', 'Sixty-nine! That\'s you. Escalator\'s past reception. Room 69 is upstairs at the far end.', 300); M.goal = { x: 1.5, y: 2 }; } },
-      { obj: 'Ride the escalator up and walk the (wrong-way) walkway to Room 69', hint: 'Escalator is past reception on the right. At the top, keep walking west against the walkway.', at: [20, 19.5, 0], pre() { for (const e of ents) if (e.kind === 'pickup' && e.type === 'ticket') e.got = true; openGate(3, 2); M.goal = { x: 1.5, y: 2 }; }, start() { spawnWave([['bee', 12, 2], ['bee', 28, 2], ['condom', 6, 2]]); for (const e of ents) if (e.kind === 'enemy') { e.ai = 'chase'; e.sightMul = 3; } },
-        done: () => near(1.5, 2, 1.3), end() { announce('DEPOSIT MADE', 'the doctor will see you now', 44); say('PRICK', 'Sample delivered. You beautiful, patient man.', 240); M.flags.outT = t; } },
-      { obj: 'Deposit', checkpoint: false, done: () => t - M.flags.outT > 130, end() { say('PRICK', 'Right. Sample\'s in the bag. Now we walk it out to the van. Through the car park. Full of rubbers.', 260); } },
-      { obj: '', checkpoint: false, start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.upT = t; whiteOut = 0; announce('MEANWHILE', 'three miles up', 50); },
-        tick() { const f = t - M.flags.upT; whiteOut = f < 60 ? f / 60 : Math.max(0, 1 - (f - 60) / 40); }, done: () => t - M.flags.upT > 100, end() { whiteOut = 0; player.canMove = true; player.canFire = true; } },
-      { obj: isTouch ? 'GUNSHIP: drag left side to move the crosshair, tap to fire. Protect the blinking squares (your team) until they reach the van.' : 'GUNSHIP: WASD moves the crosshair, click fires, R swaps guns. Protect the blinking squares (your team) until they reach the van.', count: () => `Team health: ${Math.round(M.gs ? M.gs.teamHp : 100)}% · Van: ${team.length ? Math.round(100 * clamp(team[0].s / TLEN, 0, 1)) : 0}%`, at: [8, 29, -Math.PI / 2 + 0.3],
-        pre() { for (const e of ents) if (e.kind === 'enemy' && !e.dead) e.gone = true; ents = ents.filter(e => !e.gone); },
+      { obj: '', checkpoint: false,
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.elT = t; player.a = 0; pitch = 0;
+          say('JACKOFF', 'Gentlemen. Today is a very special day.', 200); },
+        tick() {
+          const f = t - M.flags.elT;
+          player.a = lerpA(player.a, f < 150 ? -0.5 : f < 300 ? 0.45 : 0, 0.03);   // look round the lift at the crew
+          if (f % 90 === 0 && f < 380) sfx('tick');
+          if (f === 220) say('JACKOFF', "Remember...", 120);
+          if (f === 340) { say('JACKOFF', "...no rushin'.", 160); }
+          if (f === 470) { sfx('select'); announce('DING', 'floor 69', 40); openGate(4, 7); }
+        },
+        done: () => t - M.flags.elT > 520, end() { M.state = 'play'; player.canMove = true; player.canFire = true; } },
+      { obj: "Walk with the crew to the Pleasure Dome. No rushin' (you can't run). Deal with security.", at: [2.5, 7, 0], pre() { openGate(4, 7); M.state = 'play'; player.canMove = true; player.canFire = true; },
+        count: () => `Security left: ${aliveEnemies().length}`, hint: 'Keep walking east behind Jackoff. Shoot the Condom Troopers that come from the desks.',
+        start() { M.goal = { x: 40, y: 7 }; player.speedMul = 0.62; },
+        tick() {
+          if ((keys.ShiftLeft || keys.ShiftRight) && t - (M.flags.rushT || -999) > 240) { M.flags.rushT = t; announce("NO RUSHIN'", 'walk. like a gentleman.', 30); }
+          M.flags.crewHold = aliveEnemies().some(e => dist(e, boss) < 7);
+        },
+        done: () => near(40, 7, 1.8) && noEnemies(), end() { player.speedMul = 1; M.goal = null; } },
+      { obj: '', checkpoint: false,
         start() {
-          team = [['prick', 0], ['soup', -1.1], ['gas', -2.2]].map(([spr, off]) => spawnNpc(spr, TPATH[0][0], TPATH[0][1], 1.15, 0.9, { friendly: true, far: 80, s: off }));
-          van = ents.find(e => e.spr === 'van');
-          gunshipStart(); M.flags.gwT = t - 200; M.flags.gw = 0; M.flags.truckT = t + 900;
-          say('TV OP', 'Sonogram-130, on station. Crew, you are cleared to engage.', 220);
-          say('TV OP', 'Friendlies are the blinking squares. Everything else is fair game.', 220);
-          say('PRICK', 'We\'re moving. Keep them off us.', 160);
+          M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.domeT = t; player.x = 39.6; player.y = 7.4; player.a = 0; pitch = 0;
+          boss.x = 40.6; boss.y = 6.2; crew[1].x = 39.2; crew[1].y = 6; crew[2].x = 40.4; crew[2].y = 8.6;
+          say('JACKOFF', 'Gentlemen...', 120);
         },
         tick() {
-          const lead = team[0]; let hold = false;
-          for (const e of ents) if (e.kind === 'enemy' && !e.dead && dist(e, lead) < 4.5) hold = true;
-          for (const m of team) {
-            if (!hold) m.s = Math.min(TLEN - (m === lead ? 0 : (team.indexOf(m)) * 0.9), m.s + 0.02 * ts);
-            const [x, y, a] = pathAt(Math.max(0, m.s)); m.x = x; m.y = y; m.faceA = Math.atan2(Math.cos(a), Math.sin(a)); if (!hold) m.walk = (m.walk || 0) + ts;
-          }
-          if (t % 100 === 0) { let best = null, bd = 3.4; for (const e of ents) if (e.kind === 'enemy' && !e.dead) { const d = dist(e, lead); if (d < bd) { bd = d; best = e; } } if (best) { killEnt(best); sfx('shoot'); } }
-          if (hold && t % 200 === 0) chatter(pickOne(['PRICK', 'SOUP', 'GAS']), pickOne(['Contact! Holding!', 'We\'re pinned!', 'Clear us a path!', 'Light \'em up!']), 110);
-          if (t - M.flags.gwT > 420) { M.flags.gwT = t; const n = 3 + Math.min(3, M.flags.gw++); const list = []; for (let i = 0; i < n; i++) { const [x, y] = EDGE(); list.push([pickOne(['condom', 'condom', 'crab', 'bee']), x, y]); } spawnWave(list); }
-          if (t > M.flags.truckT && !M.flags.truck) { M.flags.truck = spawnProp('truck', 36, 29.6, { passable: true, faceA: Math.PI, far: 80 }); say('TV OP', 'Vehicle inbound, east side. That\'s a rubber truck.', 180); }
-          const tr = M.flags.truck; if (tr && !tr.parked) { tr.x -= 0.035 * ts; if (tr.x < 24) { tr.parked = true; spawnWave([['condom', 24, 30.5], ['condom', 25.5, 30.5], ['crab', 23, 29], ['condom', 22, 30.5]]); say('TV OP', 'Dismounts. Light \'em up.', 140); } }
+          const f = t - M.flags.domeT;
+          if (f === 60) { openGate(41, 7); sfx('select'); }
+          if (f > 60 && f < 260) { player.x = lerp(player.x, 43.2, 0.02); boss.x = lerp(boss.x, 45, 0.02); crew[1].x = lerp(crew[1].x, 43.6, 0.02); crew[2].x = lerp(crew[2].x, 44.2, 0.02); }
+          if (f === 110) say('JACKOFF', '...welcome to the Pleasure Dome.', 200);
+          if (f > 60) { if (t % 16 === 0) sfx('thud'); if (t % 32 === 8) sfx('tick'); lights.forEach((l, i) => { l.intensity = 6; l.color.setHSL(((t * 0.01) + i * 0.33) % 1, 1, 0.55); }); }
+          for (const l of ladies) { l.walk = (l.walk || 0) + ts * 1.6; l.dance = true; }
+          if (f === 300) say('YOU', '...', 90);
+          if (f === 330) say('JACKOFF', "Now you can rush.", 160);
+          if (f > 400) M.blackOut = Math.min(1, (f - 400) / 40);
+          if (f > 450) M.fadeText = ['WHAT HAPPENS IN THE PLEASURE DOME', 'STAYS IN THE PLEASURE DOME'];
         },
-        done: () => team.every(m => m.s >= TLEN - (team.indexOf(m)) * 0.9 - 0.05) && !ents.some(e => e.kind === 'enemy' && !e.dead && dist(e, team[0]) < 5),
-        end() { say('PRICK', 'At the van! Good work, up there.', 160); say('TV OP', 'Good kill. Good kill. All of it. Very wet.', 180); M.flags.vanT = t; } },
-      { obj: '', checkpoint: false, start() { for (const m of team) m.gone = true; ents = ents.filter(e => !e.gone); },
-        tick() { if (van) { van.x += 0.05 * ts; van.faceA = 0; } if (t % 30 === 0) sfx('step'); }, done: () => t - M.flags.vanT > 160, end() { gunshipEnd(); } },
+        done: () => t - M.flags.domeT > 640, end() { M.blackOut = 0; M.fadeText = null; } },
     ],
   };
 };

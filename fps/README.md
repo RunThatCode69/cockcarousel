@@ -94,12 +94,10 @@ v4 made every mission several times longer (about 5 minutes each for a first pla
    - Crew quarters, doors on both sides.
    - The hold, a maze of container lanes with an **eggplant detector** that ticks faster as you close in.
    - The package. Then jets hit the ship: a 110-second run back up through the flooding, tilting, lurching ship to the ramp. Jump.
-4. **No Rushin'** (plus Death From Above). The fertility clinic.
-   - Take a number, survive the waiting room, ride the escalator, make the deposit.
-   - Then "Meanwhile, three miles up": the **Sonogram-130**, a grayscale thermal gunship.
-     - Slew with WASD or the stick, orbit with the mouse, 25mm SPERM (rapid) or 105mm NUTS (`R` swaps).
-     - Cover Prick, Soup and Gas across the car park to the FREE CANDY van.
-     - Rubber trucks unload troops. Friendlies blink. Three friendly-fire hits and the mission fails.
+4. **No Rushin'** (a No Russian parody).
+   - A silent elevator ride with Imran Jackoff's crew: "Remember... no rushin'."
+   - A slow walk (no running) through Terminal 69, fighting off Condom Trooper airport security.
+   - The crew walks into the Pleasure Dome, a club full of dancing women. Fade to black: "What happens in the Pleasure Dome stays in the Pleasure Dome."
 5. **GAME OVA** (Game Over). Bridge over the Tubes.
    - A much longer truck ride, with the **HUNG-24** chasing you (you can shoot it down) and pursuit trucks unloading crabs.
    - The truck crashes. Get to Prick behind the wreck and **hold for 60 seconds** as they come down the bridge.

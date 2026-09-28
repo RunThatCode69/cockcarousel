@@ -93,6 +93,8 @@ function draw() {
     const vg = hctx.createRadialGradient(W / 2, H / 2, H * 0.5, W / 2, H / 2, H * 1.0); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(20,0,20,0.35)'); hctx.fillStyle = vg; hctx.fillRect(0, 0, W, H);
     if (state === 'game') drawHUD();
     if (whiteOut > 0) { hctx.fillStyle = `rgba(255,255,255,${Math.min(1, whiteOut)})`; hctx.fillRect(0, 0, W, H); }
+    if (M.blackOut > 0) { hctx.fillStyle = `rgba(0,0,0,${Math.min(1, M.blackOut)})`; hctx.fillRect(0, 0, W, H); }
+    if (M.fadeText) { txt(M.fadeText[0], W / 2, H / 2 - 16, 34, '#fff', 'center', null); txt(M.fadeText[1], W / 2, H / 2 + 26, 34, PINK, 'center', null); }
     if (M.flags && M.flags.pressF && t - M.flags.pressF < 300 && state === 'game') { const k = M.flags.paid ? 'RESPECTS PAID' : (isTouch ? 'TAP TO PAY RESPECTS' : 'PRESS F TO PAY RESPECTS'); hctx.globalAlpha = Math.min(1, (300 - (t - M.flags.pressF)) / 40); rr(W / 2 - 170, H / 2 + 60, 340, 50, 12); fs('rgba(0,0,0,0.6)', '#fff', 2); txt(k, W / 2, H / 2 + 85, 24, '#fff', 'center', null); hctx.globalAlpha = 1; }
     if (M.state === 'showdown' && state === 'game' && !M.flags.bossDead) txt(isTouch ? 'TAP TO SHOOT' : 'CLICK TO SHOOT', W / 2, H - 60, 30 + Math.sin(t * 0.2) * 3, YEL);
     if (state === 'dead') drawDead();

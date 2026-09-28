@@ -35,9 +35,10 @@ function makeView(e) {
     }
   } else if (e.kind === 'npc') {
     const S = { sarge: { hat: 'drill', face: 'sarge', scale: 1.2, gear: true, gearC: '#6b6a4a', pistol: true }, prick: { hat: 'boonie', face: 'prick', skin: '#cfc0cc', head: '#b992a8', cigar: true, scale: 1.2, gear: true, gun: 'rifle' },
-      soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15, gear: true, gun: 'rifle' }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15, gear: true, gearC: '#5a6a3a', gun: 'sniper' }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1, gear: true }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15, gear: true, gearC: '#3e4a5a', gun: 'rifle' }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15, gear: true, gun: 'rifle' },
+      soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15, gear: true, gun: 'rifle' }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15, gear: true, gearC: '#5a6a3a', gun: 'sniper' }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1, gear: true }, thug: { hat: 'beanie', face: 'angry', scale: 1.15, gear: true, gearC: '#2a2a2e', gun: 'rifle' }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15, gear: true, gearC: '#3e4a5a', gun: 'rifle' }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15, gear: true, gun: 'rifle' },
       boss: { coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 3.2 }, boss2: { coat: true, face: 'boss', skin: '#e9b39d', scale: 2.3 } }[e.spr];
-    if (S) o = MD.makeDick(S);
+    if (e.spr === 'lady') o = MD.makeLady({ dress: e.dress, hair: e.hair });
+    else if (S) o = MD.makeDick(S);
     else if (e.spr === 'heli') { o = MD.makeHeli(); }
   } else if (e.kind === 'pickup') {
     o = { eggplant: MD.makeEggplant, crate: MD.makeCrate, ticket: MD.makeTicket, pistol: MD.makePistol, lotion: MD.makeLotion, pill: MD.makePill }[e.type]?.();
@@ -116,6 +117,7 @@ function syncViews() {
         case 'chili': ud.body.rotation.z = Math.sin(t * 0.08 + (e.seed || 0)) * 0.06; ud.bottle.rotation.x = e.attackT > 0 ? -1.8 : 0; break;
         case 'ice': ud.body.position.x = Math.sin(t * 0.9 + (e.seed || 0)) * 0.015; break;
         case 'trap': ud.bar.rotation.z = e.attackT > 0 ? -2.9 : 0; break;
+        case 'lady': { const d = e.dance ? (e.walk || 0) * 0.12 + (e.seed || 0) : 0; ud.body.position.y = e.dance ? Math.abs(Math.sin(d)) * 0.06 : 0; ud.body.rotation.z = e.dance ? Math.sin(d) * 0.12 : 0; ud.body.rotation.y = e.dance ? Math.sin(d * 0.5) * 0.4 : 0; ud.arms.forEach((a, i) => { a.rotation.z = e.dance ? (i ? 1 : -1) * (2.4 + Math.sin(d * 2 + i) * 0.4) : 0; }); break; }
         case 'dick': {
           const walk = moving ? Math.sin(wk) : 0;
           ud.body.position.y = Math.abs(walk) * 0.05; ud.body.rotation.z = walk * 0.06;
