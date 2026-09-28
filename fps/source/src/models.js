@@ -331,6 +331,16 @@ export function makeChinook() {
   root.userData = { rotorF, rotorB, ramp, strobe, beam, kind: 'chinook', rotor: rotorF };
   return root;
 }
+// the DILDO-7's round: a pink, ridged, suction-cup-based rocket (points along +x)
+export function makeDildoRocket() {
+  const g = new THREE.Group(), pink = toon('#ff6fae'), pink2 = toon('#e0508e');
+  const pts = []; for (let i = 0; i <= 10; i++) { const k = i / 10; pts.push(new THREE.Vector2(0.07 + Math.sin(k * 18) * 0.006, k * 0.5)); }
+  const body = ink(new THREE.LatheGeometry(pts, 14), pink, 0.012); body.rotation.z = -Math.PI / 2; g.add(body);
+  const head = ink(new THREE.SphereGeometry(0.1, 14, 10), pink2, 0.012); head.scale.set(1.2, 0.9, 0.9); head.position.x = 0.52; g.add(head);
+  const cup = ink(new THREE.CylinderGeometry(0.13, 0.1, 0.05, 14), pink2, 0.01); cup.rotation.z = Math.PI / 2; cup.position.x = -0.02; g.add(cup);
+  const fl = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 10), new THREE.MeshBasicMaterial({ color: '#ffd28a', transparent: true, opacity: 0.8 })); fl.rotation.z = Math.PI / 2; fl.position.x = -0.22; g.add(fl);
+  return g;
+}
 export function makeTuft(seed = 0) {   // a tuft of "tall grass". Curly, brown. You know what it is.
   const g = new THREE.Group(); const mat = toon('#3a2a1a');
   for (let i = 0; i < 7; i++) {

@@ -36,7 +36,7 @@ const RANKS = [[85, 'GENERAL ERECTION', 'she wants more'], [70, 'MAJOR WOOD', 'w
 function newPlayer(x, y, a) {
   return { x, y, a, hp: 100, lastHit: -999, ammo: MAG, reloading: false, reloadT: 0, fireCd: 0, recoil: 0, walkT: 0, moving: 0, bobY: 0,
     wrapT: 0, shrink: 0, ultraT: 0, streak: 0, buttT: 0, aimLock: false, speedMul: 1, invul: false, canFire: true, canMove: true,
-    lookP: 0, ads: 0, sprint: 0, crouch: false, nades: 3, throwT: 0, kick: 0, stepN: 0, jz: 0, jv: 0, wrap: 0, lastWrap: 0, hintT: 0, size: 1, hardT: 0, dropT: -9999 };
+    lookP: 0, ads: 0, sprint: 0, crouch: false, nades: 3, throwT: 0, kick: 0, stepN: 0, jz: 0, jv: 0, wrap: 0, lastWrap: 0, hintT: 0, size: 1, hardT: 0, dropT: -9999, weapon: 'rifle', rockets: 4, gl: 3, rocketCd: 0, swapT: 0 };
 }
 function spawnEnemy(type, x, y, o = {}) {
   const d = ENEMY[type];
@@ -71,6 +71,8 @@ function bestTarget(cone = 0.27 - 0.08 * (player ? player.ads : 0) + 0.08) {
 function fire() {
   const p = player;
   if (M.state === 'gunship') { gunshipFire(); return; }
+  if (p.weapon === 'rocket' && M.state !== 'showdown') { fireRocket(); return; }
+  if ((p.swapT || 0) > 0) return;
   if (!p.canFire || p.fireCd > 0 || p.reloading) return;
   // headbutt if something is right in your face
   const near = bestTarget(0.7);
@@ -121,7 +123,7 @@ function applyPickup(e) {
   if (e.type === 'lotion') { const g = growBy(0.5); announce('LOTIONED UP', `+${g}"  ` + pickOne(['back to full mast', 'pump pump pump', 'smooth.', 'he\'s growing, sarge', 'extra grip']), 36); sfx('loot'); sfx('squish'); stats.lotion = (stats.lotion || 0) + 1; }
   if (e.type === 'pill') { growBy(1); p.hardT = 900; announce('RAGING', 'no shrinkage for 15 seconds', 40); sfx('streak'); }
 }
-function reload() { const p = player; if (M.state === 'gunship') { gunshipSwap(); return; } if (p.reloading || !p.canFire) return; if (p.ammo === MAG) { M.flags.reloaded = true; sfx('pump'); p.recoil = 0.3; announce('PUMP', 'already full. still counts.', 26); return; } p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
+function reload() { const p = player; if (M.state === 'gunship') { gunshipSwap(); return; } if (p.weapon === 'rocket') return; if (p.reloading || !p.canFire) return; if (p.ammo === MAG) { M.flags.reloaded = true; sfx('pump'); p.recoil = 0.3; announce('PUMP', 'already full. still counts.', 26); return; } p.reloading = true; p.reloadT = RELOAD_T; p.rsfx = 0; M.flags.reloaded = true; sfx('magout'); }
 function headbutt(e) {
   const p = player; p.buttT = 22; p.fireCd = 26; p.recoil = 0.6; stats.shots++; stats.hits++;
   sfx('butt'); shake = 8;
@@ -143,7 +145,7 @@ function killEnt(e, butt) {
     const p = player; p.streak++;
     const s = STREAKS.find(s => s.n === p.streak);
     if (s) { sfx('streak'); announce(s.line, s.sub, 44); streakReward(s.n); if (s.n === 7) p.streak = 0; }
-    if (Math.random() < 0.3) say(pickOne(['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
+    if (Math.random() < 0.3) chatter(pickOne(['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
     if (e.type === 'ice') announce('SHRINKAGE OVER', 'welcome back, big guy', 40);
     if (e.type !== 'boss' && e.type !== 'target' && M.state !== 'gunship') maybeDrop(e);
     if (e.type === 'boss' && e.onDeath) e.onDeath(e);
@@ -259,7 +261,7 @@ function updatePlayer() {
       e.got = true;
       if (e.type === 'lotion' || e.type === 'pill') applyPickup(e);
       if (e.type === 'eggplant') { growBy(0.15); p.hp = Math.min(100, p.hp + 35); announce('+35 HP', pickOne(['ooh... it\'s growing', 'delicious', 'that\'s a big boy now', 'getting harder already?']), 34); sfx('loot'); stats.eggs = (stats.eggs || 0) + 1; }
-      if (e.type === 'crate') { growBy(1); p.hp = 100; p.nades = Math.max(p.nades, 3); announce('FULL HEAL', 'a whole crate of eggplants (and some nuts)', 40); sfx('loot'); }
+      if (e.type === 'crate') { growBy(1); p.rockets = Math.max(p.rockets, 4); p.gl = Math.max(p.gl, 3); p.hp = 100; p.nades = Math.max(p.nades, 3); announce('FULL HEAL', 'a whole crate of eggplants (and some nuts)', 40); sfx('loot'); }
       if (e.type === 'ticket') { announce('TICKET #69', 'now serving: 4', 40); sfx('loot'); M.flags.ticket = true; }
       if (e.type === 'pistol') { sfx('click'); M.flags.pistol = true; }
       if (e.onGet) e.onGet(e);
@@ -366,7 +368,7 @@ function jump() {
 }
 function throwNade() {
   const p = player; if (!p || p.nades <= 0 || !p.canFire || p.throwT > 0 || !(M.state === 'play' || M.state === 'rails')) return;
-  p.nades--; p.throwT = 28; sfx('pin'); say('YOU', pickOne(['NUT OUT!', 'NUT OUT!', 'Frag— I mean, NUT OUT!', 'Throwing a ball!']), 90);
+  p.nades--; p.throwT = 28; sfx('pin'); chatter('YOU', pickOne(['NUT OUT!', 'NUT OUT!', 'Frag— I mean, NUT OUT!', 'Throwing a ball!']), 90);
   const up = clamp(p.lookP / 170, -0.6, 1);
   setTimeout(() => { if (!player || state !== 'game') return; nades.push({ x: p.x + Math.cos(p.a) * 0.4, y: p.y + Math.sin(p.a) * 0.4, z: 0.6, vx: Math.cos(p.a) * 0.12, vy: Math.sin(p.a) * 0.12, vz: 0.062 + up * 0.035, fuse: 100, spr: 'nut', h: 0.28, w: 0.28, seed: 0 }); }, 180);
 }
@@ -377,10 +379,11 @@ function updateNades() {
     if (hits(nx, n.y)) { n.vx *= -0.5; sfx('bounce'); } else n.x = nx;
     if (hits(n.x, ny)) { n.vy *= -0.5; sfx('bounce'); } else n.y = ny;
     n.z += n.vz * ts; n.vz -= 0.004 * ts;
+    if (n.impact && (n.z < 0.08 || hits(nx, ny) || ents.some(e => e.kind === 'enemy' && !e.dead && dist(n, e) < e.r + 0.2))) n.fuse = 0;
     if (n.z < 0.05) { n.z = 0.05; if (n.vz < -0.01) sfx('bounce'); n.vz = Math.abs(n.vz) * 0.35; n.vx *= 0.7; n.vy *= 0.7; }
     n.fuse -= ts;
     if (n.fuse <= 0) {
-      n.dead = true; sfx('nade'); shake = Math.max(shake, 14); flash = Math.max(flash, 0.35);
+      n.dead = true; sfx('nade'); shake = Math.max(shake, isTouch ? 6 : 12); flash = Math.max(flash, 0.12);
       burst3d(n.x, n.y, 0.3, 26, 'puff', 0.1); burst3d(n.x, n.y, 0.3, 14, 'drop', 0.12); burst3d(n.x, n.y, 0.2, 10, 'spark', 0.14);
       for (const e of ents) { if (!alive(e)) continue; const d = dist(n, e); if (d < 3.4 && los(n.x, n.y, e.x, e.y)) damageEnt(e, 140 * (1 - d / 3.6)); }
       spawnDeco('splat', n.x, n.y, 0.6, 1.2, { z: 0, fade: 500, far: 14 });
@@ -449,7 +452,7 @@ function startMission(i, stageIdx = 0) {
   c3.style.filter = ''; gsShells = [];
   M.idx = i; M.state = 'play'; M.stage = -1; M.flags = {}; M.timer = null; M.checkpoint = 0;
   loadMap(M.map);
-  ents = []; globs = []; eproj = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
+  ents = []; globs = []; eproj = []; rockets = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
   camH = 0.5; pitch = 0; roll = 0; ts = 1; joy.active = false; fireHeld = false; look.da = 0; look.dp = 0; parts3 = []; shells = []; feed = []; dmgDir = []; hitT = 0; nades = []; xps = []; adsHeld = false; adsToggle = false; fovK = 0.66;
   player = newPlayer(M.start[0], M.start[1], M.start[2]); player.drip = 0;
   stats = { kills: 0, shots: 0, hits: 0, frames: 0, targets: 0, eggs: 0 };
@@ -503,7 +506,7 @@ function updateGame() {
   if (M.state === 'gunship') gunshipTick();
   hazardTick(); if (M.always) M.always();
   updateEnemies();
-  updateParts3(); updateShells(); updateNades(); for (const x of xps) x.life--; xps = xps.filter(x => x.life > 0); if (flashT > 0) flashT--;
+  updateParts3(); updateShells(); updateNades(); updateRockets(); for (const x of xps) x.life--; xps = xps.filter(x => x.life > 0); if (flashT > 0) flashT--;
   if (state !== 'game') return;
   const s = M.stages[M.stage];
   if (s) { if (s.tick) s.tick(); if (s.done && s.done()) { if (s.end) s.end(); goStage(M.stage + 1); } }
@@ -534,6 +537,8 @@ addEventListener('keydown', e => {
     if (e.code === 'Space') jump();
     if (e.code === 'KeyR') reload();
     if (e.code === 'KeyG') throwNade();
+    if (e.code === 'Digit1') setWeapon('rifle'); if (e.code === 'Digit2') setWeapon('rocket'); if (e.code === 'KeyQ' && !keys.ShiftLeft) {}
+    if (e.code === 'KeyX') fireGL();
     if (e.code === 'KeyC' || e.code === 'ControlLeft') { player.crouch = !player.crouch; sfx('ads'); }
     if (e.code === 'KeyZ') { adsToggle = !adsToggle; sfx('ads'); }
     if (e.code === 'KeyF' && M.flags.pressF && !M.flags.paid && t - M.flags.pressF < 300) { M.flags.paid = true; sfx('slowmo'); say('YOU', 'F.', 120); return; }
@@ -545,6 +550,7 @@ addEventListener('keydown', e => {
   else if (state === 'title' && e.code === 'KeyN') newGame();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('wheel', e => { if (state === 'game' && player && Math.abs(e.deltaY) > 20) setWeapon(player.weapon === 'rifle' ? 'rocket' : 'rifle'); }, { passive: true });
 cv.addEventListener('pointerdown', e => {
   e.preventDefault(); audio();
   const [x, y] = toCanvas(e);
@@ -589,6 +595,8 @@ const TOUCH_BTNS = [
   { x: W - 150, y: H - 192, w: 130, h: 50, label: 'AIM', fn: () => { adsToggle = !adsToggle; sfx('ads'); }, on: () => adsToggle },
   { x: W - 290, y: H - 130, w: 126, h: 50, label: 'NUT', fn: () => throwNade(), count: () => player.nades },
   { x: W - 290, y: H - 192, w: 126, h: 50, label: 'CROUCH', fn: () => { player.crouch = !player.crouch; sfx('ads'); }, on: () => player.crouch },
+  { x: W - 290, y: H - 254, w: 126, h: 50, label: 'SWAP', fn: () => setWeapon(player.weapon === 'rifle' ? 'rocket' : 'rifle') },
+  { x: W - 430, y: H - 130, w: 126, h: 50, label: 'GL', fn: () => fireGL(), count: () => player.gl },
 ];
 addEventListener('pointerup', release); addEventListener('pointercancel', release);
 document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === cv; });

@@ -51,9 +51,9 @@ function gunshipTick() {
     let kills = 0;
     for (const e of ents) {
       if (e.kind === 'enemy' && !e.dead) { const d = dist(s, e); if (d < s.gun.r) { const was = e.dead; damageEnt(e, s.gun.dmg * (1 - 0.5 * d / s.gun.r)); if (!was && e.dead) kills++; } }
-      if (e.kind === 'npc' && e.friendly && !g.ffCool && dist(s, e) < (s.gun.r > 2 ? s.gun.r * 0.7 : 0.6)) { g.ff++; g.ffCool = 90; say('PRICK', pickOne(['CHECK FIRE! CHECK FIRE!', 'THAT WAS US! THAT WAS US!', 'Friendly! We are FRIENDLY!']), 160); shake = 20; if (g.ff >= 5) { die('friendly'); return; } }
+      if (e.kind === 'npc' && e.friendly && !g.ffCool && dist(s, e) < (s.gun.r > 2 ? s.gun.r * 0.7 : 0.6)) { g.ff++; g.ffCool = 90; chatter('PRICK', pickOne(['CHECK FIRE! CHECK FIRE!', 'THAT WAS US! THAT WAS US!', 'Friendly! We are FRIENDLY!']), 160); shake = 20; if (g.ff >= 5) { die('friendly'); return; } }
     }
-    if (kills) { stats.hits++; if (t - g.lines > 90) { g.lines = t; say('TV OP', kills > 2 ? pickOne(['Ka-BOOM.', 'Oh, that\'s a big splash.', 'Hot damn. Look at \'em scatter.']) : pickOne(['Good kill. Good kill.', 'Target down. Nice and wet.', 'Splash one.', 'Smoke \'em.']), 110); } }
+    if (kills) { stats.hits++; if (t - g.lines > 90) { g.lines = t; chatter('TV OP', kills > 2 ? pickOne(['Ka-BOOM.', 'Oh, that\'s a big splash.', 'Hot damn. Look at \'em scatter.']) : pickOne(['Good kill. Good kill.', 'Target down. Nice and wet.', 'Splash one.', 'Smoke \'em.']), 110); } }
   }
   gsShells = gsShells.filter(s => !s.done);
   // the enemies go for the team, not for you (you're a mile up)
@@ -64,7 +64,7 @@ function gunshipTick() {
     if (!tgt) continue;
     const d = ENEMY[e.type], a = angleTo(e, tgt);
     if (td > 0.9) { moveBody(e, Math.cos(a) * d.speed * 1.3 * ts, Math.sin(a) * d.speed * 1.3 * ts, e.r); e.walk = (e.walk || 0) + ts; }
-    else { e.attackT = 10; g.teamHp -= 0.022 * ts; if (t % 45 === 0) say(pickOne(['SOUP', 'GAS']), pickOne(['They\'re on us!', 'Contact, close!', 'Get it OFF me!']), 90); }
+    else { e.attackT = 10; g.teamHp -= 0.022 * ts; if (t % 45 === 0) chatter(pickOne(['SOUP', 'GAS']), pickOne(['They\'re on us!', 'Contact, close!', 'Get it OFF me!']), 90); }
   }
   if (g.teamHp <= 0) { g.teamHp = 0; die('team'); }
   // aim point can go anywhere in the map; the camera orbits it
@@ -109,8 +109,49 @@ function stallTick() {
   if (M.stageT > 60 * 25 && left.length <= 4) {
     for (const e of left) e.reveal = true;
     if (!M.goal || M.goal.auto) { let best = null, bd = 1e9; for (const e of left) { const d = dist(e, player); if (d < bd) { bd = d; best = e; } } M.goal = { x: best.x, y: best.y, auto: true }; }
-    if (!M.stallDone) { M.stallDone = true; say('PRICK', left.length === 1 ? 'One left. I\'ve marked him. Follow the arrows.' : `${left.length} left. I've marked them red. Follow the arrows.`, 200); }
+    if (!M.stallDone) { M.stallDone = true; say('PRICK', left.length === 1 ? 'One left. He\'s red on your minimap.' : `${left.length} left. They're red on your minimap.`, 200); }
   }
   // anything nobody can walk to (stuck in a wall, fell off the map) just gets removed after a bit
   if (M.stageT > 60 * 40) for (const e of left) { const c = flowF ? flowF[(e.y | 0) * MW + (e.x | 0)] : 0; if ((c === -1 && !e.z) || (M.stageT > 60 * 90 && left.length <= 4)) { killEnt(e); if (!M.flags.stallKill) { M.flags.stallKill = true; say('PRICK', 'Got the last one from over here. Move on, son.', 180); } } }
+}
+
+// ---------- extra hardware: the DILDO-7 rocket launcher (press 2 / SWAP) and the CUM-203 underbarrel launcher (press X / GL) ----------
+let rockets = [];
+function setWeapon(w) {
+  const p = player; if (!p || p.weapon === w || M.state !== 'play' && M.state !== 'rails') return;
+  p.weapon = w; p.swapT = 24; p.reloading = false; sfx('magout');
+  announce(w === 'rocket' ? 'DILDO-7' : 'DICK-47', w === 'rocket' ? `rocket launcher · ${p.rockets} left` : 'back to the rifle', 24);
+}
+function explodeAt(x, y, r, dmg) {
+  sfx('boom'); shake = Math.max(shake, isTouch ? 8 : 16); flash = Math.max(flash, 0.1);
+  burst3d(x, y, 0.4, 30, 'puff', 0.13); burst3d(x, y, 0.3, 16, 'drop', 0.14); burst3d(x, y, 0.3, 12, 'spark', 0.16);
+  for (const e of ents) { if (!alive(e)) continue; const d = dist({ x, y }, e); if (d < r && los(x, y, e.x, e.y)) damageEnt(e, dmg * (1 - 0.6 * d / r)); }
+  spawnDeco('splat', x, y, 0.8, 1.6, { z: 0, fade: 600, far: 16 }); spawnDeco('blast', x, y, r, r, { z: -0.3, fade: 24, far: 40 });
+}
+function fireRocket() {
+  const p = player; if (p.swapT > 0 || p.rocketCd > 0 || !p.canFire) return;
+  if (p.rockets <= 0) { if (!M.flags.noRkt || t - M.flags.noRkt > 120) { M.flags.noRkt = t; announce('OUT OF DILDOS', 'care packages have more', 26); sfx('click'); } return; }
+  p.rockets--; p.rocketCd = 75; p.recoil = 1; p.kick -= 16; stats.shots++; sfx('fwip'); sfx('thud'); shake = Math.max(shake, 5);
+  const tgt = bestTarget(0.12); const a = tgt ? angleTo(p, tgt) : p.a;
+  const y0 = camH * YS - 0.1, dd = tgt ? Math.max(0.5, dist(p, tgt)) : 14, y1 = tgt ? (tgt.z || 0) * YS + 0.6 : y0 + Math.tan(pitch * PX2RAD) * dd;
+  rockets.push({ x: p.x + Math.cos(a) * 0.5, y: p.y + Math.sin(a) * 0.5, vx: Math.cos(a) * 0.26, vy: Math.sin(a) * 0.26, y3: y0, vy3: (y1 - y0) / (dd / 0.26), life: 160, a });
+  if (p.rockets === 0) setTimeout(() => { if (player === p && p.weapon === 'rocket') setWeapon('rifle'); }, 600);
+}
+function fireGL() {
+  const p = player; if (!p || !p.canFire || p.weapon !== 'rifle' || p.throwT > 0 || !(M.state === 'play' || M.state === 'rails')) return;
+  if (p.gl <= 0) { announce('CUM-203 EMPTY', 'care packages refill it', 24); sfx('click'); return; }
+  p.gl--; p.throwT = 30; p.recoil = 0.8; p.kick -= 10; sfx('pump'); sfx('fwip');
+  const up = clamp(p.lookP / 170, -0.6, 1);
+  nades.push({ x: p.x + Math.cos(p.a) * 0.5, y: p.y + Math.sin(p.a) * 0.5, z: 0.6, vx: Math.cos(p.a) * 0.2, vy: Math.sin(p.a) * 0.2, vz: 0.03 + up * 0.05, fuse: 400, impact: true, spr: 'glob', h: 0.3, w: 0.3, seed: 0 });
+}
+function updateRockets() {
+  const p = player; if (p) { p.rocketCd -= ts; p.swapT -= ts; }
+  for (const r of rockets) {
+    r.x += r.vx * ts; r.y += r.vy * ts; r.y3 += r.vy3 * ts; r.life -= ts;
+    if (t % 2 === 0) burst3d(r.x - r.vx * 2, r.y - r.vy * 2, r.y3 / YS, 1, 'puff', 0.01);
+    let boom = r.life <= 0 || r.y3 < 0.05 || (solid(r.x, r.y) && r.y3 < wallH(cell(r.x | 0, r.y | 0)) * YS);
+    for (const e of ents) if (alive(e) && dist(r, e) < (e.r || 0.5) + 0.25) boom = true;
+    if (boom) { r.dead = true; explodeAt(r.x - r.vx, r.y - r.vy, 3.0, 230); }
+  }
+  rockets = rockets.filter(r => !r.dead);
 }

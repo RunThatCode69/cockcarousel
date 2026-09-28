@@ -49,8 +49,25 @@ const GUN = (() => {
   // muzzle flash: a white glob splat
   const flashTex = (() => { const c = bake(128, 128, () => { E(64, 64, 34, 30); fs(CUM, CUM2, 5); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; E(64 + Math.cos(a) * 46, 64 + Math.sin(a) * 42, 10, 9); fs(CUM, CUM2, 3); } E(54, 54, 10, 6); fs('#fff', null); }); return new THREE.CanvasTexture(c); })();
   const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: flashTex, transparent: true, depthWrite: false })); flash.position.set(0, 0, -0.66); flash.scale.setScalar(0.2); gun.add(flash);
-  MD.bakeModel(gun, [head, mag, shaft, bush]);
-  return { gun, head, mag, shaft, flash, bush, face: null };
+  // CUM-203: a stubby grenade tube under the shaft
+  const m203 = new THREE.Group(); gun.add(m203);
+  const tube = MD.ink(new THREE.CylinderGeometry(0.03, 0.03, 0.26, 12), dark, 0.002); tube.rotation.x = Math.PI / 2; tube.position.set(0, -0.085, -0.3); m203.add(tube);
+  const muzz = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.006, 6, 12), MD.toon(PINK)); muzz.position.set(0, -0.085, -0.43); m203.add(muzz);
+  const gtrig = MD.ink(new THREE.BoxGeometry(0.012, 0.03, 0.02), dark, 0.001); gtrig.position.set(0, -0.12, -0.2); m203.add(gtrig);
+  MD.bakeModel(gun, [head, mag, shaft, bush, m203]);
+  // DILDO-7: a shoulder tube with a pink warhead poking out the front (lives on the same rig so the hands line up)
+  const launcher = new THREE.Group(); launcher.visible = false; gun.add(launcher);
+  const olive = MD.toon('#5d6b45');
+  const lt = MD.ink(new THREE.CylinderGeometry(0.075, 0.075, 0.95, 16), olive, 0.004); lt.rotation.x = Math.PI / 2; lt.position.set(0, 0.03, -0.2); launcher.add(lt);
+  const cone = MD.ink(new THREE.CylinderGeometry(0.1, 0.075, 0.16, 16, 1, true), olive, 0.004); cone.rotation.x = Math.PI / 2; cone.position.set(0, 0.03, 0.33); launcher.add(cone);
+  const war = MD.makeDildoRocket(); war.scale.setScalar(0.85); war.rotation.y = Math.PI / 2; war.position.set(0, 0.03, -0.58); launcher.add(war);
+  launcher.userData.war = war;
+  const lg = MD.ink(new THREE.BoxGeometry(0.03, 0.08, 0.036), dark, 0.002); lg.rotation.x = 0.3; lg.position.set(0, -0.08, 0.08); launcher.add(lg);
+  const fg = MD.ink(new THREE.BoxGeometry(0.03, 0.07, 0.03), dark, 0.002); fg.position.set(0, -0.06, -0.3); launcher.add(fg);
+  const sight = MD.ink(new THREE.BoxGeometry(0.02, 0.05, 0.04), dark, 0.002); sight.position.set(-0.07, 0.1, -0.1); launcher.add(sight);
+  const stick = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.08), new THREE.MeshBasicMaterial({ map: (() => { const c = bake(160, 64, () => { rr(4, 4, 152, 56, 8); fs('#fff6e0', INK, 3); txt('DILDO-7', 80, 34, 24, PINK, 'center', null); }); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; return tx; })() }));
+  stick.position.set(0.078, 0.03, -0.15); stick.rotation.y = Math.PI / 2; launcher.add(stick);
+  return { gun, head, mag, shaft, flash, bush, face: null, launcher, m203 };
 })();
 // arms: camo sleeves, fingerless gloves
 const camoTex = (() => { const c = bake(128, 128, () => { A2.ctx.fillStyle = '#b8a47a'; A2.ctx.fillRect(0, 0, 128, 128); for (let i = 0; i < 26; i++) { E((i * 37) % 128, (i * 71) % 128, 10 + (i % 4) * 4, 7 + (i % 3) * 3, i); fs(i % 5 === 0 ? '#d98aa0' : i % 2 ? '#8a7650' : '#6b5a3a', null); } }); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.wrapS = tx.wrapT = THREE.RepeatWrapping; return tx; })();
@@ -83,7 +100,10 @@ function updateWeapon() {
   const rack = r > 0.66 ? Math.sin(ease((r - 0.66) / 0.34) * Math.PI) : 0;
   const butt = p.buttT > 0 ? Math.sin(p.buttT / 22 * Math.PI) : 0;
   const thr = p.throwT > 0 ? 1 - p.throwT / 28 : 0;
-  const lower = Math.max(spr, thr > 0 ? Math.sin(thr * Math.PI) * 0.8 : 0);
+  const lower = Math.max(spr, thr > 0 ? Math.sin(thr * Math.PI) * 0.8 : 0, (p.swapT || 0) > 0 ? Math.sin(p.swapT / 24 * Math.PI) * 0.9 : 0);
+  const rocket = p.weapon === 'rocket';
+  for (const c of GUN.gun.children) c.visible = rocket ? c === GUN.launcher : c !== GUN.launcher;
+  GUN.launcher.userData.war.visible = rocket && (p.rocketCd || 0) < 30 && p.rockets > 0;
   // hip → ADS blend. ADS puts the red dot's centre on the camera axis.
   const hip = [0.24, -0.215, -0.56], adsP = [0, -0.083, -0.3];   // ADS: the heart ring and the front post line up on the crosshair
   const g = GUN.gun;
@@ -101,8 +121,8 @@ function updateWeapon() {
   GUN.head.position.z = -0.02 - 0.48 * L + rack * 0.06; GUN.head.scale.setScalar(0.8 + 0.2 * L);
   GUN.flash.position.z = -0.18 - 0.48 * L;
   // muzzle flash
-  GUN.flash.visible = rec > 0.55; GUN.flash.scale.setScalar(0.12 + (rec - 0.55) * 0.4); GUN.flash.material.rotation = t;
-  vmFlash.intensity = rec > 0.5 ? 6 * rec : 0;
+  GUN.flash.visible = !rocket && rec > 0.55; GUN.flash.scale.setScalar(0.08 + (rec - 0.55) * 0.2); GUN.flash.material.opacity = 0.75; GUN.flash.material.rotation = t;
+  vmFlash.intensity = rec > 0.5 ? 2.5 * rec : 0;
   // hands: right on the grip; left on the foregrip, or on the balls during a reload, or on the head when racking, or throwing a nut
   g.updateMatrixWorld();
   const toW = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(g.matrixWorld);
@@ -115,6 +135,6 @@ function updateWeapon() {
   if (thr > 0) { const k = Math.sin(thr * Math.PI); lh.lerp(new THREE.Vector3(-0.2, -0.02 + 0.08 * Math.sin(thr * Math.PI * 1.5), -0.3), k); }
   placeArm(armL, lh, _b.set(-0.3, -0.6, 0.05));
   heldNut.visible = thr > 0 && thr < 0.55;
-  GUN.bush.visible = ads < 0.5;
+  GUN.bush.visible = !rocket && ads < 0.5;
   vmCam.fov = lerp(58, 50, ads); vmCam.updateProjectionMatrix();
 }

@@ -123,8 +123,9 @@ const muzzleLight = new THREE.PointLight('#fff2c8', 0, 6, 1.5); scene.add(muzzle
 // ---------- post: bloom (desktop) + a CoD-style grade (desaturate, contrast, teal shadows / warm highlights, vignette, grain) ----------
 const composer = new EffectComposer(renderer);
 const worldPass = new RenderPass(scene, camera); composer.addPass(worldPass);
+// bloom only the world (so your own muzzle flash doesn't smear the screen), then draw the gun on top
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(480, 270), 0.35, 0.4, 0.9); bloomPass.enabled = !isTouch; composer.addPass(bloomPass);
 const vmPass = new RenderPass(vmScene, vmCam); vmPass.clear = false; vmPass.clearDepth = true; composer.addPass(vmPass);
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(480, 270), 0.35, 0.5, 0.82); bloomPass.enabled = !isTouch; composer.addPass(bloomPass);
 const gradePass = new ShaderPass({
   uniforms: { tDiffuse: { value: null }, sat: { value: 0.85 }, con: { value: 1.12 }, shadow: { value: new THREE.Vector3(0.92, 1.0, 1.06) }, high: { value: new THREE.Vector3(1.06, 1.0, 0.92) }, vig: { value: 0.35 }, grain: { value: 0.03 }, time: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
@@ -141,6 +142,25 @@ const gradePass = new ShaderPass({
 });
 composer.addPass(gradePass);
 composer.addPass(new OutputPass());
+// 3D rain: thin streaks in a box that follows the camera (replaces the old 2D overlay)
+let rain = null;
+function makeRain() {
+  const N = isTouch ? 450 : 900, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mesh = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: '#a8b8c8', transparent: true, opacity: 0.32, depthWrite: false }));
+  mesh.frustumCulled = false; const d = []; for (let i = 0; i < N; i++) d.push([rand(-9, 9), rand(0, 7), rand(-9, 9), rand(0.18, 0.26)]);
+  return { mesh, d, N, pos };
+}
+function rainTick(cx, cy, cz, on) {
+  if (!rain) return; rain.mesh.visible = on; if (!on) return;
+  const { d, pos } = rain; let k = 0;
+  for (const q of d) {
+    q[1] -= q[3]; q[0] += 0.03; if (q[1] < -1) { q[1] += 8; q[0] = rand(-9, 9); q[2] = rand(-9, 9); }
+    const x = cx + q[0], y = q[1], z = cz + q[2];
+    pos[k++] = x; pos[k++] = y; pos[k++] = z; pos[k++] = x - 0.05; pos[k++] = y + 0.5; pos[k++] = z;
+  }
+  rain.mesh.geometry.attributes.position.needsUpdate = true;
+}
 let gradeBase = null;
 const _gs = new THREE.Vector3(), _gh = new THREE.Vector3();
 function gradeTick() {   // per-area overrides (e.g. the red emergency-lit corridor on the ship), blended smoothly
@@ -318,6 +338,7 @@ function buildLevel() {
   if (M.outer) level.add(buildOuter(M.outer));
   rebuildWalls();
   navLine = makeNavLine(); level.add(navLine.mesh);
+  rain = pal.weather === 'rain' ? makeRain() : null; if (rain) level.add(rain.mesh);
   resetTufts();
   buildCourseBits();
 }
@@ -418,7 +439,7 @@ function updateNav() {
   const goal = M.goal && !M.goal.hidden ? M.goal : null;
   if (!goal || M.state !== 'play') { navLine.mesh.count = 0; navPath = null; return; }
   if (t % 20 === 0 || !navPath) navPath = findPath(player.x, player.y, goal.x, goal.y);
-  if (!navPath) { navLine.mesh.count = 0; return; }
+  navLine.mesh.count = 0; return;   // v4.4: no floor arrows — the route is drawn on the minimap instead
   // resample the path every 0.5 units, animate a "flow" toward the goal, hide the bit right under your feet
   const pts = [[player.x, player.y], ...navPath.slice(1), [goal.x, goal.y]];
   let n = 0; const step = 0.55, off = (t * 0.02) % step; let carry = off;

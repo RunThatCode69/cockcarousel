@@ -61,11 +61,12 @@ function renderWorld() {
   if (M.state === 'gunship') gunshipCamera();
   // shadows follow you
   sun.target.position.set(p.x, 0, p.y); sun.position.set(p.x - 18, 34, p.y - 12);
-  muzzleLight.position.set(p.x + Math.cos(p.a) * 0.6, camH * YS, p.y + Math.sin(p.a) * 0.6); muzzleLight.intensity = flashT > 0 ? 4 * flashT : 0;
+  muzzleLight.position.set(p.x + Math.cos(p.a) * 0.6, camH * YS, p.y + Math.sin(p.a) * 0.6); muzzleLight.intensity = flashT > 0 ? 1.5 * flashT : 0;
   // objective beacon
   const g = M.goal && !M.goal.hidden && M.state === 'play' ? M.goal : null;
-  beacon.visible = !!g; if (g) { beacon.position.set(g.x, 0, g.y); beacon.userData.ring.scale.setScalar(1 + 0.2 * Math.sin(t * 0.1)); }
+  beacon.visible = false && !!g; if (g) { beacon.position.set(g.x, 0, g.y); beacon.userData.ring.scale.setScalar(1 + 0.2 * Math.sin(t * 0.1)); }
   if (skyMesh) skyMesh.position.set(p.x, 0, p.y);
+  rainTick(p.x, 0, p.y, !(M.indoor && M.indoor(p.x, p.y)));
   for (const s of skySpinners) s.rotation.y += 0.004;
   if (waterTex) waterTex.offset.x = (t * 0.002) % 1;
   truck.visible = M.state === 'rails';
@@ -85,7 +86,7 @@ function draw() {
     renderWorld();
     // weather + grade on the 2D layer
     const pal = M.pal;
-    if (pal.weather === 'rain' && !(M.indoor && M.indoor(player.x, player.y))) { hctx.strokeStyle = 'rgba(220,235,255,0.45)'; hctx.lineWidth = 2; for (let i = 0; i < 80; i++) { const x = (i * 97 + t * 3 + player.a * 300) % (W + 100) - 50, y = (i * 53 + t * 18) % (H + 40) - 20; hctx.beginPath(); hctx.moveTo(x, y); hctx.lineTo(x - 3, y - 18); hctx.stroke(); } }
+    if (false) { hctx.strokeStyle = 'rgba(220,235,255,0.45)'; hctx.lineWidth = 2; for (let i = 0; i < 80; i++) { const x = (i * 97 + t * 3 + player.a * 300) % (W + 100) - 50, y = (i * 53 + t * 18) % (H + 40) - 20; hctx.beginPath(); hctx.moveTo(x, y); hctx.lineTo(x - 3, y - 18); hctx.stroke(); } }
     if (pal.weather === 'embers') for (let i = 0; i < 40; i++) { const x = (i * 131 + Math.sin(t * 0.02 + i) * 30 + player.a * 200) % (W + 40) - 20, y = (H + 20 - (i * 71 + t * 1.3) % (H + 40)); hctx.globalAlpha = 0.8; E(x, y, 2 + (i % 3), 2 + (i % 3)); fs((i + t / 10 | 0) % 2 ? YEL : '#ff7a3a', null); hctx.globalAlpha = 1; }
     if (pal.weather === 'dust') { hctx.globalAlpha = 0.45; for (let i = 0; i < 30; i++) { const x = (i * 131 + t * 0.7 + player.a * 200) % (W + 40) - 20, y = (i * 71 + Math.sin(t * 0.03 + i) * 20) % H; E(x, y, 2, 1.4); fs('#fff2c4', null); } hctx.globalAlpha = 1; }
     if (player.ads > 0.3) { const k = player.ads; const vg = hctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.85); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(20,0,20,${0.5 * k})`); hctx.fillStyle = vg; hctx.fillRect(0, 0, W, H); }

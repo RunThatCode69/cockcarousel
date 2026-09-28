@@ -21,6 +21,14 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
 - **The ship:** white-painted steel, roofed lower decks, a red emergency-lit crew corridor, grey and rust containers, and lightning.
 - **The bridge:** blue sky, mountains and pine forest, with black smoke columns that go grey and ashen for the finale.
 
+**v4.4.** Changes in this update:
+- **Less clutter:** no floor arrows or beacon, a rotating minimap (you always face up) with the dashed route and the objective, no kill feed or XP popups, and the objective box shrinks to one line after a few seconds.
+- **Quieter radio:** combat barks play at most once every 15 seconds.
+- **Weather and effects:** proper 3D rain on the ship, and bloom no longer smears your own muzzle flash.
+- **New weapons:**
+  - The DILDO-7 rocket launcher: 4 rockets, with more from care packages.
+  - The CUM-203 underbarrel grenade launcher: 3 shells.
+
 ## Controls
 
 | | Desktop | Phone |
@@ -31,6 +39,8 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
 | Aim down sights | hold right-click, or `Z` to toggle | AIM button |
 | Reload | `R` | RELOAD button |
 | Nut-nade (grenade) | `G` | NUT button |
+| CUM-203 underbarrel grenade (explodes on impact) | `X` | GL button |
+| Swap to the DILDO-7 rocket launcher and back | `1` / `2`, or the mouse wheel | SWAP button |
 | Sprint | hold `SHIFT` | push the joystick all the way forward |
 | Crouch | `C` | CROUCH button |
 | Jump | `SPACE` | JUMP button |
