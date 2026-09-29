@@ -67,7 +67,10 @@ const GUN = (() => {
   const sight = MD.ink(new THREE.BoxGeometry(0.02, 0.05, 0.04), dark, 0.002); sight.position.set(-0.07, 0.1, -0.1); launcher.add(sight);
   const stick = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.08), new THREE.MeshBasicMaterial({ map: (() => { const c = bake(160, 64, () => { rr(4, 4, 152, 56, 8); fs('#fff6e0', INK, 3); txt('DILDO-7', 80, 34, 24, PINK, 'center', null); }); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; return tx; })() }));
   stick.position.set(0.078, 0.03, -0.15); stick.rotation.y = Math.PI / 2; launcher.add(stick);
-  return { gun, head, mag, shaft, flash, bush, face: null, launcher, m203 };
+  const sleeveGeo = new THREE.CylinderGeometry(0.1, 0.085, 0.62, 18, 1, true); sleeveGeo.translate(0, -0.31, 0); sleeveGeo.rotateX(-Math.PI / 2);   // grows back from the tip
+  const sleeve = new THREE.Mesh(sleeveGeo, new THREE.MeshStandardMaterial({ color: '#d8ecff', transparent: true, opacity: 0.55, roughness: 0.15, side: THREE.DoubleSide, depthWrite: false }));
+  sleeve.position.z = -0.62; sleeve.visible = false; gun.add(sleeve);
+  return { gun, head, mag, shaft, flash, bush, face: null, launcher, m203, sleeve };
 })();
 // arms: camo sleeves, fingerless gloves
 const camoTex = (() => { const c = bake(128, 128, () => { A2.ctx.fillStyle = '#b8a47a'; A2.ctx.fillRect(0, 0, 128, 128); for (let i = 0; i < 26; i++) { E((i * 37) % 128, (i * 71) % 128, 10 + (i % 4) * 4, 7 + (i % 3) * 3, i); fs(i % 5 === 0 ? '#d98aa0' : i % 2 ? '#8a7650' : '#6b5a3a', null); } }); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.wrapS = tx.wrapT = THREE.RepeatWrapping; return tx; })();
@@ -103,6 +106,7 @@ function updateWeapon() {
   const lower = Math.max(spr, thr > 0 ? Math.sin(thr * Math.PI) * 0.8 : 0, (p.swapT || 0) > 0 ? Math.sin(p.swapT / 24 * Math.PI) * 0.9 : 0);
   const rocket = p.weapon === 'rocket';
   for (const c of GUN.gun.children) c.visible = rocket ? c === GUN.launcher : c !== GUN.launcher;
+  GUN.sleeve.visible = !!M.qte; if (M.qte) { const w = clamp(1 - M.qte.k, 0.02, 1); GUN.sleeve.scale.set(1, 1, w); GUN.gun.rotation.z += Math.sin(t * 0.9) * 0.03; }
   GUN.launcher.userData.war.visible = rocket && (p.rocketCd || 0) < 30 && p.rockets > 0;
   // hip → ADS blend. ADS puts the red dot's centre on the camera axis.
   const hip = [0.24, -0.215, -0.56], adsP = [0, -0.083, -0.3];   // ADS: the heart ring and the front post line up on the crosshair

@@ -159,23 +159,49 @@ function updateRockets() {
 // ---------- voices: the radio lines are read out by the browser's built-in speech synth, one voice per character ----------
 const VOICE = { on: (() => { try { return localStorage.getItem('mw_voices') !== '0'; } catch (e) { return true; } })(), primed: false };
 const VP = { PRICK: { p: 0.72, r: 0.95, gb: 1 }, MACMILLI: { p: 0.62, r: 0.86, gb: 1 }, SARGE: { p: 0.5, r: 1.1, gb: 1 }, JACKOFF: { p: 0.35, r: 0.8 }, PILOT: { p: 1.05, r: 1.15 }, SOUP: { p: 1.2, r: 1.1, gb: 1 }, GAS: { p: 0.95, r: 1.05, gb: 1 }, GROPES: { p: 0.85, r: 1.0, gb: 1 }, 'TV OP': { p: 0.9, r: 1.05 }, YOU: { p: 1.3, r: 1.1 } };
-function pickVoice(gb) {
-  const vs = window.speechSynthesis ? speechSynthesis.getVoices() : []; if (!vs.length) return null;
-  const want = gb ? /en[-_]GB/i : /en[-_](US|AU|CA)/i;
-  return vs.find(v => want.test(v.lang) && /male|daniel|arthur|oliver|george|fred|alex/i.test(v.name)) || vs.find(v => want.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
-}
+// v4.7: real recorded-style lines (Kokoro TTS, generated offline into fps/voices/<hash>.mp3). Unknown lines just stay silent.
+let curVoice = null;
+const VBASE = location.protocol === 'file:' ? 'voices/' : '/fps/voices/';   // /fps is served without a trailing slash, so relative paths would miss
+const lineId = (who, text) => { let h = 5381; const s = who + '|' + text; for (let i = 0; i < s.length; i++) h = (Math.imul(h, 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8, '0'); };
 function speakLine(who, text) {
-  if (!VOICE.on || AUD.muted || !window.speechSynthesis) return;
+  if (!VOICE.on || AUD.muted) return;
   try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, ', ').replace(/[—–]/g, ', ').replace(/'/g, '\''));
-    const v = VP[who] || { p: 1, r: 1 }; u.pitch = v.p; u.rate = v.r; u.volume = 0.95;
-    const vo = pickVoice(v.gb); if (vo) u.voice = vo;
-    speechSynthesis.speak(u);
+    if (curVoice) { curVoice.pause(); curVoice = null; }
+    const a = new Audio(VBASE + lineId(who, text) + '.mp3'); a.volume = 0.95; curVoice = a;
+    const pr = a.play(); if (pr && pr.catch) pr.catch(() => {});
   } catch (e) {}
 }
-function hushVoices() { try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} }
+function hushVoices() { try { if (curVoice) { curVoice.pause(); curVoice = null; } } catch (e) {} }
 function toggleVoices() { VOICE.on = !VOICE.on; try { localStorage.setItem('mw_voices', VOICE.on ? '1' : '0'); } catch (e) {} if (!VOICE.on) hushVoices(); announce(VOICE.on ? 'VOICES ON' : 'VOICES OFF', 'press O to toggle', 26); }
-// iPhone: speech only works after a tap, so prime it on the first one
-const primeVoices = () => { if (VOICE.primed || !window.speechSynthesis) return; VOICE.primed = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); speechSynthesis.getVoices(); } catch (e) {} };
-addEventListener('pointerdown', primeVoices, { once: false }); addEventListener('keydown', primeVoices);
+
+// ---------- the condom attack (CoD's dog attack, but it's trying to put a rubber on you): mash X / tap to fight it off ----------
+function startQTE(e) {
+  M.qte = { e, k: 0.3, t: 0, prev: M.state }; M.state = 'qte';
+  player.canMove = false; player.canFire = false; player.invul = true; player.ads = 0; fireHeld = false;
+  e.frozen = true; e.attackT = 999; e.qte = true; sfx('wrap'); shake = 12;
+  say('YOU', 'GET IT OFF ME!', 100);
+}
+function qteHit() { const q = M.qte; if (!q) return; q.k = Math.min(1.05, q.k + 0.075); shake = Math.max(shake, 4); if (t % 2 === 0) sfx('hit'); }
+function qteTick() {
+  const q = M.qte, p = player, e = q.e; q.t++;
+  q.k -= 0.0045 * (1 + q.t / 400);
+  const a = p.a; e.x = p.x + Math.cos(a) * (0.75 - 0.25 * (1 - q.k)); e.y = p.y + Math.sin(a) * (0.75 - 0.25 * (1 - q.k)); e.faceA = Math.atan2(p.x - e.x, p.y - e.y);
+  pitch = lerp(pitch, -30, 0.1); if (t % 25 === 0) sfx('wrap');
+  if (q.k >= 1) {   // won: blow it away, then... the line
+    M.qte = null; M.state = q.prev; p.canMove = true; p.canFire = true; e.frozen = false;
+    killEnt(e); burst3d(e.x, e.y, 0.6, 40, 'drop', 0.2); burst3d(e.x, e.y, 0.8, 20, 'drop', 0.12);
+    spawnDeco('splat', e.x, e.y, 0.9, 1.8, { z: 0, fade: 900, far: 20 }); flash = 0.9; shake = 16; sfx('splat'); sfx('kill');
+    radio = null; radioQ = []; say('YOU', 'I only fuck raw.', 170); announce('RAW DOGGED', 'condom neutralised. thoroughly.', 46);
+    setTimeout(() => { if (player === p) p.invul = false; }, 1200);
+  } else if (q.k <= 0 || q.t > 600) { M.qte = null; M.state = q.prev; p.invul = false; e.frozen = false; e.qte = false; die('wrapped'); }
+}
+function drawQTE() {
+  const q = M.qte; if (!q) return; const ctx = hctx, wrap = clamp(1 - q.k, 0, 1);
+  const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.8); g.addColorStop(0, 'rgba(200,230,255,0)'); g.addColorStop(1, `rgba(190,225,255,${0.35 + 0.45 * wrap})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  txt('A CONDOM IS TRYING TO WRAP YOUR DICK', W / 2, H / 2 + 20, 30, '#fff', 'center', INK);
+  const pulse = 1 + Math.sin(t * 0.5) * 0.08; ctx.save(); ctx.translate(W / 2, H / 2 + 80); ctx.scale(pulse, pulse);
+  txt(isTouch ? 'TAP TAP TAP!' : 'MASH  X !', 0, 0, 58, YEL, 'center', INK); ctx.restore();
+  const bw = 420, bx = W / 2 - bw / 2, by = H / 2 + 130;
+  rr(bx, by, bw, 26, 13); fs('rgba(0,0,0,0.55)', '#fff', 3); rr(bx + 4, by + 4, (bw - 8) * clamp(q.k, 0, 1), 18, 9); fs(q.k > 0.6 ? '#7fd67f' : q.k > 0.3 ? YEL : '#ff4d6d', null);
+  txt('WRAPPED', bx - 12, by + 13, 16, '#bfe6ff', 'right', null); txt('RAW', bx + bw + 12, by + 13, 16, '#7fd67f', 'left', null);
+}

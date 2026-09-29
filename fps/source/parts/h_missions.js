@@ -286,7 +286,7 @@ const M2 = () => {
           hung = spawnDeco('heli', 30, 5, 1, 1, { z: 3.6, far: 90, hungT: 0 });
           say('MACMILLI', 'HUNG-24! Attack chopper! Fire exit, down the stairs, GO!', 220); announce('HUNG-24 INBOUND', 'attack chopper. do not look it in the eye.', 40);
         },
-        tick() { hungTick(); },
+        tick() { hungTick(); if (!M.flags.rawQte && player.y > 20.5 && M.state === 'play') { M.flags.rawQte = true; const a = player.a; const e = spawnEnemy('condom', player.x + Math.cos(a) * 1.1, player.y + Math.sin(a) * 1.1, { hp: 70 }); startQTE(e); } },
         done: () => near(52.5, 28.5, 2.2), end() { M.goal = null; } },
       { obj: 'Stay near the carousel and kill everything that comes until the timer runs out', count: () => `Enemies nearby: ${ents.filter(e => e.kind === 'enemy' && !e.dead && !e.convoy && dist(e, player) < 16).length}`, hint: 'They come up the road from the west and in from the east edge. Grab lotion when you shrink.', at: [52.5, 28.5, Math.PI / 2], pre() { openGate(52, 18); },
         start() {

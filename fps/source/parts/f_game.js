@@ -504,6 +504,7 @@ function updateGame() {
   if (state !== 'game') return;
   updateGlobs();
   if (M.state === 'gunship') gunshipTick();
+  if (M.state === 'qte') qteTick();
   hazardTick(); if (M.always) M.always();
   updateEnemies();
   updateParts3(); updateShells(); updateNades(); updateRockets(); for (const x of xps) x.life--; xps = xps.filter(x => x.life > 0); if (flashT > 0) flashT--;
@@ -539,7 +540,7 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyR') reload();
     if (e.code === 'KeyG') throwNade();
     if (e.code === 'Digit1') setWeapon('rifle'); if (e.code === 'Digit2') setWeapon('rocket'); if (e.code === 'KeyQ' && !keys.ShiftLeft) {}
-    if (e.code === 'KeyX') fireGL();
+    if (e.code === 'KeyX') { if (M.state === 'qte') qteHit(); else fireGL(); }
     if (e.code === 'KeyC' || e.code === 'ControlLeft') { player.crouch = !player.crouch; sfx('ads'); }
     if (e.code === 'KeyZ') { adsToggle = !adsToggle; sfx('ads'); }
     if (e.code === 'KeyF' && M.flags.pressF && !M.flags.paid && t - M.flags.pressF < 300) { M.flags.paid = true; sfx('slowmo'); say('YOU', 'F.', 120); return; }
@@ -569,6 +570,7 @@ cv.addEventListener('pointerdown', e => {
   }
   if (x > W / 2 - 40 && x < W / 2 + 40 && y > 34 && y < 74) { pause(); return; }
   if (M.flags.pressF && !M.flags.paid && t - M.flags.pressF < 300) { M.flags.paid = true; sfx('slowmo'); say('YOU', 'F.', 120); return; }
+  if (M.state === 'qte') { qteHit(); return; }
   for (const b of TOUCH_BTNS) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
   if (x < W / 2) { if (!joy.active) { joy.active = true; joy.id = e.pointerId; joy.x0 = x; joy.y0 = y; joy.dx = 0; joy.dy = 0; } }
   else if (look.id === null) { look.id = e.pointerId; look.lx = look.sx = x; look.ly = look.sy = y; look.t0 = performance.now(); look.moved = false; }

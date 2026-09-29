@@ -30,7 +30,8 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
   - The CUM-203 underbarrel grenade launcher: 3 shells.
 
 **v4.5.** Changes in this update:
-- **Voices:** radio lines are spoken aloud by the browser's built-in voices, with a different pitch and speed per character, and British voices for the S.A.S. Press `O` to turn them off.
+- **Voices:** every radio line is a real voice clip in `fps/voices/`, made with Kokoro (open-source, Apache-2.0) and a radio filter; each character has their own voice, and the S.A.S. are British. To regenerate them, run `fps/source/voices/gen.py`. Press `O` to turn voices off.
+- **The condom attack:** in the ghillie mission's fire-exit run, a Condom Trooper jumps you and tries to wrap you. Mash `X` (or tap) to fight it off.
 - **Talking faces:** characters' mouths flap while they talk.
 - **Kit:** Prick, Mac, Soup, Gas and Gropes wear plate carriers, pouches and radios, and carry dick-rifles. Mac carries a scoped one.
 

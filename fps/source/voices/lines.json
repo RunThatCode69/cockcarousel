@@ -1,0 +1,852 @@
+[
+{
+"id": "64d3f5da",
+"who": "PRICK",
+"text": "CHECK FIRE! CHECK FIRE!"
+},
+{
+"id": "787a717a",
+"who": "PRICK",
+"text": "THAT WAS US! THAT WAS US!"
+},
+{
+"id": "818e789e",
+"who": "PRICK",
+"text": "Friendly! We are FRIENDLY!"
+},
+{
+"id": "ab08ada2",
+"who": "TV OP",
+"text": "Ka-BOOM."
+},
+{
+"id": "52c9fd44",
+"who": "TV OP",
+"text": "Oh, that's a big splash."
+},
+{
+"id": "117d138a",
+"who": "TV OP",
+"text": "Hot damn. Look at 'em scatter."
+},
+{
+"id": "8ade3944",
+"who": "TV OP",
+"text": "Good kill. Good kill."
+},
+{
+"id": "bf244d4b",
+"who": "TV OP",
+"text": "Target down. Nice and wet."
+},
+{
+"id": "effee5bb",
+"who": "TV OP",
+"text": "Splash one."
+},
+{
+"id": "c80f6f1a",
+"who": "TV OP",
+"text": "Smoke 'em."
+},
+{
+"id": "b451bc36",
+"who": "SOUP",
+"text": "They're on us!"
+},
+{
+"id": "b86fc7db",
+"who": "SOUP",
+"text": "Contact, close!"
+},
+{
+"id": "467e8ecd",
+"who": "SOUP",
+"text": "Get it OFF me!"
+},
+{
+"id": "a0a993ba",
+"who": "GAS",
+"text": "They're on us!"
+},
+{
+"id": "d4f926d7",
+"who": "GAS",
+"text": "Contact, close!"
+},
+{
+"id": "10726141",
+"who": "GAS",
+"text": "Get it OFF me!"
+},
+{
+"id": "63664b60",
+"who": "PRICK",
+"text": "One left. He's red on your minimap."
+},
+{
+"id": "74f9013d",
+"who": "PRICK",
+"text": "Got the last one from over here. Move on, son."
+},
+{
+"id": "ec6e3b35",
+"who": "PRICK",
+"text": "It's getting smaller, son. Every shot costs you. Find lotion."
+},
+{
+"id": "b654446c",
+"who": "SARGE",
+"text": "LOTION DROP INBOUND. Somebody lube this man up!"
+},
+{
+"id": "4ad024d6",
+"who": "PRICK",
+"text": "That's a condom, son. Get fully wrapped and you're out of the fight. Keep moving."
+},
+{
+"id": "b36f1c5a",
+"who": "YOU",
+"text": "NUT OUT!"
+},
+{
+"id": "38a43bbe",
+"who": "YOU",
+"text": "Frag\u2014 I mean, NUT OUT!"
+},
+{
+"id": "c9317d8f",
+"who": "YOU",
+"text": "Throwing a ball!"
+},
+{
+"id": "cdc4c3d2",
+"who": "YOU",
+"text": "F."
+},
+{
+"id": "17232a35",
+"who": "PRICK",
+"text": "That was a civilian. That was somebody's Nan."
+},
+{
+"id": "eb6b7c07",
+"who": "SARGE",
+"text": "Room two. Pump it. Press R, or tap RELOAD if you're on the little phone."
+},
+{
+"id": "4eef3a71",
+"who": "SARGE",
+"text": "Practice rubbers. They shoot condoms. Three hits and you're wrapped. Dodge, then glob 'em."
+},
+{
+"id": "3ebe3944",
+"who": "SARGE",
+"text": "GO GO GO! Hurdles! Tap JUMP!"
+},
+{
+"id": "7428a7be",
+"who": "SARGE",
+"text": "GO GO GO! Hurdles! SPACE to jump!"
+},
+{
+"id": "d5c5ee8c",
+"who": "SARGE",
+"text": "Wire! Tap CROUCH and crawl, maggot!"
+},
+{
+"id": "09272d51",
+"who": "SARGE",
+"text": "Wire! C to crouch and crawl, maggot! Lower! LOWER!"
+},
+{
+"id": "7adc8791",
+"who": "SARGE",
+"text": "Tyres! High knees! Shoot the pop-ups! She's timing you!"
+},
+{
+"id": "00524f92",
+"who": "SARGE",
+"text": "Right, new guy. Pick up the DICK-47. That's your rifle. Yes. It is. Don't make it weird."
+},
+{
+"id": "96e950e0",
+"who": "SARGE",
+"text": "Tap the right side to fire from the hip. The butts. Shoot the butts."
+},
+{
+"id": "50c2b8a9",
+"who": "SARGE",
+"text": "Click to fire from the hip. The butts. Shoot the butts."
+},
+{
+"id": "48c1921c",
+"who": "SARGE",
+"text": "Hip fire's not accurate. Like you. Now do it properly."
+},
+{
+"id": "aba61f3f",
+"who": "SARGE",
+"text": "Tap AIM. Look down the shaft. Line the heart up with the tip."
+},
+{
+"id": "bd59911d",
+"who": "SARGE",
+"text": "Right-click. Aim down the sights. Line the heart up with the tip. Yes, the tip."
+},
+{
+"id": "c2257b48",
+"who": "SARGE",
+"text": "PROPERLY. Tap AIM first. Then shoot."
+},
+{
+"id": "c01774ba",
+"who": "SARGE",
+"text": "PROPERLY. Hold right-click to aim first. Then shoot."
+},
+{
+"id": "65e021e3",
+"who": "SARGE",
+"text": "Beautiful. You look down that shaft like you were born to. Gate's open."
+},
+{
+"id": "bc6f38a5",
+"who": "SARGE",
+"text": "That's the sound. Wet. Now eat both eggplants \u2014 they heal you."
+},
+{
+"id": "2434d0a3",
+"who": "SARGE",
+"text": "Look at you. Big boy now. Next room's got rubbers in it."
+},
+{
+"id": "ab23b268",
+"who": "SARGE",
+"text": "THE COURSE. North gate. Hurdles, wire, tyres, flag. Shoot everything that pops up."
+},
+{
+"id": "93e97c75",
+"who": "SARGE",
+"text": "TOO SLOW. Again. She is not impressed."
+},
+{
+"id": "6c21231d",
+"who": "SARGE",
+"text": "South gate. Grenade pit. Then Captain Prick wants a word. In THE PIT."
+},
+{
+"id": "be843090",
+"who": "SARGE",
+"text": "Nut-nades. Pull the pin \u2014 it's a pube, don't ask \u2014 and LOB it over the wall."
+},
+{
+"id": "b13e76ea",
+"who": "SARGE",
+"text": "Look UP a bit to throw further. Tap NUT."
+},
+{
+"id": "552642a6",
+"who": "SARGE",
+"text": "Look up a bit to throw further. Press G. You can't shoot through the wall, genius."
+},
+{
+"id": "6ec2d221",
+"who": "SARGE",
+"text": "More nuts. We have SO many nuts."
+},
+{
+"id": "1de40b3a",
+"who": "SARGE",
+"text": "Close enough. I'll put that down as a pass. Barely."
+},
+{
+"id": "9dd43c2f",
+"who": "SARGE",
+"text": "Good arm. She'd be proud. Now get in THE PIT. Prick's waiting."
+},
+{
+"id": "782e90eb",
+"who": "PRICK",
+"text": "So you're the new bloke. Captain Prick. It's pronounced the way you think."
+},
+{
+"id": "a510d1e3",
+"who": "PRICK",
+"text": "Killhouse. Pop-ups, plywood, one Nan. Clock starts when you go in. Nut-nade the third room BEFORE you enter."
+},
+{
+"id": "0c98fb09",
+"who": "PRICK",
+"text": "Record is nineteen point two. Mine. I had a hangover and one boot on."
+},
+{
+"id": "3ac71633",
+"who": "PRICK",
+"text": "GO GO GO!"
+},
+{
+"id": "e0f078be",
+"who": "PRICK",
+"text": "Nut in the room! Tap NUT!"
+},
+{
+"id": "568ff854",
+"who": "PRICK",
+"text": "Nut in the room! Press G!"
+},
+{
+"id": "f03329e0",
+"who": "PRICK",
+"text": "Last corridor! Sprint to the flag!"
+},
+{
+"id": "4cca2513",
+"who": "PRICK",
+"text": "Nineteen point... under. Under?! Nobody tell the lads."
+},
+{
+"id": "5ccf928e",
+"who": "PRICK",
+"text": "Soap. Pack your lube. We ride at midnight."
+},
+{
+"id": "adbc24c6",
+"who": "MACMILLI",
+"text": "Bollocks. They've seen us. Weapons free."
+},
+{
+"id": "9cda2c55",
+"who": "MACMILLI",
+"text": "Quiet now. Stay low. Move slow. Follow me."
+},
+{
+"id": "25ed8d4e",
+"who": "MACMILLI",
+"text": "See the carousel over there? Pride of Pubyat. Remember it. We'll need it later."
+},
+{
+"id": "2eebde77",
+"who": "MACMILLI",
+"text": "Farmhouse. Three inside. Leave them. Not worth the paperwork."
+},
+{
+"id": "2ee5b5ab",
+"who": "MACMILLI",
+"text": "The apartments. Pubyat Heights. Rent is very reasonable now."
+},
+{
+"id": "0b665b7e",
+"who": "MACMILLI",
+"text": "Crab. He's eating. Leave him be."
+},
+{
+"id": "69d8db3e",
+"who": "MACMILLI",
+"text": "...Don't ask what."
+},
+{
+"id": "f11d0248",
+"who": "MACMILLI",
+"text": "The overlook is the far flat on the right. The one with the balcony."
+},
+{
+"id": "d6eb73bd",
+"who": "MACMILLI",
+"text": "Two rubbers. Tree line. Both looking the other way. Lovely."
+},
+{
+"id": "817cf6b7",
+"who": "MACMILLI",
+"text": "I'll take the one on the right. You take the left. On three. ...Or whenever. I'm old."
+},
+{
+"id": "25f966a4",
+"who": "MACMILLI",
+"text": "Beautiful."
+},
+{
+"id": "8dd197af",
+"who": "MACMILLI",
+"text": "CHOPPER. GET DOWN. In the grass. Don't. Move."
+},
+{
+"id": "6c3ed714",
+"who": "MACMILLI",
+"text": "...Gone. Good. Keep moving."
+},
+{
+"id": "3d315675",
+"who": "MACMILLI",
+"text": "Convoy. Down. DOWN. In the ditch."
+},
+{
+"id": "37767343",
+"who": "MACMILLI",
+"text": "If you so much as scratch, we're both dead."
+},
+{
+"id": "adf0623c",
+"who": "MACMILLI",
+"text": "Don't. Move."
+},
+{
+"id": "be3e850b",
+"who": "MACMILLI",
+"text": "Steady..."
+},
+{
+"id": "b641dd5b",
+"who": "MACMILLI",
+"text": "Easy... easy..."
+},
+{
+"id": "3b378da9",
+"who": "MACMILLI",
+"text": "Nobody breathe."
+},
+{
+"id": "3d53d48c",
+"who": "MACMILLI",
+"text": "If he looks this way, think grass thoughts."
+},
+{
+"id": "ffc39856",
+"who": "MACMILLI",
+"text": "...Okay. Go. Across the road. Mind the chlamydia."
+},
+{
+"id": "e3e042c6",
+"who": "MACMILLI",
+"text": "Too much chlamydia in that field. We go around. The long way. Always the long way."
+},
+{
+"id": "11b1e5e4",
+"who": "MACMILLI",
+"text": "There. The plaza. He's arriving. Fur coat. Both arms. For now."
+},
+{
+"id": "ec0b757b",
+"who": "MACMILLI",
+"text": "Aim down the sights. Account for the wind. And the Coriolis effect. And his feelings."
+},
+{
+"id": "e4c5832d",
+"who": "MACMILLI",
+"text": "Right-click, aim. Account for the wind. And the Coriolis effect. And his feelings."
+},
+{
+"id": "a2069fac",
+"who": "MACMILLI",
+"text": "Target down... no. He's lost an arm. Bloody hell, Leftenant."
+},
+{
+"id": "a3575877",
+"who": "JACKOFF",
+"text": "MY ARM! MY BEAUTIFUL WANKING ARM!"
+},
+{
+"id": "fd1688cb",
+"who": "MACMILLI",
+"text": "HUNG-24! Attack chopper! Fire exit, down the stairs, GO!"
+},
+{
+"id": "f83dea5e",
+"who": "MACMILLI",
+"text": "My leg's gone. Crab got it. Put me down by the carousel. I'll cover the road."
+},
+{
+"id": "f47048f9",
+"who": "PILOT",
+"text": "Big Bird to Pubyat, one hundred seconds out. Hold what you've got."
+},
+{
+"id": "33b10c45",
+"who": "MACMILLI",
+"text": "Got him."
+},
+{
+"id": "55dedd75",
+"who": "MACMILLI",
+"text": "Tango down. Still got it."
+},
+{
+"id": "54075b08",
+"who": "MACMILLI",
+"text": "One less rubber."
+},
+{
+"id": "45e8fcca",
+"who": "MACMILLI",
+"text": "More coming up the road!"
+},
+{
+"id": "c9aec08f",
+"who": "MACMILLI",
+"text": "Crabs, east side!"
+},
+{
+"id": "21075c4a",
+"who": "MACMILLI",
+"text": "They're in the bumper cars!"
+},
+{
+"id": "9b9adf1a",
+"who": "MACMILLI",
+"text": "Contact! Behind the candy floss!"
+},
+{
+"id": "c3bfa5a8",
+"who": "MACMILLI",
+"text": "Keep them off me, Leftenant. I'm very old."
+},
+{
+"id": "572d327d",
+"who": "MACMILLI",
+"text": "The HUNG is pulling off! Must need a refuel. Or a cuddle."
+},
+{
+"id": "3b0c398d",
+"who": "PILOT",
+"text": "Big Bird on station! Pop smoke!"
+},
+{
+"id": "3ae9c615",
+"who": "PILOT",
+"text": "Big Bird, final approach. Ramp coming down. Get your arses in."
+},
+{
+"id": "26dea9d7",
+"who": "PILOT",
+"text": "Ramp's down! GO GO GO!"
+},
+{
+"id": "0cd43d54",
+"who": "PILOT",
+"text": "Everybody in? Lifting!"
+},
+{
+"id": "129a50c8",
+"who": "MACMILLI",
+"text": "Everybody on? GO! GO!"
+},
+{
+"id": "67908413",
+"who": "MACMILLI",
+"text": "Mark my words, Leftenant: fifteen years from now he's going to be very upset about that arm."
+},
+{
+"id": "8e1e9164",
+"who": "PILOT",
+"text": "HUNG's strafing!"
+},
+{
+"id": "cafea12c",
+"who": "PILOT",
+"text": "Incoming from the chopper!"
+},
+{
+"id": "01a33500",
+"who": "PILOT",
+"text": "Get under something!"
+},
+{
+"id": "183aea4c",
+"who": "GAS",
+"text": "Bridge. They're all asleep."
+},
+{
+"id": "1a3452e9",
+"who": "PRICK",
+"text": "Well. Wake them up. Politely. With your dick."
+},
+{
+"id": "c5ad7630",
+"who": "PRICK",
+"text": "Crew quarters. Check your corners. Check your corners."
+},
+{
+"id": "df9f76a1",
+"who": "PRICK",
+"text": "The hold. Package should be at the far end. Smells like eggplant."
+},
+{
+"id": "3a75ab3c",
+"who": "PRICK",
+"text": "Bravo Six, going wet."
+},
+{
+"id": "6b819120",
+"who": "PILOT",
+"text": "Rules of engagement, sir? The crew?"
+},
+{
+"id": "60708386",
+"who": "PRICK",
+"text": "Expendable. Rubbers and crabs. Mostly rubbers."
+},
+{
+"id": "e2dfe67e",
+"who": "PILOT",
+"text": "I've got the minigun on the deck. Call it."
+},
+{
+"id": "5beb23b7",
+"who": "PILOT",
+"text": "Minigun! Minigun!"
+},
+{
+"id": "dfc7020f",
+"who": "PILOT",
+"text": "Got one on the hatch."
+},
+{
+"id": "31c9765d",
+"who": "PILOT",
+"text": "Brrrrrt."
+},
+{
+"id": "0c2bfadc",
+"who": "PILOT",
+"text": "Tango down. Very down."
+},
+{
+"id": "1c1cae45",
+"who": "SOUP",
+"text": "More out of the stairwell!"
+},
+{
+"id": "622605bc",
+"who": "PRICK",
+"text": "Bridge secure."
+},
+{
+"id": "0e4b808c",
+"who": "GAS",
+"text": "He was holding a teddy."
+},
+{
+"id": "2ddcfe94",
+"who": "PRICK",
+"text": "Expendable teddy."
+},
+{
+"id": "9eb43c55",
+"who": "SOUP",
+"text": "They're waking up! Doors on both sides!"
+},
+{
+"id": "eedd93a0",
+"who": "PRICK",
+"text": "Stairs to the hold, far end. Keep moving."
+},
+{
+"id": "286be7b2",
+"who": "PRICK",
+"text": "Eggplant detector's on. The faster it ticks, the closer you are. Like dating."
+},
+{
+"id": "fe825f89",
+"who": "SOUP",
+"text": "Up on the containers! Left side!"
+},
+{
+"id": "ede89ab1",
+"who": "PRICK",
+"text": "Got the manifest. Let's go."
+},
+{
+"id": "b7ed93ad",
+"who": "PILOT",
+"text": "Fast movers inbound! Get out of there!"
+},
+{
+"id": "241a48e5",
+"who": "PRICK",
+"text": "That's a bomb. Ship's going down. Move it, move it, MOVE IT!"
+},
+{
+"id": "bef983c5",
+"who": "PILOT",
+"text": "I see you! Ramp's down! JUMP!"
+},
+{
+"id": "3db1f31f",
+"who": "PRICK",
+"text": "JUMP FOR IT!"
+},
+{
+"id": "d21a756f",
+"who": "JACKOFF",
+"text": "Airport security. Deal with it. Slowly."
+},
+{
+"id": "829a496e",
+"who": "JACKOFF",
+"text": "Nearly there, gentlemen. Nobody. Rush."
+},
+{
+"id": "5df990db",
+"who": "JACKOFF",
+"text": "Gentlemen. Today is a very special day."
+},
+{
+"id": "243f651c",
+"who": "JACKOFF",
+"text": "Remember..."
+},
+{
+"id": "7c6480a8",
+"who": "JACKOFF",
+"text": "...no rushin'."
+},
+{
+"id": "85d932cc",
+"who": "JACKOFF",
+"text": "Gentlemen..."
+},
+{
+"id": "043fd687",
+"who": "JACKOFF",
+"text": "...welcome to the Pleasure Dome."
+},
+{
+"id": "726ef65e",
+"who": "JACKOFF",
+"text": "Now you can rush."
+},
+{
+"id": "813ad2c8",
+"who": "PRICK",
+"text": "Back of the truck, son. They're coming up behind us. Fire at will. Will's the crab."
+},
+{
+"id": "4f55d752",
+"who": "PRICK",
+"text": "HE SHOT DOWN THE BLOODY CHOPPER."
+},
+{
+"id": "7bfdde0c",
+"who": "SOUP",
+"text": "CHOPPER! HUNG-24, right on our arse!"
+},
+{
+"id": "6f7588fb",
+"who": "PRICK",
+"text": "Glob the rotor! Everything you've got!"
+},
+{
+"id": "e397a06e",
+"who": "GAS",
+"text": "It's pulling off!"
+},
+{
+"id": "eb1371e3",
+"who": "GROPES",
+"text": "Trucks! Two trucks behind us!"
+},
+{
+"id": "9fd6ec2a",
+"who": "SOUP",
+"text": "Bridge! We're almost across!"
+},
+{
+"id": "6287a746",
+"who": "PRICK",
+"text": "Don't say that. Never say that."
+},
+{
+"id": "d5ec7675",
+"who": "PRICK",
+"text": "HOLD ON!"
+},
+{
+"id": "b6f41149",
+"who": "PRICK",
+"text": "Over here, son! Behind the wreck! They're coming down the bridge!"
+},
+{
+"id": "2a4e3d4f",
+"who": "PRICK",
+"text": "More coming!"
+},
+{
+"id": "f781e32b",
+"who": "PRICK",
+"text": "Keep your head down!"
+},
+{
+"id": "f9b557aa",
+"who": "PRICK",
+"text": "Nearly there, son. Nearly."
+},
+{
+"id": "fd4c2747",
+"who": "PRICK",
+"text": "Here comes the tanker..."
+},
+{
+"id": "6ae6cf02",
+"who": "PRICK",
+"text": "TANKER! GET DOW\u2014"
+},
+{
+"id": "1159808e",
+"who": "PRICK",
+"text": "The bridge... Soup! Gas! Gropes! Sound off!"
+},
+{
+"id": "80a51b1c",
+"who": "SOUP",
+"text": "Gas is down!"
+},
+{
+"id": "577760fd",
+"who": "SOUP",
+"text": "Gropes! No... no."
+},
+{
+"id": "222cc5a3",
+"who": "PRICK",
+"text": "...Soup."
+},
+{
+"id": "278d4ac6",
+"who": "JACKOFF",
+"text": "Hello, little fella. I'd shake your hand, but... you know."
+},
+{
+"id": "d8e7d6a9",
+"who": "JACKOFF",
+"text": "You took my arm. I'm going to take everything."
+},
+{
+"id": "c00fa2b5",
+"who": "PRICK",
+"text": "Son... catch."
+},
+{
+"id": "8d845772",
+"who": "JACKOFF",
+"text": "...oh."
+},
+{
+"id": "02be1424",
+"who": "PRICK",
+"text": "We got you, son. We got you."
+},
+{
+"id": "5c80407c",
+"who": "PRICK",
+"text": "It's over. She said... she said you did great."
+},
+{
+"id": "c1dae1d7",
+"who": "YOU",
+"text": "GET IT OFF ME!"
+},
+{
+"id": "e0295336",
+"who": "YOU",
+"text": "I only fuck raw."
+}
+]

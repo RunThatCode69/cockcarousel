@@ -44,6 +44,7 @@ function drawHUD() {
     txt('hold breath: you can\'t. you\'re a dick.', cx, cy + r + 18, 14, '#aaa', 'center', null); ctx.restore();
   }
   if (M.state === 'gunship') { drawGunshipHUD(); drawObjRadio(); drawAnnounce(); return; }
+  if (M.state === 'qte') { drawQTE(); drawObjRadio(); drawAnnounce(); return; }
   if (M.state !== 'play' && M.state !== 'rails' && M.state !== 'crawl' && M.state !== 'showdown') return;
   const cy = H / 2;
   // damage direction indicators
