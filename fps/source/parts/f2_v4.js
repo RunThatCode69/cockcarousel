@@ -171,21 +171,22 @@ function speakLine(who, text) {
     const pr = a.play(); if (pr && pr.catch) pr.catch(() => {});
   } catch (e) {}
 }
+function voiceBusy() { return !!(curVoice && !curVoice.paused && !curVoice.ended); }
 function hushVoices() { try { if (curVoice) { curVoice.pause(); curVoice = null; } } catch (e) {} }
 function toggleVoices() { VOICE.on = !VOICE.on; try { localStorage.setItem('mw_voices', VOICE.on ? '1' : '0'); } catch (e) {} if (!VOICE.on) hushVoices(); announce(VOICE.on ? 'VOICES ON' : 'VOICES OFF', 'press O to toggle', 26); }
 
 // ---------- the condom attack (CoD's dog attack, but it's trying to put a rubber on you): mash X / tap to fight it off ----------
 function startQTE(e) {
-  M.qte = { e, k: 0.3, t: 0, prev: M.state }; M.state = 'qte';
+  M.qte = { e, k: 0.4, t: 0, prev: M.state }; M.state = 'qte';
   player.canMove = false; player.canFire = false; player.invul = true; player.ads = 0; fireHeld = false;
   e.frozen = true; e.attackT = 999; e.qte = true; sfx('wrap'); shake = 12;
   say('YOU', 'GET IT OFF ME!', 100);
 }
-function qteHit() { const q = M.qte; if (!q) return; q.k = Math.min(1.05, q.k + 0.075); shake = Math.max(shake, 4); if (t % 2 === 0) sfx('hit'); }
+function qteHit() { const q = M.qte; if (!q) return; q.k = Math.min(1.05, q.k + 0.1); shake = Math.max(shake, 4); if (t % 2 === 0) sfx('hit'); }
 function qteTick() {
   const q = M.qte, p = player, e = q.e; q.t++;
-  q.k -= 0.0045 * (1 + q.t / 400);
-  const a = p.a; e.x = p.x + Math.cos(a) * (0.75 - 0.25 * (1 - q.k)); e.y = p.y + Math.sin(a) * (0.75 - 0.25 * (1 - q.k)); e.faceA = Math.atan2(p.x - e.x, p.y - e.y);
+  q.k -= 0.0028;   // ~0.17/s: about 3 taps a second wins it
+  const a = p.a; e.x = p.x + Math.cos(a) * (1.15 - 0.3 * (1 - q.k)); e.y = p.y + Math.sin(a) * (1.15 - 0.3 * (1 - q.k)); e.faceA = Math.atan2(p.x - e.x, p.y - e.y);
   pitch = lerp(pitch, -30, 0.1); if (t % 25 === 0) sfx('wrap');
   if (q.k >= 1) {   // won: blow it away, then... the line
     M.qte = null; M.state = q.prev; p.canMove = true; p.canFire = true; e.frozen = false;
@@ -198,10 +199,10 @@ function qteTick() {
 function drawQTE() {
   const q = M.qte; if (!q) return; const ctx = hctx, wrap = clamp(1 - q.k, 0, 1);
   const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.8); g.addColorStop(0, 'rgba(200,230,255,0)'); g.addColorStop(1, `rgba(190,225,255,${0.35 + 0.45 * wrap})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  txt('A CONDOM IS TRYING TO WRAP YOUR DICK', W / 2, H / 2 + 20, 30, '#fff', 'center', INK);
-  const pulse = 1 + Math.sin(t * 0.5) * 0.08; ctx.save(); ctx.translate(W / 2, H / 2 + 80); ctx.scale(pulse, pulse);
-  txt(isTouch ? 'TAP TAP TAP!' : 'MASH  X !', 0, 0, 58, YEL, 'center', INK); ctx.restore();
-  const bw = 420, bx = W / 2 - bw / 2, by = H / 2 + 130;
+  txt('A CONDOM IS TRYING TO WRAP YOUR DICK', W / 2, 70, 28, '#fff', 'center', INK);
+  const pulse = 1 + Math.sin(t * 0.5) * 0.08; ctx.save(); ctx.translate(W / 2, 128); ctx.scale(pulse, pulse);
+  txt(isTouch ? 'TAP TAP TAP!' : 'MASH  X !', 0, 0, 46, YEL, 'center', INK); ctx.restore();
+  const bw = 420, bx = W / 2 - bw / 2, by = 170;
   rr(bx, by, bw, 26, 13); fs('rgba(0,0,0,0.55)', '#fff', 3); rr(bx + 4, by + 4, (bw - 8) * clamp(q.k, 0, 1), 18, 9); fs(q.k > 0.6 ? '#7fd67f' : q.k > 0.3 ? YEL : '#ff4d6d', null);
   txt('WRAPPED', bx - 12, by + 13, 16, '#bfe6ff', 'right', null); txt('RAW', bx + bw + 12, by + 13, 16, '#7fd67f', 'left', null);
 }

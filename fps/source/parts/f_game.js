@@ -469,9 +469,9 @@ function startMission(i, stageIdx = 0) {
   buildLevel();
   if (M.props) for (const [ty, x, y, o] of M.props) spawnProp(ty, x, y, o || {});
   if (M.scatter) for (const [types, n, avoid, seed] of M.scatter) scatterProps(types, n, avoid, seed);
-  if (M.init) M.init();
+  M.silentInit = stageIdx > 0; if (M.init) M.init();
   state = 'game'; stateT = 0;
-  goStage(stageIdx);
+  goStage(stageIdx); M.silentInit = false;   // on a checkpoint retry, skip the chatter you've already heard
 }
 function goStage(i) {
   M.stage = i; M.stageT = 0; M.stallDone = false; if (M.goal && M.goal.auto) M.goal = null;
