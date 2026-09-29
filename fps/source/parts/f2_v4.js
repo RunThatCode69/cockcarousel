@@ -206,3 +206,30 @@ function drawQTE() {
   rr(bx, by, bw, 26, 13); fs('rgba(0,0,0,0.55)', '#fff', 3); rr(bx + 4, by + 4, (bw - 8) * clamp(q.k, 0, 1), 18, 9); fs(q.k > 0.6 ? '#7fd67f' : q.k > 0.3 ? YEL : '#ff4d6d', null);
   txt('WRAPPED', bx - 12, by + 13, 16, '#bfe6ff', 'right', null); txt('RAW', bx + bw + 12, by + 13, 16, '#7fd67f', 'left', null);
 }
+
+// ---------- the Cum Room smash-cut: an original retro pin-up card (drawn in code, nobody real) ----------
+function drawPinup(f) {
+  const ctx = hctx, k = Math.min(1, f / 6), cx = W / 2, cy = H / 2 + 20;
+  ctx.save(); ctx.globalAlpha = k;
+  const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, W * 0.7); g.addColorStop(0, '#ff9ec4'); g.addColorStop(1, '#8a1a4a'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,0.18)'; for (let i = 0; i < 24; i++) { const a = i / 24 * TAU + f * 0.01; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, W, a, a + 0.12); ctx.fill(); }
+  for (let i = 0; i < 14; i++) { heart(80 + (i * 137) % (W - 160), 60 + (i * 89) % (H - 120), 10 + (i % 3) * 6); fs('#ffd6e7', null); }
+  ctx.translate(cx, cy + 10); const s = 1 + Math.sin(f * 0.3) * 0.01; ctx.scale(s, s);
+  // hair (big retro curls)
+  E(0, -120, 92, 88); fs('#e8b44a', INK, 5); E(-78, -70, 40, 52); fs('#e8b44a', INK, 5); E(78, -70, 40, 52); fs('#e8b44a', INK, 5);
+  // shoulders + polka-dot halter dress
+  rr(-110, 20, 220, 160, 60); fs('#e8364a', INK, 5); ctx.fillStyle = '#fff'; for (let i = 0; i < 12; i++) { E(-80 + (i % 4) * 55, 60 + ((i / 4) | 0) * 40, 7, 7); ctx.fill(); }
+  rr(-26, -30, 52, 60, 20); fs('#f5caa6', INK, 4);
+  // face
+  E(0, -95, 70, 78); fs('#f5caa6', INK, 5);
+  ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(-26, -110, 14, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();   // one eye open (lashes)
+  for (let l = -1; l <= 1; l++) { ctx.beginPath(); ctx.moveTo(-26 + l * 9, -122); ctx.lineTo(-26 + l * 13, -134); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(14, -108); ctx.quadraticCurveTo(28, -118, 42, -108); ctx.stroke();   // ...the other one winking
+  E(-44, -80, 14, 8); fs('#ff9bb5', null); E(44, -80, 14, 8); fs('#ff9bb5', null);
+  ctx.fillStyle = '#d4143a'; ctx.beginPath(); ctx.ellipse(0, -62, 20, 12, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#7a0a1a'; ctx.fillRect(-16, -63, 32, 3);
+  E(34, -60, 3, 3); fs(INK, null);   // beauty mark
+  heart(118, -150, 22); fs('#ff3a7a', INK, 4);
+  ctx.restore();
+  txt('WELCOME TO THE CUM ROOM', cx, 54, 40, '#fff', 'center', INK);
+  txt('hi boys.', cx, H - 40, 30, YEL, 'center', INK);
+}

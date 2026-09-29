@@ -565,10 +565,12 @@ const M4 = () => {
           for (const l of ladies) { l.walk = (l.walk || 0) + ts * 1.6; l.dance = true; }
           if (f === 300) say('YOU', '...', 90);
           if (f === 330) say('JACKOFF', "Now you can rush.", 160);
-          if (f > 400) M.blackOut = Math.min(1, (f - 400) / 40);
-          if (f > 450) M.fadeText = ['WHAT HAPPENS IN THE PLEASURE DOME', 'STAYS IN THE PLEASURE DOME'];
+          if (f >= 380 && f < 450) M.pinup = f - 380; else M.pinup = null;   // a pin-up smash-cut, then black
+          if (f === 380) { sfx('streak'); flash = 0.6; }
+          if (f > 450) M.blackOut = 1;
+          if (f > 470) M.fadeText = ['WHAT HAPPENS IN THE CUM ROOM', 'STAYS IN THE CUM ROOM'];
         },
-        done: () => t - M.flags.domeT > 640, end() { M.blackOut = 0; M.fadeText = null; } },
+        done: () => t - M.flags.domeT > 660, end() { M.blackOut = 0; M.fadeText = null; M.pinup = null; } },
     ],
   };
 };

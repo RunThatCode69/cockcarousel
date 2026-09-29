@@ -113,7 +113,7 @@ function syncViews() {
       switch (ud.kind) {
         case 'crab': ud.legs.forEach((l, i) => { l.rotation.x = moving ? Math.sin(wk * 1.6 + i) * 0.5 : 0; }); ud.claws.forEach((c, i) => { c.rotation.x = e.attackT > 0 ? -0.9 : Math.sin(t * 0.12 + i) * 0.2; }); ud.body.position.y = 0.2 + (moving ? Math.abs(Math.sin(wk)) * 0.04 : 0); break;
         case 'bee': ud.wings.forEach((w, i) => { w.rotation.y = Math.sin(t * 1.4 + i * Math.PI) * 0.7; }); ud.body.position.y = 0.55 + Math.sin(t * 0.1 + (e.seed || 0)) * 0.05; ud.body.rotation.x = e.attackT > 0 ? 0.5 : 0; break;
-        case 'condom': ud.body.rotation.z = Math.sin(wk * 0.8) * (moving ? 0.1 : 0.04); ud.arms.forEach((a, i) => { a.rotation.x = e.attackT > 0 ? -1.4 : Math.sin(wk + i * 3) * 0.3; }); MD.setFace(o, e.attackT > 0 ? 'yell' : 'angry'); break;
+        case 'condom': ud.body.rotation.z = Math.sin(wk * 0.8) * (moving ? 0.1 : 0.04); ud.arms.forEach((a, i) => { a.rotation.set(0, (i ? -1 : 1) * 0.9, 0); }); if (ud.gun) ud.gun.position.z = 0.24 - (e.attackT > 0 ? 0.06 : 0); MD.setFace(o, e.attackT > 0 ? 'yell' : 'angry'); break;
         case 'chili': ud.body.rotation.z = Math.sin(t * 0.08 + (e.seed || 0)) * 0.06; ud.bottle.rotation.x = e.attackT > 0 ? -1.8 : 0; break;
         case 'ice': ud.body.position.x = Math.sin(t * 0.9 + (e.seed || 0)) * 0.015; break;
         case 'trap': ud.bar.rotation.z = e.attackT > 0 ? -2.9 : 0; break;

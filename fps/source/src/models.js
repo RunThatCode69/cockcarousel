@@ -126,7 +126,13 @@ export function makeDick(o = {}) {
   if (o.hat === 'beanie') shaft.add(sphere(0.18, '#3a3a4a', 0, 0.8, 0, 1, 0.6, 1));
   if (o.bandana) { const b = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.03, 8, 20), toon('#c92a2a')); b.rotation.x = Math.PI / 2; b.position.y = 0.66; shaft.add(b); }
   if (o.cigar) { const c = cylBetween(new THREE.Vector3(0.05, 0.3, 0.13), new THREE.Vector3(0.16, 0.28, 0.24), 0.018, '#6b4a2a'); shaft.add(c); shaft.add(sphere(0.02, '#ff7a3a', 0.165, 0.28, 0.245, 1, 1, 1, false, new THREE.MeshBasicMaterial({ color: '#ff7a3a' }))); }
-  if (o.coat) { const fur = toon('#6b4a2a'); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; body.add(sphere(0.09, null, Math.cos(a) * 0.26, 0.24 + (i % 3) * 0.1, Math.sin(a) * 0.2, 1, 1, 1, true, fur)); } body.add(sphere(0.25, null, 0, 0.3, 0, 1, 0.8, 0.85, true, toon('#7a5632'))); const collar = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.07, 8, 16), toon('#8a6a44')); collar.rotation.x = Math.PI / 2; collar.position.y = 0.46; body.add(collar); }
+  if (o.coat) {   // villain coat: long black leather, white fox-fur collar, gold buttons (the old brown fur looked like... something else)
+    const lea = toon('#1c1b20'), fur = toon('#f2ede4'), gold = toon('#e8b830');
+    const coat = ink(new THREE.CylinderGeometry(0.2, 0.3, 0.46, 20, 1, true), lea, 0.02); coat.position.y = 0.22; body.add(coat);
+    const lap = ink(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 20), lea, 0.015); lap.position.y = 0.44; body.add(lap);
+    const collar = ink(new THREE.TorusGeometry(0.19, 0.06, 10, 22), fur, 0.015); collar.rotation.x = Math.PI / 2; collar.position.y = 0.44; body.add(collar);
+    for (let i = 0; i < 3; i++) body.add(sphere(0.022, null, 0, 0.14 + i * 0.12, 0.22 + i * -0.02, 1, 1, 0.5, false, gold));
+  }
   if (o.pistol) { const p = ink(G.box(0.05, 0.06, 0.16), toon('#3a3a4a')); p.position.set(0.19, 0.44, 0.08); body.add(p); root.userData.pistol = p; }
   if (o.gear) {   // plate carrier, mag pouches, a radio with an antenna, a belt
     const vc = toon(o.gearC || '#4f5a3a'), dk = toon('#2e3226');
@@ -188,7 +194,16 @@ export function makeCondom() {
   body.add(sphere(0.2, '#5b6b3c', 0, 0.8, 0, 1, 0.55, 1));
   const face = facePlate('angry', 0.19, 0.48); body.add(face);
   const arms = [-1, 1].map(s => { const a = new THREE.Group(); a.position.set(s * 0.18, 0.5, 0); a.add(cylBetween(new THREE.Vector3(0, 0, 0), new THREE.Vector3(s * 0.2, -0.05, 0.1), 0.04, '#a9cbe6')); body.add(a); return a; });
-  root.userData = { body, arms, face, kind: 'condom', faceKind: 'angry' }; return root;
+  // the RUBBER-47: a stubby launcher with a drum of rolled condoms and one loaded at the muzzle
+  const gun = new THREE.Group(); gun.position.set(0, 0.46, 0.24); body.add(gun);
+  const olive = toon('#4a5638'), blk = toon('#2a2a2e');
+  const barrel = ink(G.cyl(0.05, 0.05, 0.36, 12), olive, 0.01); barrel.rotation.x = Math.PI / 2; barrel.position.z = 0.1; gun.add(barrel);
+  const drum = ink(G.cyl(0.085, 0.085, 0.09, 14), blk, 0.01); drum.rotation.z = Math.PI / 2; drum.position.set(0, -0.06, -0.02); gun.add(drum);
+  for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.012, 6, 12), toon('#dcefff')); r.position.set(0.05, -0.06 + (i - 1) * 0.045, -0.02); r.rotation.y = Math.PI / 2; gun.add(r); }
+  const grip = ink(G.box(0.035, 0.09, 0.04), blk, 0.006); grip.position.set(0, -0.08, -0.1); grip.rotation.x = 0.35; gun.add(grip);
+  const load = makeCondomShot(); load.rotation.y = Math.PI; load.position.z = 0.3; gun.add(load);
+  arms.forEach(a => a.rotation.set(0, (a.position.x > 0 ? -1 : 1) * 0.9, 0));
+  root.userData = { body, arms, face, kind: 'condom', faceKind: 'angry', gun }; return root;
 }
 export function makeChili() {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
@@ -473,7 +488,7 @@ export function bakeModel(root, extraKeep = []) {
   const ud = root.userData;
   const keep = new Set([root, ...extraKeep]);
   const addK = o => { if (!o) return; if (Array.isArray(o)) o.forEach(addK); else if (o.isObject3D) keep.add(o); };
-  ['body', 'shaft', 'arms', 'claws', 'wings', 'bottle', 'bar', 'spin', 'board', 'rotor', 'flag', 'rotorF', 'rotorB', 'ramp', 'beam', 'strobe'].forEach(k => addK(ud[k]));
+  ['body', 'shaft', 'arms', 'claws', 'wings', 'bottle', 'bar', 'spin', 'board', 'rotor', 'flag', 'rotorF', 'rotorB', 'ramp', 'beam', 'strobe', 'gun'].forEach(k => addK(ud[k]));
   root.updateMatrixWorld(true);
   const owner = o => { let p = o.parent; while (p && !keep.has(p)) p = p.parent; return p || root; };
   const buckets = new Map();   // owner -> Map(material -> [{mesh}])
