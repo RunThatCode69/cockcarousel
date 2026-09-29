@@ -38,7 +38,7 @@ function makeView(e) {
       soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15, gear: true, gun: 'rifle' }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15, gear: true, gearC: '#5a6a3a', gun: 'sniper' }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1, gear: true }, thug: { hat: 'beanie', face: 'angry', scale: 1.15, gear: true, gearC: '#2a2a2e', gun: 'rifle' }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15, gear: true, gearC: '#3e4a5a', gun: 'rifle' }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15, gear: true, gun: 'rifle' },
       boss: { coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 3.2 }, boss2: { coat: true, face: 'boss', skin: '#e9b39d', scale: 2.3 } }[e.spr];
     if (e.spr === 'lady') o = MD.makeLady({ dress: e.dress, hair: e.hair });
-    else if (S) o = MD.makeDick(S);
+    else if (S) o = MD.makeDick(e.mscale ? Object.assign({}, S, { scale: e.mscale }) : S);
     else if (e.spr === 'heli') { o = MD.makeHeli(); }
   } else if (e.kind === 'pickup') {
     o = { eggplant: MD.makeEggplant, crate: MD.makeCrate, ticket: MD.makeTicket, pistol: MD.makePistol, lotion: MD.makeLotion, pill: MD.makePill }[e.type]?.();
@@ -123,7 +123,7 @@ function syncViews() {
           ud.body.position.y = Math.abs(walk) * 0.05; ud.body.rotation.z = walk * 0.06;
           if (ud.heldGun) ud.arms.forEach((a, i) => { a.rotation.set(0, (i ? -1.15 : 1.15) + walk * 0.08, 0); });   // both hands forward on the rifle
           else ud.arms.forEach((a, i) => { a.rotation.x = e.attackT > 0 ? -1.3 : walk * (i ? 0.5 : -0.5); a.rotation.z = e.attackT > 0 ? (i ? 0.4 : -0.4) : 0; });
-          const base = ud.baseFace || 'happy', talking = radio && radio.life > 12 && WHO_SPR[radio.who] && WHO_SPR[radio.who].includes(e.spr) && (radio.max - radio.life) < radio.text.length * 2.2;
+          const base = ud.baseFace || 'happy', talking = radio && radio.life > 12 && WHO_SPR[radio.who] && WHO_SPR[radio.who].includes(e.spr) && (voiceBusy() || (radio.max - radio.life) < radio.text.length * 2.2);
           if (talking) MD.setFace(o, ((t >> 2) + (e.seed || 0)) % 3 ? base + '_talk' : base);
           else if (e.type === 'boss' || e.spr === 'boss' || e.spr === 'boss2') MD.setFace(o, e.attackT > 0 ? 'bossyell' : 'boss');
           else MD.setFace(o, e.attackT > 0 ? (e.spr === 'sarge' ? 'sarge' : 'yell') : base);

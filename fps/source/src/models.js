@@ -27,10 +27,11 @@ export function ink(geo, mat, thick = 0.035, outline = true) {
   return m;
 }
 const G = {
-  sph: new THREE.SphereGeometry(1, 20, 14), sphLo: new THREE.SphereGeometry(1, 10, 8),
-  cap: (r, l) => new THREE.CapsuleGeometry(r, l, 6, 14), cyl: (r1, r2, h, s = 12) => new THREE.CylinderGeometry(r1, r2, h, s),
+  sph: new THREE.SphereGeometry(1, 32, 22), sphLo: new THREE.SphereGeometry(1, 10, 8),
+  cap: (r, l) => new THREE.CapsuleGeometry(r, l, 10, 24), cyl: (r1, r2, h, s = 12) => new THREE.CylinderGeometry(r1, r2, h, s),
   box: (x, y, z) => new THREE.BoxGeometry(x, y, z),
 };
+function shade(hex, k) { const c = new THREE.Color(hex); const h = {}; c.getHSL(h); c.setHSL(h.h, Math.min(1, h.s * 1.1), Math.max(0, Math.min(1, h.l + k))); return '#' + c.getHexString(); }
 function at(obj, x, y, z, sx, sy, sz) { obj.position.set(x, y, z); if (sx !== undefined) obj.scale.set(sx, sy === undefined ? sx : sy, sz === undefined ? sx : sz); return obj; }
 function sphere(r, color, x, y, z, sx = 1, sy = 1, sz = 1, outline = true, mat) { const m = ink(G.sph, mat || toon(color), 0.03 / r, outline); m.position.set(x, y, z); m.scale.set(r * sx, r * sy, r * sz); return m; }
 function cylBetween(a, b, r, color, outline = true, mat) {
@@ -42,7 +43,7 @@ function cylBetween(a, b, r, color, outline = true, mat) {
 const faceCache = new Map();
 export function faceTex(kind) {
   if (faceCache.has(kind)) return faceCache.get(kind);
-  const c = bake(128, 128, () => {
+  const c = bake(256, 256, () => { ctx.scale(2, 2);   // drawn at 2x so faces stay crisp up close
     const eyes = (angry, dead, look = 0) => {
       [[-24, 48], [24, 48]].forEach(([ex, ey], i) => {
         if (dead) { ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(64 + ex - 10, ey - 10); ctx.lineTo(64 + ex + 10, ey + 10); ctx.moveTo(64 + ex + 10, ey - 10); ctx.lineTo(64 + ex - 10, ey + 10); ctx.stroke(); return; }
@@ -99,7 +100,16 @@ export function makeDick(o = {}) {
   const hd = sphere(0.175, head, 0, 0.72, 0, 1, 0.82, 1); shaft.add(hd);
   const ridge = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.022, 8, 20), toon(HEAD2)); ridge.rotation.x = Math.PI / 2; ridge.position.y = 0.63; shaft.add(ridge);
   const shine = sphere(0.045, '#ffffff', 0.05, 0.8, 0.12, 1.3, 0.7, 0.5, false, new THREE.MeshBasicMaterial({ color: '#fff' })); shaft.add(shine);
-  const face = facePlate(o.face || 'happy'); face.position.y = 0.36; shaft.add(face);
+  const face = facePlate(o.face || 'happy'); face.position.y = o.coat ? 0.47 : 0.36; shaft.add(face);   // fur collar sits high: lift the face above it
+  if (o.veins !== false) {   // raised veins wrapping round the shaft (skipped on the front, where the face is)
+    const vm = toon(o.veinC || '#b8546e');
+    [[2.2, 0], [3.3, 1], [4.1, 2], [1.4, 3], ...(o.face === 'boss' ? [[1.2, 4], [-1.2, 5]] : [])].forEach(([ang, i]) => {   // the boss gets veins right up his face
+      const pts = []; for (let k = 0; k <= 10; k++) { const q = k / 10, a = ang + Math.sin(q * 6 + i) * 0.35; pts.push(new THREE.Vector3(Math.sin(a) * 0.152, 0.14 + q * 0.42, Math.cos(a) * 0.152)); }
+      shaft.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, o.face === 'boss' ? 0.024 : 0.016, 6), vm));
+      const b = []; for (let k = 0; k <= 5; k++) { const q = k / 5, a = ang + 0.5 + q * 0.5; b.push(new THREE.Vector3(Math.sin(a) * 0.151, 0.3 + i * 0.05 + q * 0.12, Math.cos(a) * 0.151)); }
+      shaft.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(b), 10, 0.011, 5), vm));
+    });
+  }
   // arms
   const arms = [];
   [[-1, 'L'], [1, 'R']].forEach(([sx, n]) => {
@@ -116,7 +126,7 @@ export function makeDick(o = {}) {
   if (o.hat === 'beanie') shaft.add(sphere(0.18, '#3a3a4a', 0, 0.8, 0, 1, 0.6, 1));
   if (o.bandana) { const b = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.03, 8, 20), toon('#c92a2a')); b.rotation.x = Math.PI / 2; b.position.y = 0.66; shaft.add(b); }
   if (o.cigar) { const c = cylBetween(new THREE.Vector3(0.05, 0.3, 0.13), new THREE.Vector3(0.16, 0.28, 0.24), 0.018, '#6b4a2a'); shaft.add(c); shaft.add(sphere(0.02, '#ff7a3a', 0.165, 0.28, 0.245, 1, 1, 1, false, new THREE.MeshBasicMaterial({ color: '#ff7a3a' }))); }
-  if (o.coat) { const fur = toon('#6b4a2a'); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; body.add(sphere(0.09, null, Math.cos(a) * 0.26, 0.24 + (i % 3) * 0.1, Math.sin(a) * 0.2, 1, 1, 1, true, fur)); } body.add(sphere(0.25, null, 0, 0.3, 0, 1, 0.8, 0.85, true, toon('#7a5632'))); const collar = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.07, 8, 16), toon('#8a6a44')); collar.rotation.x = Math.PI / 2; collar.position.y = 0.55; body.add(collar); }
+  if (o.coat) { const fur = toon('#6b4a2a'); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; body.add(sphere(0.09, null, Math.cos(a) * 0.26, 0.24 + (i % 3) * 0.1, Math.sin(a) * 0.2, 1, 1, 1, true, fur)); } body.add(sphere(0.25, null, 0, 0.3, 0, 1, 0.8, 0.85, true, toon('#7a5632'))); const collar = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.07, 8, 16), toon('#8a6a44')); collar.rotation.x = Math.PI / 2; collar.position.y = 0.46; body.add(collar); }
   if (o.pistol) { const p = ink(G.box(0.05, 0.06, 0.16), toon('#3a3a4a')); p.position.set(0.19, 0.44, 0.08); body.add(p); root.userData.pistol = p; }
   if (o.gear) {   // plate carrier, mag pouches, a radio with an antenna, a belt
     const vc = toon(o.gearC || '#4f5a3a'), dk = toon('#2e3226');

@@ -496,7 +496,7 @@ const M4 = () => {
   const CREW_OFF = [[0, 0], [-1.2, -0.9], [-1.2, 0.9], [-2.4, 0]];
   return {
     map: g, heights: { '#': 2.2, A: 0.8, G: 2.0 }, tex: { '#': 'concrete', A: 'velvet', G: 'door' }, variants: { '#': ['clinicposter', 5] }, floor: 'lino', ceil: 'ceiltile',
-    floorOf: (x) => x >= 42 ? 'carpet' : null, pal: PAL.clinic, start: [2, 7, 0], par: 240, music: 'muzak', amb: 'room', noRun: true,
+    floorOf: (x) => x >= 42 ? 'carpet' : null, pal: PAL.clinic, start: [2.8, 7.6, 0], par: 240, music: 'muzak', amb: 'room', noRun: true, mute: ['PRICK', 'SARGE', 'MACMILLI'], chatWho: 'JACKOFF',
     card: ['Day 4 – 10:30:00', "Sgt. 'Soap' MacTugish", 'undercover. very undercover.', 'Terminal 69, Pubyat International'],
     props: [['plant', 6, 2.6], ['plant', 6, 11.4], ['plant', 39.4, 2.6], ['plant', 39.4, 11.4], ['posterstand', 12, 7.8], ['posterstand', 28, 6.2], ['magrack', 37, 3], ['cooler', 37, 11], ['sign', 38.6, 7, { spr: 'sign_dome' }],
       ['barrier', 20, 7.6], ['cone', 25, 6, { passable: true }], ['cone', 25, 8, { passable: true }], ['desk', 44, 3.6], ['cooler', 53.4, 3.6], ['plant', 53.4, 10.4], ['plant', 43, 10.4]],
@@ -505,8 +505,8 @@ const M4 = () => {
       "> OBJECTIVE: remember... no rushin'."],
     init() {
       bakeSign('sign_dome', 'THE PLEASURE DOME', 'arrivals · this way →', '#2a1030', PINK);
-      boss = spawnNpc('boss2', 2.2, 6.6, 1.8, 1.4, { r: 0.8, far: 80 });
-      crew = [boss, spawnNpc('thug', 1.4, 7.8, 1.3, 1, { far: 80 }), spawnNpc('thug', 2.8, 7.8, 1.3, 1, { far: 80 })];
+      boss = spawnNpc('boss2', 1.4, 6.5, 1.8, 1.4, { r: 0.8, far: 80, mscale: 1.55 });
+      crew = [boss, spawnNpc('thug', 1.3, 8.2, 1.3, 1, { far: 80 }), spawnNpc('thug', 2.3, 8.5, 1.3, 1, { far: 80 })];
       const dresses = ['#ff5d8f', '#7a3fb5', '#2ab7a9', '#ffd23f', '#e84a3a', '#3a6ad8', '#ff9ec4', '#1e1e24'];
       for (let i = 0; i < 12; i++) ladies.push(spawnNpc('lady', 44.5 + (i % 4) * 2.6 + rand(-0.4, 0.4), 4.6 + ((i / 4) | 0) * 2.4 + rand(-0.3, 0.3), 1.3, 0.8, { far: 60, dress: dresses[i % dresses.length], hair: ['#3a2418', '#e8c070', '#1a1a1a', '#b8452a'][i % 4], seed: i * 7, faceA: -Math.PI / 2 + rand(-0.6, 0.6) }));
       for (const [x, y, c] of [[46, 5, '#ff4d9a'], [51, 9, '#4d9aff'], [48.5, 7, '#ffd23f']]) { const l = new THREE.PointLight(c, 0, 9, 1.4); l.position.set(x, 2.6, y); level.add(l); lights.push(l); }
@@ -530,7 +530,12 @@ const M4 = () => {
           say('JACKOFF', 'Gentlemen. Today is a very special day.', 200); },
         tick() {
           const f = t - M.flags.elT;
-          player.a = lerpA(player.a, f < 150 ? -0.5 : f < 300 ? 0.45 : 0, 0.03);   // look round the lift at the crew
+          // look round the lift at the crew, then Jackoff turns to you: close-up on his big veiny face
+          const toBoss = angleTo(player, boss), toThug = angleTo(player, crew[2]);
+          const close = f > 170 && f < 460;
+          player.a = lerpA(player.a, f < 120 ? toThug : close ? toBoss : 0, close ? 0.07 : 0.03);
+          pitch = lerp(pitch, close ? 22 : 0, 0.05); fovK = lerp(fovK, close ? 0.4 : 0.66, 0.05);
+          boss.faceA = Math.atan2(player.x - boss.x, player.y - boss.y);
           if (f % 90 === 0 && f < 380) sfx('tick');
           if (f === 220) say('JACKOFF', "Remember...", 120);
           if (f === 340) { say('JACKOFF', "...no rushin'.", 160); }
