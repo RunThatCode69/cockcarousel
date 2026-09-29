@@ -217,7 +217,10 @@ const cumroomImg = new Image();
 let cumroomOk = false, cumroomTry = 0;
 // the page is served at /fps with clean URLs, so a bare relative path can resolve to the site root:
 // try it as given first, then under /fps/.
-const CUMROOM_PATHS = [CUMROOM_SRC, '/fps/' + CUMROOM_SRC];
+// Anything named cumroom.local.* is git-ignored: it runs in your local build and is never
+// published. The committed cumroom.png is the fallback the live site shows.
+const CUMROOM_LOCAL = ['cumroom.local.webp', 'cumroom.local.png', 'cumroom.local.jpg', 'cumroom.local.jpeg', 'cumroom.local.gif'];
+const CUMROOM_PATHS = CUMROOM_LOCAL.concat([CUMROOM_SRC, '/fps/' + CUMROOM_SRC]);
 cumroomImg.onload = () => { cumroomOk = cumroomImg.naturalWidth > 0; };
 cumroomImg.onerror = () => { if (++cumroomTry < CUMROOM_PATHS.length) cumroomImg.src = CUMROOM_PATHS[cumroomTry]; };
 cumroomImg.src = CUMROOM_PATHS[0];
