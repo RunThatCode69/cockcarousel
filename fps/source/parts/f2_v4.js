@@ -207,9 +207,36 @@ function drawQTE() {
   txt('WRAPPED', bx - 12, by + 13, 16, '#bfe6ff', 'right', null); txt('RAW', bx + bw + 12, by + 13, 16, '#7fd67f', 'left', null);
 }
 
-// ---------- the Cum Room smash-cut: an original retro pin-up card (drawn in code, nobody real) ----------
+// ---------- the Cum Room poster ----------
+// DROP YOUR OWN IMAGE IN HERE. Put the file at fps/cumroom.png (or change the name below) and it
+// takes over the Cum Room smash-cut full screen. Any web format works: png, jpg, gif, webp.
+// It is drawn cover-style, so it fills the screen and crops the overflow. Landscape 16:9 fits best.
+// If the file is missing or fails to load, the hand-drawn card further down is used instead.
+const CUMROOM_SRC = 'cumroom.png';
+const cumroomImg = new Image();
+let cumroomOk = false, cumroomTry = 0;
+// the page is served at /fps with clean URLs, so a bare relative path can resolve to the site root:
+// try it as given first, then under /fps/.
+const CUMROOM_PATHS = [CUMROOM_SRC, '/fps/' + CUMROOM_SRC];
+cumroomImg.onload = () => { cumroomOk = cumroomImg.naturalWidth > 0; };
+cumroomImg.onerror = () => { if (++cumroomTry < CUMROOM_PATHS.length) cumroomImg.src = CUMROOM_PATHS[cumroomTry]; };
+cumroomImg.src = CUMROOM_PATHS[0];
+
+// ---------- the Cum Room smash-cut: your image, or an original retro pin-up card drawn in code ----------
 function drawPinup(f) {
   const ctx = hctx, k = Math.min(1, f / 6), cx = W / 2, cy = H / 2 + 20;
+  if (cumroomOk) {
+    ctx.save(); ctx.globalAlpha = k;
+    ctx.fillStyle = '#12060f'; ctx.fillRect(0, 0, W, H);
+    const iw = cumroomImg.naturalWidth, ih = cumroomImg.naturalHeight;
+    const s = Math.max(W / iw, H / ih) * (1.01 + Math.sin(f * 0.06) * 0.01);   // cover, with a slow breath
+    const dw = iw * s, dh = ih * s;
+    ctx.drawImage(cumroomImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    ctx.restore();
+    txt('WELCOME TO THE CUM ROOM', cx, 54, 40, '#fff', 'center', INK);
+    txt('hi boys.', cx, H - 40, 30, YEL, 'center', INK);
+    return;
+  }
   ctx.save(); ctx.globalAlpha = k;
   const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, W * 0.7); g.addColorStop(0, '#ff9ec4'); g.addColorStop(1, '#8a1a4a'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = 'rgba(255,255,255,0.18)'; for (let i = 0; i < 24; i++) { const a = i / 24 * TAU + f * 0.01; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, W, a, a + 0.12); ctx.fill(); }
