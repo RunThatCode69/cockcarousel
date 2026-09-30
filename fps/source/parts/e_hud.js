@@ -132,7 +132,7 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     txt(p.reloading ? 'RELOADING' : `${p.ammo}`, ax - (p.reloading ? 0 : 36), ay - 12, p.reloading ? 22 : 44, p.ammo === 0 && !p.reloading ? '#ff4d6d' : '#fff', 'right');
     if (!p.reloading) txt(rk ? '/ 6' : '/ ∞', ax, ay - 8, 22, '#ffd6e7', 'right', null);
     if (!p.reloading && !rk) for (let i = 0; i < MAG; i++) { E(ax - 6 - i * 16, ay + 22, 6, 5.5); fs(i < p.ammo ? CUM : 'rgba(255,255,255,0.2)', i < p.ammo ? CUM2 : null, 1.5); }
-    if (isTouch) for (const b of TOUCH_BTNS) { if (M.state === 'rails' && (b.label === 'CROUCH' || b.label === 'AIM')) continue; const on = b.on && b.on(); rr(b.x, b.y, b.w, b.h, 14); fs(on ? 'rgba(255,93,143,0.85)' : 'rgba(14,16,18,0.75)', YEL, 3); txt(b.label + (b.count ? ` ×${b.count()}` : ''), b.x + b.w / 2, b.y + b.h / 2, 20, '#fff', 'center', null); }
+    if (isTouch) for (const b of TOUCH_BTNS) { if (b.show && !b.show()) continue; if (M.state === 'rails' && (b.label === 'CROUCH' || b.label === 'AIM')) continue; const on = b.on && b.on(); rr(b.x, b.y, b.w, b.h, 14); fs(on ? 'rgba(255,93,143,0.85)' : 'rgba(14,16,18,0.75)', YEL, 3); txt(b.label + (b.count ? ` ×${b.count()}` : ''), b.x + b.w / 2, b.y + b.h / 2, 20, '#fff', 'center', null); }
     if (M.state === 'play') {
       // stance: a tiny dick silhouette, standing / crouched / sprinting
       ctx.save(); ctx.translate(40, H - 72); ctx.scale(1, p.crouch ? 0.6 : 1); ctx.rotate(p.sprint * 0.4); ctx.globalAlpha = 0.85; drawDick(0, 0, 0.55, { still: true, face: false }); ctx.restore(); ctx.globalAlpha = 1;

@@ -5,7 +5,9 @@
 const MAG = 12, DMG = 35, GLOB_SPEED = 0.3;
 let state = 'title', player = null, ents = [], globs = [], eproj = [], puddles = [], stats = null, stateT = 0;
 let unlockedM = 1, bestM = {}, diff = 'easy', deathQuote = ['', ''], deathTitle = 'YOU DIED', pauseFrom = null, missionIdx = 1;
-try { unlockedM = clamp(+localStorage.getItem('mw_unlocked') || 1, 1, 5); } catch (e) {}
+try { unlockedM = clamp(+localStorage.getItem('mw_unlocked') || 1, 1, 6);
+  // v5: The Bog slots in as mission 4, so anyone who'd already unlocked No Rushin' keeps everything after it
+  if (!localStorage.getItem('mw_v5')) { if (unlockedM >= 4) unlockedM = Math.min(6, unlockedM + 1); const b = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; const nb = {}; for (const k in b) nb[+k >= 4 ? +k + 1 : k] = b[k]; localStorage.setItem('mw_best', JSON.stringify(nb)); localStorage.setItem('mw_unlocked', unlockedM); localStorage.setItem('mw_v5', '1'); } } catch (e) {}
 try { bestM = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; } catch (e) {}
 try { diff = localStorage.getItem('mw_diff') === 'regular' ? 'regular' : 'easy'; } catch (e) {}
 const save = () => { try { localStorage.setItem('mw_unlocked', unlockedM); localStorage.setItem('mw_best', JSON.stringify(bestM)); localStorage.setItem('mw_diff', diff); } catch (e) {} };
@@ -95,7 +97,7 @@ const sizeMul = () => player ? 0.5 + 0.5 * player.size : 1;
 function shrinkShot() {
   const p = player; if (M.state === 'showdown' || p.hardT > 0) return;
   const was = p.size; p.size = Math.max(SIZE_MIN, p.size - SIZE_STEP);
-  if (was > 0.75 && p.size <= 0.75 && !M.flags.sizeTip) { M.flags.sizeTip = true; say('PRICK', "It's getting smaller, son. Every shot costs you. Find lotion.", 240); }
+  if (was > 0.75 && p.size <= 0.75 && !M.flags.sizeTip) { M.flags.sizeTip = true; say(M.leadWho || 'PRICK', "It's getting smaller, son. Every shot costs you. Find lotion.", 240); }
   if (was > 0.45 && p.size <= 0.45) { announce('SHRINKAGE', pickOne(['find lotion. now.', 'it\'s cold out here, okay?', 'is it in yet?', 'damage way down']), 40); sfx('deflate'); }
 }
 function growBy(k, why) {
@@ -116,7 +118,7 @@ function lotionDrop() {
   p.dropT = t;
   const x = p.x + Math.cos(p.a) * 1.8, y = p.y + Math.sin(p.a) * 1.8; const ok = walkable(x, y);
   const c = spawnPickup('lotion', ok ? x : p.x, ok ? y : p.y); c.z = 3; c.fall = true; sfx('drop');
-  say('SARGE', 'LOTION DROP INBOUND. Somebody lube this man up!', 200);
+  say(M.leadWho || 'SARGE', 'LOTION DROP INBOUND. Somebody lube this man up!', 200);
 }
 function applyPickup(e) {
   const p = player;
@@ -130,22 +132,29 @@ function headbutt(e) {
   damageEnt(e, 60 * (p.shrink > 0 ? 0.5 : 1) * sizeMul(), true);
   if (e.kind === 'enemy' && !e.dead) { const a = angleTo(p, e); moveBody(e, Math.cos(a) * 0.6, Math.sin(a) * 0.6, e.r); }
 }
-function damageEnt(e, dmg, butt) {
+let BOOMING = false;   // true while an explosion is dealing damage (armour only really cares about those)
+function damageEnt(e, dmg, butt, by) {
   if (e.dead) return;
-  e.hp -= dmg; e.hurtT = 8; sfx('hit'); sfx('hitmark'); hitT = 10; hitKill = false;
+  if (e.armor && !BOOMING) { dmg *= 0.05; if (!by && t - (M.flags.armorTip || -999) > 400) { M.flags.armorTip = t; announce('ARMOURED', 'globs bounce off. use the DILDO-7 (press 2)', 28); } }
+  e.hp -= dmg; e.hurtT = 8;
+  if (!by) { sfx('hit'); sfx('hitmark'); hitT = 10; hitKill = false; }
   burst3d(e.x, e.y, (e.z || 0) + e.h * 0.5, 4, 'drop');
   if (e.onHit) e.onHit(e);
-  if (e.hp <= 0) killEnt(e, butt);
+  if (e.hp <= 0) killEnt(e, butt, by);
 }
-function killEnt(e, butt) {
+function killEnt(e, butt, by) {
   e.dead = true; e.deadT = t; e.attackT = 0;
+  if (by && e.kind === 'enemy') {   // a squadmate got him: no XP, no streak, just the kill feed
+    sfx('kill'); killFeed(`${by}  ⟶  ${NAMES[e.type] || e.type}`); burst3d(e.x, e.y, (e.z || 0) + e.h * 0.5, 10, 'drop');
+    if (e.type !== 'boss' && e.type !== 'target') maybeDrop(e); if (e.onDeath) e.onDeath(e); return;
+  }
   if (e.type === 'target') { sfx('snap'); stats.targets = (stats.targets || 0) + 1; if (e.onDeath) e.onDeath(e); return; }
   if (e.kind === 'enemy') {
     stats.kills++; sfx('kill'); sfx('xp'); hitT = 12; hitKill = true; xpPop(e.type === 'boss' ? 500 : e.type === 'ice' ? 250 : 69); killFeed(`YOU  ⟶  ${NAMES[e.type] || e.type}`); burst3d(e.x, e.y, (e.z || 0) + e.h * 0.5, 10, 'drop');
     const p = player; p.streak++;
     const s = STREAKS.find(s => s.n === p.streak);
     if (s) { sfx('streak'); announce(s.line, s.sub, 44); streakReward(s.n); if (s.n === 7) p.streak = 0; }
-    if (Math.random() < 0.3) chatter(pickOne(['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
+    if (Math.random() < 0.3) chatter(pickOne(M.killWho || ['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
     if (e.type === 'ice') announce('SHRINKAGE OVER', 'welcome back, big guy', 40);
     if (e.type !== 'boss' && e.type !== 'target' && M.state !== 'gunship') maybeDrop(e);
     if (e.type === 'boss' && e.onDeath) e.onDeath(e);
@@ -174,7 +183,7 @@ function wrapHit(k, src) {
   sfx('wrap'); shake = Math.max(shake, 5); if (src) dmgDir.push({ a: angleTo(p, src), life: 40 });
   if (p.wrap >= 1) { die('wrapped'); return; }
   announce(`WRAPPED ${Math.round(p.wrap * 100)}%`, p.wrap > 0.7 ? 'one more and you\'re done' : 'dodge it. then glob him.', 34);
-  if (!M.flags.wrapTip) { M.flags.wrapTip = true; say('PRICK', "That's a condom, son. Get fully wrapped and you're out of the fight. Keep moving.", 260); }
+  if (!M.flags.wrapTip) { M.flags.wrapTip = true; say(M.leadWho || 'PRICK', "That's a condom, son. Get fully wrapped and you're out of the fight. Keep moving.", 260); }
 }
 function die(why) {
   hushVoices(); state = 'dead'; stateT = 0; deathQuote = pickOne(DEATHS); sfx('die'); player.streak = 0; hurtFx(6); shake = 14;
@@ -186,6 +195,7 @@ function die(why) {
   if (why === 'trap') deathQuote = ['SNAP. The cheese was never real.', 'Sarge'];
   if (why === 'sauce') deathQuote = ['Death by hot sauce. You went out spicy.', 'Sarge'];
   if (why === 'ice') deathQuote = ['It\'s cold, okay?! IT\'S COLD.', 'you, to no one'];
+  if (why === 'c4') deathQuote = ['You were standing on the Cum-4 when it went off. Classic.', 'Lt. Vas-Deferens'];
   if (why === 'timer') deathQuote = ['The ship sank. You sank. Everything sank.', 'Captain Prick'];
   deathTitle = why === 'wrapped' ? 'WRAPPED' : 'YOU DIED';
   if (why === 'wrapped') deathQuote = pickOne([['Protected. Neutralized. Very safe.', 'Condom Trooper'], ['Ribbed for their pleasure.', 'the box'], ['You got wrapped before you got in.', 'Captain Prick'], ['No glove, no love. Lots of glove, no you.', 'Sarge']]);
@@ -287,6 +297,7 @@ function updateGlobs() {
     q.x += q.vx * ts; q.y += q.vy * ts; q.life -= ts;
     if (q.arc) { q.z += q.vz * ts; q.vz -= 0.004 * ts; if (q.z <= 0) { q.life = 0; puddles.push({ x: q.x, y: q.y, life: 700, spr: 'puddle', z: 0, h: 0.28, w: 1.4, seed: 0 }); burst3d(q.x, q.y, 0.2, 8, 'saucedrop'); sfx('sizzle'); continue; } }
     if (solid(q.x, q.y)) { q.life = 0; continue; }
+    if (q.atAlly && dist(q, q.atAlly) < 0.45) { q.life = 0; burst3d(q.x, q.y, 0.6, 3, q.spr === 'condomshot' ? 'drop' : 'spark', 0.04); q.atAlly.hurtT = 6; continue; }
     if (!q.arc && dist(q, player) < 0.45) { q.life = 0; if (q.spr === 'condomshot') wrapHit(0.25, q); else hurtPlayer(q.dmg, 'bee', q); }
   }
   eproj = eproj.filter(q => q.life > 0);
@@ -307,7 +318,7 @@ function updateEnemies() {
     if (e.fade !== undefined) { e.fade -= ts; if (e.fade < 60) e.alpha = clamp(e.fade / 60, 0, 1); if (e.fade <= 0) e.gone = true; continue; }
     if (e.kind !== 'enemy' || e.dead) continue;
     const d = ENEMY[e.type];
-    e.hurtT -= ts; e.attackT -= ts; e.cd -= ts;
+    e.hurtT -= ts; e.attackT -= ts; e.cd -= ts; if (M.squad && e.faceA !== undefined && e.attackT <= 0) e.faceA = undefined;
     if (e.frozen) continue;
     const dd = dist(e, p);
     let sight = d.sight * (onGrass ? 0.32 : 1) * (p.crouch ? 0.7 : 1) * (e.sightMul || 1);
@@ -346,7 +357,11 @@ function updateEnemies() {
     for (const o of ents) { if (o === e || o.kind !== 'enemy' || o.dead) continue; const od = dist(e, o); if (od < 0.7 && od > 0.001) { const ax = (e.x - o.x) / od * 0.01, ay = (e.y - o.y) / od * 0.01; moveBody(e, ax, ay, e.r); } }
     if (d.aura && dd < d.aura) p.shrink = 3;
     // attack
-    if (e.cd <= 0 && dd < d.range && (d.atk === 'ranged' ? clearShot : los(e.x, e.y, p.x, p.y))) {
+    if (e.cd <= 0 && d.atk === 'ranged' && M.squad && Math.random() < 0.45) {   // v5: with a squad around, they shoot at them too
+      let tg = null, td = d.range * 1.3; for (const s of M.squad) { const sd = dist(e, s); if (sd < td && losShot(e.x, e.y, s.x, s.y)) { td = sd; tg = s; } }
+      if (tg && td < dd) { const ta = angleTo(e, tg), v = d.proj === 'condomshot' ? 0.065 : 0.11; e.cd = d.cd; e.attackT = 22; e.faceA = Math.atan2(tg.x - e.x, tg.y - e.y); eproj.push({ x: e.x, y: e.y, vx: Math.cos(ta) * v, vy: Math.sin(ta) * v, life: Math.min(160, td / v + 4), dmg: d.dmg, spr: d.proj, z: 0.5, h: 0.25, w: 0.35, seed: 0, atAlly: tg }); sfx(d.proj === 'condomshot' ? 'fwip' : 'sting'); continue; }
+    }
+    if (e.cd <= 0 && dd < d.range && (d.atk === 'ranged' ? clearShot : los(e.x, e.y, p.x, p.y))) { e.faceA = undefined;
       e.cd = d.cd * (diff === 'regular' ? 0.85 : 1); e.attackT = 22;
       if (d.atk === 'melee') { e.pending = 10; }
       if (d.atk === 'wrap') { e.pending = 10; }
@@ -452,7 +467,7 @@ function startMission(i, stageIdx = 0) {
   c3.style.filter = ''; gsShells = []; hushVoices();
   M.idx = i; M.state = 'play'; M.stage = -1; M.flags = {}; M.timer = null; M.checkpoint = 0;
   loadMap(M.map);
-  ents = []; globs = []; eproj = []; rockets = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
+  ents = []; globs = []; eproj = []; rockets = []; aglobs = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
   camH = 0.5; pitch = 0; roll = 0; ts = 1; joy.active = false; fireHeld = false; look.da = 0; look.dp = 0; parts3 = []; shells = []; feed = []; dmgDir = []; hitT = 0; nades = []; xps = []; adsHeld = false; adsToggle = false; fovK = 0.66;
   player = newPlayer(M.start[0], M.start[1], M.start[2]); player.drip = 0;
   stats = { kills: 0, shots: 0, hits: 0, frames: 0, targets: 0, eggs: 0 };
@@ -492,7 +507,7 @@ function missionClear() {
   stats.rank = rk[1]; stats.rankLine = rk[2]; stats.time = time; stats.acc = acc;
   const b = bestM[M.idx];
   if (!b || pts > b.pts) bestM[M.idx] = { pts, rank: rk[1], kills: stats.kills, acc, time };
-  if (M.idx < 5) unlockedM = Math.max(unlockedM, M.idx + 1);
+  if (M.idx < MISSIONS.length) unlockedM = Math.max(unlockedM, M.idx + 1);
   save();
 }
 function updateGame() {
@@ -505,7 +520,7 @@ function updateGame() {
   updateGlobs();
   if (M.state === 'gunship') gunshipTick();
   if (M.state === 'qte') qteTick();
-  hazardTick(); if (M.always) M.always();
+  hazardTick(); if (M.always) M.always(); squadTick();
   updateEnemies();
   updateParts3(); updateShells(); updateNades(); updateRockets(); for (const x of xps) x.life--; xps = xps.filter(x => x.life > 0); if (flashT > 0) flashT--;
   if (state !== 'game') return;
@@ -540,6 +555,7 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyR') reload();
     if (e.code === 'KeyG') throwNade();
     if (e.code === 'Digit1') setWeapon('rifle'); if (e.code === 'Digit2') setWeapon('rocket'); if (e.code === 'KeyQ' && !keys.ShiftLeft) {}
+    if (e.code === 'KeyN') toggleNVG();
     if (e.code === 'KeyX') { if (M.state === 'qte') qteHit(); else fireGL(); }
     if (e.code === 'KeyC' || e.code === 'ControlLeft') { player.crouch = !player.crouch; sfx('ads'); }
     if (e.code === 'KeyZ') { adsToggle = !adsToggle; sfx('ads'); }
@@ -571,7 +587,7 @@ cv.addEventListener('pointerdown', e => {
   if (x > W / 2 - 40 && x < W / 2 + 40 && y > 34 && y < 74) { pause(); return; }
   if (M.flags.pressF && !M.flags.paid && t - M.flags.pressF < 300) { M.flags.paid = true; sfx('slowmo'); say('YOU', 'F.', 120); return; }
   if (M.state === 'qte') { qteHit(); return; }
-  for (const b of TOUCH_BTNS) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
+  for (const b of TOUCH_BTNS) if ((!b.show || b.show()) && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
   if (x < W / 2) { if (!joy.active) { joy.active = true; joy.id = e.pointerId; joy.x0 = x; joy.y0 = y; joy.dx = 0; joy.dy = 0; } }
   else if (look.id === null) { look.id = e.pointerId; look.lx = look.sx = x; look.ly = look.sy = y; look.t0 = performance.now(); look.moved = false; }
 });
@@ -600,6 +616,7 @@ const TOUCH_BTNS = [
   { x: W - 290, y: H - 192, w: 126, h: 50, label: 'CROUCH', fn: () => { player.crouch = !player.crouch; sfx('ads'); }, on: () => player.crouch },
   { x: W - 290, y: H - 254, w: 126, h: 50, label: 'SWAP', fn: () => setWeapon(player.weapon === 'rifle' ? 'rocket' : 'rifle') },
   { x: W - 430, y: H - 130, w: 126, h: 50, label: 'GL', fn: () => fireGL(), count: () => player.gl },
+  { x: W - 430, y: H - 192, w: 126, h: 50, label: 'NVG', fn: () => toggleNVG(), on: () => M.nvg, show: () => M.nvgOK },
 ];
 addEventListener('pointerup', release); addEventListener('pointercancel', release);
 document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === cv; });
@@ -615,7 +632,7 @@ function advance() {   // tap / space on a non-game screen
   if (state === 'title') { if (unlockedM > 1) startBrief(unlockedM); else newGame(); }
   else if (state === 'brief') { const total = briefLines.join('').length; if (briefN < total) briefN = total; else startMission(missionIdx); }
   else if (state === 'dead') { if (stateT > 60) retry(); }
-  else if (state === 'clear') { if (stateT > 60) { if (missionIdx === 5) { state = 'credits'; stateT = 0; creditsBar = -1; } else startBrief(missionIdx + 1); } }
+  else if (state === 'clear') { if (stateT > 60) { if (missionIdx === MISSIONS.length) { state = 'credits'; stateT = 0; creditsBar = -1; } else startBrief(missionIdx + 1); } }
   else if (state === 'credits') { if (stateT > 1800) { state = 'title'; stateT = 0; } }
   else if (state === 'select') { state = 'title'; }
 }

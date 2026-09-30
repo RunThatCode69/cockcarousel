@@ -472,9 +472,44 @@ export const PROP3D = {
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; spin.add(cylBetween(new THREE.Vector3(Math.cos(a) * 1.8, 0.3, Math.sin(a) * 1.8), new THREE.Vector3(Math.cos(a) * 1.8, 3.0, Math.sin(a) * 1.8), 0.035, '#ffd23f'));
       const d = makeDick({ scale: 0.55 }); d.position.set(Math.cos(a) * 1.8, 1.0 + (i % 2) * 0.3, Math.sin(a) * 1.8); d.rotation.y = -a; spin.add(d); }
     g.userData.spin = spin; return g; },
+  // v5 — WAR PECKER: an Abrams-ish tank whose main gun is exactly what you think. Nose +x. userData.turret spins, userData.barrel recoils.
+  tank: () => { const g = new THREE.Group(), sand = toon('#8c8460'), dk = toon('#5e5a44'), trk = toon('#26262a');
+    const side = canvasMat(256, 64, () => { ctx.fillStyle = '#8c8460'; ctx.fillRect(0, 0, 256, 64); txt('WAR PECKER', 128, 34, 30, '#1e1e24', 'center', null); });
+    g.add(at(ink(G.box(3.5, 0.55, 1.9), sand, 0.03), 0, 0.72, 0));
+    const hs = ink(G.box(3.1, 0.3, 1.92), side, 0.02); hs.position.set(-0.1, 0.66, 0); g.add(hs);
+    g.add(at(ink(G.box(0.7, 0.35, 1.8), dk, 0.03), 1.65, 0.62, 0)); g.children[g.children.length - 1].rotation.z = -0.5;
+    for (const z of [-0.98, 0.98]) { g.add(at(ink(G.box(3.7, 0.5, 0.42), trk, 0.03), 0, 0.3, z)); for (let i = 0; i < 7; i++) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.44, 12), toon('#3a3a40')); w.rotation.x = Math.PI / 2; w.position.set(-1.5 + i * 0.5, 0.26, z); g.add(w); } }
+    const turret = new THREE.Group(); turret.position.set(-0.2, 1.0, 0); g.add(turret);
+    turret.add(at(ink(G.box(1.8, 0.5, 1.4), sand, 0.03), -0.1, 0.25, 0)); turret.add(at(ink(G.box(0.5, 0.25, 0.5), dk, 0.03), -0.4, 0.6, 0.3));
+    turret.add(at(ink(G.cyl(0.04, 0.04, 0.8, 6), toon('#2a2a2e')), -0.4, 0.95, -0.35));   // antenna
+    const barrel = new THREE.Group(); barrel.position.set(0.8, 0.3, 0); turret.add(barrel);
+    barrel.add(sphere(0.2, SKIN2, 0.02, -0.02, -0.17)); barrel.add(sphere(0.2, SKIN2, 0.02, -0.02, 0.17));   // the, uh, mantlet
+    const sh = ink(G.cap(0.13, 1.7), toon(SKIN), 0.02); sh.rotation.z = -Math.PI / 2; sh.position.set(1.05, 0.02, 0); barrel.add(sh);
+    const tip = sphere(0.17, HEAD, 2.0, 0.02, 0, 1.2, 0.95, 0.95); barrel.add(tip);
+    for (const [y, z] of [[0.13, 0.03], [-0.02, 0.12], [0.06, -0.12]]) { const v = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1.2, 6), toon('#c86a86')); v.rotation.z = Math.PI / 2; v.position.set(0.95, y, z); barrel.add(v); }
+    turret.add(at(new THREE.Mesh(G.sph, new THREE.MeshBasicMaterial({ color: '#fff6c8' })), 0.7, 0.35, 0.55, 0.08, 0.08, 0.08));   // searchlight
+    g.userData.turret = turret; g.userData.barrel = barrel; return g; },
+  // v5 — the Z-PUBE: quad anti-air gun on a little trailer, with a lot of hair on it
+  zpu: () => { const g = new THREE.Group(), olive = toon('#5a5e46'); g.add(at(ink(G.box(1.4, 0.18, 1.0), olive), 0, 0.42, 0));
+    for (const z of [-0.5, 0.5]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.14, 14), toon('#26262a')); w.rotation.x = Math.PI / 2; w.position.set(0, 0.3, z); g.add(w); }
+    const turret = new THREE.Group(); turret.position.set(0, 0.55, 0); g.add(turret);
+    const plate = canvasMat(128, 64, () => { ctx.fillStyle = '#5a5e46'; ctx.fillRect(0, 0, 128, 64); txt('Z-PUBE', 64, 34, 24, '#fff6e0', 'center', null); });
+    turret.add(at(ink(G.box(0.08, 0.6, 1.0), plate), 0.25, 0.35, 0));
+    for (const [y, z] of [[0.3, -0.18], [0.3, 0.18], [0.55, -0.18], [0.55, 0.18]]) { const b = ink(G.cyl(0.04, 0.05, 1.6, 8), toon('#26262a'), 0.02); b.rotation.z = -Math.PI / 2 + 0.5; b.position.set(0.8, y + 0.35, z); turret.add(b); }
+    for (let i = 0; i < 9; i++) { const h = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.012, 4, 10, Math.PI * 1.5), toon('#2a1a10')); h.position.set(-0.1 + (i % 3) * 0.1, 0.72 + ((i / 3) | 0) * 0.04, -0.3 + (i % 5) * 0.15); h.rotation.set(i, i * 2, 0); turret.add(h); }
+    g.userData.turret = turret; return g; },
+  // v5 — "BMP": Big Meaty Pickup. Eight wheels, a turret, armour globs bounce off
+  bmp: () => { const g = new THREE.Group(), m = toon('#6a6f52'), dk = toon('#44463a');
+    const side = canvasMat(256, 64, () => { ctx.fillStyle = '#6a6f52'; ctx.fillRect(0, 0, 256, 64); txt('BIG MEATY PICKUP', 128, 34, 22, '#fff6e0', 'center', null); });
+    g.add(at(ink(G.box(3.0, 0.6, 1.5), m, 0.03), 0, 0.75, 0)); const s2 = ink(G.box(2.4, 0.3, 1.52), side, 0.02); s2.position.set(-0.2, 0.72, 0); g.add(s2);
+    g.add(at(ink(G.box(0.8, 0.4, 1.4), dk, 0.03), 1.4, 0.8, 0)); g.children[g.children.length - 1].rotation.z = -0.45;
+    for (const z of [-0.75, 0.75]) for (let i = 0; i < 4; i++) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.2, 12), toon('#1e1e24')); w.rotation.x = Math.PI / 2; w.position.set(-1.1 + i * 0.72, 0.3, z); g.add(w); }
+    const turret = new THREE.Group(); turret.position.set(0.1, 1.05, 0); g.add(turret); turret.add(at(ink(G.cyl(0.4, 0.5, 0.3, 14), m, 0.03), 0, 0.15, 0));
+    const b = ink(G.cyl(0.05, 0.05, 1.2, 8), toon('#26262a'), 0.02); b.rotation.z = -Math.PI / 2; b.position.set(0.7, 0.2, 0); turret.add(b);
+    g.userData.turret = turret; return g; },
   plant: () => { const g = new THREE.Group(); g.add(at(ink(G.cyl(0.16, 0.12, 0.3, 10), toon('#c98b4b')), 0, 0.15, 0)); for (let i = 0; i < 6; i++) { const l = ink(G.sph, toon('#3f8f32'), 0.02); l.scale.set(0.06, 0.3, 0.06); const a = i / 6 * Math.PI * 2; l.position.set(Math.cos(a) * 0.1, 0.5, Math.sin(a) * 0.1); l.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); g.add(l); } return g; },
 };
-export const PROP_SOLID = { truck: 1, van: 1, tombstone: 1, carousel: 1, barrel: 1, sandbags: 1, cratestack: 1, tent: 1, palm: 1, tires: 1, barrier: 1, cactus: 1, flag: 1, rock: 1, car: 1, wreck: 1, lampost: 1, cooler: 1, magrack: 1, desk: 1, posterstand: 1 };
+export const PROP_SOLID = { zpu: 1, truck: 1, van: 1, tombstone: 1, carousel: 1, barrel: 1, sandbags: 1, cratestack: 1, tent: 1, palm: 1, tires: 1, barrier: 1, cactus: 1, flag: 1, rock: 1, car: 1, wreck: 1, lampost: 1, cooler: 1, magrack: 1, desk: 1, posterstand: 1 };
 // a flat sign with text, on two posts
 export function makeSign(text, sub, bg = '#fff6e0', fg = INK) {
   const m = canvasMat(256, 110, () => { rr(6, 6, 244, 98, 10); fs(bg, INK, 6); txt(text, 128, sub ? 42 : 55, text.length > 12 ? 30 : 38, fg, 'center', null); if (sub) txt(sub, 128, 80, 20, fg, 'center', null); });
@@ -488,7 +523,7 @@ export function bakeModel(root, extraKeep = []) {
   const ud = root.userData;
   const keep = new Set([root, ...extraKeep]);
   const addK = o => { if (!o) return; if (Array.isArray(o)) o.forEach(addK); else if (o.isObject3D) keep.add(o); };
-  ['body', 'shaft', 'arms', 'claws', 'wings', 'bottle', 'bar', 'spin', 'board', 'rotor', 'flag', 'rotorF', 'rotorB', 'ramp', 'beam', 'strobe', 'gun'].forEach(k => addK(ud[k]));
+  ['body', 'shaft', 'arms', 'claws', 'wings', 'bottle', 'bar', 'spin', 'board', 'rotor', 'flag', 'rotorF', 'rotorB', 'ramp', 'beam', 'strobe', 'gun', 'turret', 'barrel'].forEach(k => addK(ud[k]));
   root.updateMatrixWorld(true);
   const owner = o => { let p = o.parent; while (p && !keep.has(p)) p = p.parent; return p || root; };
   const buckets = new Map();   // owner -> Map(material -> [{mesh}])

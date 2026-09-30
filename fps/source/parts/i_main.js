@@ -91,7 +91,7 @@ function draw() {
     if (pal.weather === 'dust') { hctx.globalAlpha = 0.45; for (let i = 0; i < 30; i++) { const x = (i * 131 + t * 0.7 + player.a * 200) % (W + 40) - 20, y = (i * 71 + Math.sin(t * 0.03 + i) * 20) % H; E(x, y, 2, 1.4); fs('#fff2c4', null); } hctx.globalAlpha = 1; }
     if (player.ads > 0.3) { const k = player.ads; const vg = hctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.85); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(20,0,20,${0.5 * k})`); hctx.fillStyle = vg; hctx.fillRect(0, 0, W, H); }
     const vg = hctx.createRadialGradient(W / 2, H / 2, H * 0.5, W / 2, H / 2, H * 1.0); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(20,0,20,0.35)'); hctx.fillStyle = vg; hctx.fillRect(0, 0, W, H);
-    if (state === 'game') drawHUD();
+    if (state === 'game') { drawNVG(); drawHUD(); }
     if (whiteOut > 0) { hctx.fillStyle = `rgba(255,255,255,${Math.min(1, whiteOut)})`; hctx.fillRect(0, 0, W, H); }
     if (M.pinup != null) drawPinup(M.pinup);
     if (M.blackOut > 0) { hctx.fillStyle = `rgba(0,0,0,${Math.min(1, M.blackOut)})`; hctx.fillRect(0, 0, W, H); }

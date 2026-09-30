@@ -54,6 +54,7 @@ Source: `fps/source/` — run `npm install && npm run build` there, then copy `b
 | Pause | `ESC` / `P` | `II` button |
 | Sound | `M`, or the SOUND button on the title | pause menu / title button |
 | Character voices on/off | `O` | (follows sound) |
+| Night vision (The Bog) | `N` | NVG button |
 
 Generous auto-aim (about a 15° cone), big enemies, slow projectiles. It is much easier than CoD on purpose. Health is CoD-style: 100 HP, regenerates after 3 seconds without damage, jam-smear on the screen instead of blood, red vignette when low.
 
@@ -95,11 +96,19 @@ v4 made every mission several times longer (about 5 minutes each for a first pla
    - Crew quarters, doors on both sides.
    - The hold, a maze of container lanes with an **eggplant detector** that ticks faster as you close in.
    - The package. Then jets hit the ship: a 110-second run back up through the flooding, tilting, lurching ship to the ramp. Jump.
-4. **No Rushin'** (a No Russian parody).
+4. **The Bog** (The Bog). About ten minutes, at night, with a full squad: Lt. Vas-Deferens, SSgt. Jiggles, Dooley and Ramirez follow you, move up with you, shoot what they can see, call out contacts and bark about their kills. The enemy shoots back at them too.
+   - Briefing behind a burning car, then a push up the street, shopfront by shopfront, until a second lot comes out of the apartments.
+   - Lubeview Apartments: no power. **Night vision** (`N` / NVG button) turns it green. Room by room, with a counterattack from behind.
+   - The overpass: stand next to the **Z-PUBE** anti-air gun to plant Cum-4, get clear, boom. Then the jets come in.
+   - Down into the bog, around the lube puddles (they slow you down), to **WAR PECKER**, an M1 whose main gun is exactly what you'd expect.
+   - The **JAVELUBE**: grab the DILDO-7 from the crate by the tank and take out three armoured **Big Meaty Pickups** (globs bounce off; the crate refills).
+   - Hold around the tank for two minutes while it rocks itself loose. Its gun fires at the big groups now.
+   - Escort it east. It only moves while you're close. "Never tell anyone we pulled the Pecker out of the Bog."
+5. **No Rushin'** (a No Russian parody).
    - A silent elevator ride with Imran Jackoff's crew: "Remember... no rushin'."
    - A slow walk (no running) through Terminal 69, fighting off Condom Trooper airport security.
    - The crew walks into the Pleasure Dome, a club full of dancing women. Fade to black: "What happens in the Pleasure Dome stays in the Pleasure Dome."
-5. **GAME OVA** (Game Over). Bridge over the Tubes.
+6. **GAME OVA** (Game Over). Bridge over the Tubes.
    - A much longer truck ride, with the **HUNG-24** chasing you (you can shoot it down) and pursuit trucks unloading crabs.
    - The truck crashes. Get to Prick behind the wreck and **hold for 60 seconds** as they come down the bridge.
    - The tanker blows, then the crawl, the executions, the pistol slide, one slow-motion glob and the credits.
@@ -108,7 +117,7 @@ Each mission opens with a typewriter briefing over a "satellite map" (it's a scr
 
 ## Progression
 
-`localStorage`: `mw_unlocked` (highest mission unlocked), `mw_best` (best stats per mission), `mw_diff`. Title screen has New Game / Continue / Mission Select and a difficulty toggle: **Easy** (default) or **Regular** (about 40% more enemies in each wave, slightly more damage).
+`localStorage`: `mw_unlocked` (highest mission unlocked; v5 moves old progress past mission 3 up one slot, `mw_v5` marks that as done), `mw_best` (best stats per mission), `mw_diff`. Title screen has New Game / Continue / Mission Select and a difficulty toggle: **Easy** (default) or **Regular** (about 40% more enemies in each wave, slightly more damage).
 
 ## Testing
 

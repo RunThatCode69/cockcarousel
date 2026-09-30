@@ -109,10 +109,10 @@ function stallTick() {
   if (M.stageT > 60 * 25 && left.length <= 4) {
     for (const e of left) e.reveal = true;
     if (!M.goal || M.goal.auto) { let best = null, bd = 1e9; for (const e of left) { const d = dist(e, player); if (d < bd) { bd = d; best = e; } } M.goal = { x: best.x, y: best.y, auto: true }; }
-    if (!M.stallDone) { M.stallDone = true; say('PRICK', left.length === 1 ? 'One left. He\'s red on your minimap.' : `${left.length} left. They're red on your minimap.`, 200); }
+    if (!M.stallDone) { M.stallDone = true; say(M.leadWho || 'PRICK', left.length === 1 ? 'One left. He\'s red on your minimap.' : `${left.length} left. They're red on your minimap.`, 200); }
   }
   // anything nobody can walk to (stuck in a wall, fell off the map) just gets removed after a bit
-  if (M.stageT > 60 * 40) for (const e of left) { const c = flowF ? flowF[(e.y | 0) * MW + (e.x | 0)] : 0; if ((c === -1 && !e.z) || (M.stageT > 60 * 90 && left.length <= 4)) { killEnt(e); if (!M.flags.stallKill) { M.flags.stallKill = true; say('PRICK', 'Got the last one from over here. Move on, son.', 180); } } }
+  if (M.stageT > 60 * 40) for (const e of left) { const c = flowF ? flowF[(e.y | 0) * MW + (e.x | 0)] : 0; if ((c === -1 && !e.z) || (M.stageT > 60 * 90 && left.length <= 4)) { killEnt(e); if (!M.flags.stallKill) { M.flags.stallKill = true; say(M.leadWho || 'PRICK', 'Got the last one from over here. Move on, son.', 180); } } }
 }
 
 // ---------- extra hardware: the DILDO-7 rocket launcher (press 2 / SWAP) and the CUM-203 underbarrel launcher (press X / GL) ----------
@@ -122,10 +122,10 @@ function setWeapon(w) {
   p.weapon = w; p.swapT = 24; p.reloading = false; sfx('magout');
   announce(w === 'rocket' ? 'DILDO-7' : 'DICK-47', w === 'rocket' ? `rocket launcher · ${p.rockets} left` : 'back to the rifle', 24);
 }
-function explodeAt(x, y, r, dmg) {
+function explodeAt(x, y, r, dmg, by) {
   sfx('boom'); shake = Math.max(shake, isTouch ? 8 : 16); flash = Math.max(flash, 0.1);
   burst3d(x, y, 0.4, 30, 'puff', 0.13); burst3d(x, y, 0.3, 16, 'drop', 0.14); burst3d(x, y, 0.3, 12, 'spark', 0.16);
-  for (const e of ents) { if (!alive(e)) continue; const d = dist({ x, y }, e); if (d < r && los(x, y, e.x, e.y)) damageEnt(e, dmg * (1 - 0.6 * d / r)); }
+  BOOMING = true; for (const e of ents) { if (!alive(e) || e.friendly) continue; const d = dist({ x, y }, e); if (d < r && los(x, y, e.x, e.y)) damageEnt(e, dmg * (1 - 0.6 * d / r), false, by); } BOOMING = false;
   spawnDeco('splat', x, y, 0.8, 1.6, { z: 0, fade: 600, far: 16 }); spawnDeco('blast', x, y, r, r, { z: -0.3, fade: 24, far: 40 });
 }
 function fireRocket() {
@@ -158,7 +158,7 @@ function updateRockets() {
 
 // ---------- voices: the radio lines are read out by the browser's built-in speech synth, one voice per character ----------
 const VOICE = { on: (() => { try { return localStorage.getItem('mw_voices') !== '0'; } catch (e) { return true; } })(), primed: false };
-const VP = { PRICK: { p: 0.72, r: 0.95, gb: 1 }, MACMILLI: { p: 0.62, r: 0.86, gb: 1 }, SARGE: { p: 0.5, r: 1.1, gb: 1 }, JACKOFF: { p: 0.35, r: 0.8 }, PILOT: { p: 1.05, r: 1.15 }, SOUP: { p: 1.2, r: 1.1, gb: 1 }, GAS: { p: 0.95, r: 1.05, gb: 1 }, GROPES: { p: 0.85, r: 1.0, gb: 1 }, 'TV OP': { p: 0.9, r: 1.05 }, YOU: { p: 1.3, r: 1.1 } };
+const VP = { PRICK: { p: 0.72, r: 0.95, gb: 1 }, MACMILLI: { p: 0.62, r: 0.86, gb: 1 }, SARGE: { p: 0.5, r: 1.1, gb: 1 }, JACKOFF: { p: 0.35, r: 0.8 }, PILOT: { p: 1.05, r: 1.15 }, SOUP: { p: 1.2, r: 1.1, gb: 1 }, GAS: { p: 0.95, r: 1.05, gb: 1 }, GROPES: { p: 0.85, r: 1.0, gb: 1 }, 'TV OP': { p: 0.9, r: 1.05 }, YOU: { p: 1.3, r: 1.1 }, VAS: { p: 0.8, r: 1.0, gb: 1 }, JIGGLES: { p: 1.15, r: 1.1, gb: 1 }, DOOLEY: { p: 1.0, r: 1.05, gb: 1 }, RAMIREZ: { p: 0.9, r: 1.1, gb: 1 }, PECKER: { p: 0.7, r: 1.0 } };
 // v4.7: real recorded-style lines (Kokoro TTS, generated offline into fps/voices/<hash>.mp3). Unknown lines just stay silent.
 let curVoice = null;
 const VBASE = location.protocol === 'file:' ? 'voices/' : '/fps/voices/';   // /fps is served without a trailing slash, so relative paths would miss
@@ -262,4 +262,103 @@ function drawPinup(f) {
   ctx.restore();
   txt('WELCOME TO THE CUM ROOM', cx, 54, 40, '#fff', 'center', INK);
   txt('hi boys.', cx, H - 40, 30, YEL, 'center', INK);
+}
+
+// ================================================================
+//  v5: THE SQUAD — marines who follow you, move to scripted spots, shoot what they can see, and talk about it
+// ================================================================
+let aglobs = [];
+const SQUAD_BARKS = {
+  kill: ['Got him!', 'Tango down!', 'Rubber down!', 'Scratch one!', 'He\'s done!', 'Target neutralised. Very neutral.', 'Popped him!', 'That one\'s deflated!'],
+  contact: ['Contact front!', 'Movement, twelve o\'clock!', 'Rooftop! Rooftop!', 'They\'re in the windows!', 'Rubbers, left side!', 'Crabs! Low, low!', 'Watch the alley!'],
+  move: ['Moving!', 'Pushing up!', 'On me!', 'Go, go!', 'Covering!'],
+};
+function spawnSquad(list) {   // [[spr, name, x, y, ox, oy]] — ox/oy: formation slot relative to you (forward, right)
+  M.squad = list.map(([spr, name, x, y, ox, oy]) => spawnNpc(spr, x, y, 1.3, 1.0, { friendly: true, far: 60, name, slot: [ox, oy], fireCd: rand(20, 60), path: null, pathT: 0, dest: null }));
+  aglobs = [];
+  return M.squad;
+}
+// where each squaddie wants to be: a scripted spot (M.squadAt[i]) or a slot around you
+function squadDest(s, i) {
+  if (M.squadAt && M.squadAt[i]) return { x: M.squadAt[i][0], y: M.squadAt[i][1] };
+  const p = player, [fw, rt] = s.slot, ca = Math.cos(p.a), sa = Math.sin(p.a);
+  let x = p.x + ca * fw - sa * rt, y = p.y + sa * fw + ca * rt;
+  if (!walkNav(x, y)) { x = p.x - ca * 0.9; y = p.y - sa * 0.9; }
+  if (!walkNav(x, y)) { x = p.x; y = p.y; }
+  return { x, y };
+}
+function squadTick() {
+  const sq = M.squad; if (!sq || M.state === 'cut' && !M.squadCut) return;
+  const p = player, foes = ents.filter(e => e.kind === 'enemy' && !e.dead && e.type !== 'target' && !e.frozen);
+  sq.forEach((s, i) => {
+    if (s.gone || s.dead) return;
+    s.hurtT -= ts; s.attackT -= ts; s.fireCd -= ts;
+    if (s.hold) return;
+    // ---- move ----
+    const d = squadDest(s, i), dd = Math.hypot(d.x - s.x, d.y - s.y);
+    if (dd > 0.6) {
+      if (!s.path || t - s.pathT > 50 || !s.dest || Math.hypot(s.dest.x - d.x, s.dest.y - d.y) > 1.2) { s.path = findPath(s.x, s.y, d.x, d.y); s.pathT = t; s.dest = d; s.wp = 1; }
+      let tx = d.x, ty = d.y;
+      if (s.path && s.path.length > 2) { while (s.wp < s.path.length - 1 && Math.hypot(s.path[s.wp][0] - s.x, s.path[s.wp][1] - s.y) < 0.45) s.wp++; tx = s.path[Math.min(s.wp, s.path.length - 1)][0]; ty = s.path[Math.min(s.wp, s.path.length - 1)][1]; }
+      const a = Math.atan2(ty - s.y, tx - s.x), sp = (dd > 4 ? 0.07 : 0.05) * (M.squadSpeed || 1) * ts, ox = s.x, oy = s.y;
+      moveBody(s, Math.cos(a) * sp, Math.sin(a) * sp, 0.28); s.walk = (s.walk || 0) + ts;
+      if (Math.hypot(s.x - ox, s.y - oy) < sp * 0.2) { s.stuckN = (s.stuckN || 0) + 1; if (s.stuckN > 40) { s.path = null; s.stuckN = 0; } } else s.stuckN = 0;
+      // way behind and out of sight: catch up (off-camera, like the real thing)
+      if (dist(s, p) > 16 && !los(p.x, p.y, s.x, s.y) && !M.squadAt) { const q = squadDest(s, i); if (walkNav(q.x, q.y)) { s.x = q.x; s.y = q.y; s.path = null; } }
+    }
+    // keep them from standing inside you or each other
+    const pd = dist(s, p); if (pd < 0.55 && pd > 0.001) moveBody(s, (s.x - p.x) / pd * 0.03, (s.y - p.y) / pd * 0.03, 0.28);
+    for (const o of sq) { if (o === s) continue; const od = dist(s, o); if (od < 0.6 && od > 0.001) moveBody(s, (s.x - o.x) / od * 0.02, (s.y - o.y) / od * 0.02, 0.28); }
+    // ---- shoot ----
+    let tg = null, td = M.squadRange || 10;
+    for (const e of foes) { const ed = dist(s, e); if (ed < td && losShot(s.x, s.y, e.x, e.y)) { td = ed; tg = e; } }
+    if (tg) {
+      s.faceA = Math.atan2(tg.x - s.x, tg.y - s.y);
+      if (s.fireCd <= 0) {
+        const burst = 2 + ((Math.random() * 2) | 0);
+        for (let k = 0; k < burst; k++) { const a = angleTo(s, tg) + rand(-0.09, 0.09) * (1 + td / 6), v = 0.36; aglobs.push({ x: s.x + Math.cos(a) * 0.4, y: s.y + Math.sin(a) * 0.4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, y3: 0.62 + (tg.z || 0) * YS * 0.2, delay: k * 5, life: 60, by: s.name, dmg: M.squadDmg || 12 }); }
+        s.fireCd = rand(55, 100) * (M.squadCdMul || 1); s.attackT = 14;
+        if (pd < 12 && t - (s.sfxT || -99) > 8) { s.sfxT = t; sfx('shoot'); }
+        if (!s.saidContact && Math.random() < 0.5) { s.saidContact = true; chatter(s.name, pickOne(SQUAD_BARKS.contact), 120); }
+      }
+    } else { s.saidContact = false; s.faceA = dd > 0.6 ? Math.atan2(d.x - s.x, d.y - s.y) : (s.lookA !== undefined ? s.lookA : Math.atan2(Math.cos(p.a), Math.sin(p.a))); }
+  });
+  // ---- their globs ----
+  for (const g of aglobs) {
+    if (g.delay > 0) { g.delay -= ts; continue; }
+    g.x += g.vx * ts; g.y += g.vy * ts; g.life -= ts;
+    if (solid(g.x, g.y) && g.y3 < wallH(cell(g.x | 0, g.y | 0)) * YS) { g.life = 0; continue; }
+    for (const e of ents) { if (!alive(e) || e.friendly || e.kind !== 'enemy' && !e.shootable) continue; if (dist(g, e) < e.r + 0.12) { g.life = 0; damageEnt(e, g.dmg, false, g.by);
+      if (e.dead && Math.random() < 0.4) chatter(g.by, pickOne(SQUAD_BARKS.kill), 110); break; } }
+  }
+  aglobs = aglobs.filter(g => g.life > 0);
+}
+function squadWarp(pts) { if (!M.squad) return; M.squad.forEach((s, i) => { const q = pts[i] || pts[0]; s.x = q[0]; s.y = q[1]; s.path = null; }); }
+
+// ---------- night vision (N, or the NVG button): CoD's green goggles, with the tube vignette and a bit of noise ----------
+function toggleNVG() { if (!M || !M.nvgOK) return; M.nvg = !M.nvg; sfx(M.nvg ? 'ultra' : 'ads'); if (M.nvg) announce('NIGHT VISION', 'on', 20); }
+const NVG_GRADE = { sat: 0.0, shadow: [0.3, 1.25, 0.38], high: [0.62, 1.45, 0.66], vig: 1.1, gam: 0.45 };
+function drawNVG() {
+  if (!M.nvg) return;
+  const g = hctx.createRadialGradient(W / 2, H / 2, H * 0.32, W / 2, H / 2, H * 0.78);
+  g.addColorStop(0, 'rgba(0,20,0,0)'); g.addColorStop(1, 'rgba(0,8,0,0.92)'); hctx.fillStyle = g; hctx.fillRect(0, 0, W, H);
+  hctx.fillStyle = 'rgba(120,255,140,0.05)'; for (let y = (t * 2) % 4; y < H; y += 4) hctx.fillRect(0, y, W, 1);
+  txt('NVG', 36, H - 24, 13, '#8cff9a', 'left', null);
+}
+
+// ---------- WAR PECKER: the tank. Big gun, one job, extremely stuck ----------
+function tankTick(tk) {
+  if (!tk || tk.gone) return;
+  tk.cd = (tk.cd || 200) - ts; tk.recoil = Math.max(0, (tk.recoil || 0) - 0.05 * ts);
+  let tg = null, td = tk.range || 22;
+  for (const e of ents) { if (!alive(e) || e.friendly || e.kind !== 'enemy' && !e.shootable) continue; const d = dist(tk, e); if (d < td && d > 3 && los(tk.x, tk.y, e.x, e.y)) { td = d; tg = e; } }
+  const want = tg ? angleTo(tk, tg) : (tk.restA !== undefined ? tk.restA : tk.hullA || 0);
+  tk.turretA = lerpA(tk.turretA === undefined ? want : tk.turretA, want, 0.03);
+  if (tg && tk.cd <= 0 && Math.abs(wrapA(want - tk.turretA)) < 0.08 && tk.guns !== false) {
+    tk.cd = tk.rof || 330; tk.recoil = 1;
+    const mx = tk.x + Math.cos(tk.turretA) * 2.1, my = tk.y + Math.sin(tk.turretA) * 2.1;
+    burst3d(mx, my, 1.0, 16, 'puff', 0.1); burst3d(mx, my, 1.0, 10, 'spark', 0.14); flash = Math.max(flash, 0.25);
+    const tx = tg.x, ty = tg.y; setTimeout(() => { if (state === 'game') explodeAt(tx, ty, 2.6, 260, 'WAR PECKER'); }, 120);
+    if (Math.random() < 0.5) chatter('PECKER', pickOne(['Firing!', 'On the way!', 'Target! ...Target destroyed.', 'Main gun, fire!', 'Say hello to my big friend.', 'Pecker away!']), 110);
+  }
 }

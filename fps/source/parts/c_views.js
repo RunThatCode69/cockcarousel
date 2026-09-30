@@ -7,7 +7,7 @@ function bakeSign(name, text, sub, bg, fg) { SIGNS[name] = [text, sub, bg, fg]; 
 let boardN = 4, boardTex = null;
 function bakeBoard(n) { boardN = n; if (boardTex) { paintBoard(); boardTex.needsUpdate = true; } }
 function paintBoard() { const c = boardTex.image; const g = c.getContext('2d'); const old = A2.ctx; setCtx(g); g.clearRect(0, 0, 256, 140); rr(6, 6, 244, 128, 12); fs('#1a1a2a', INK, 6); txt('NOW SERVING', 128, 40, 26, CYAN, 'center', null); txt(String(boardN), 128, 96, 56, '#ff4d6d', 'center', null); setCtx(old); }
-const WHO_SPR = { PRICK: ['prick'], MACMILLI: ['mac'], SARGE: ['sarge'], SOUP: ['soup'], GAS: ['gas'], GROPES: ['gropes'], JACKOFF: ['boss', 'boss2'] };
+const WHO_SPR = { PRICK: ['prick'], MACMILLI: ['mac'], SARGE: ['sarge'], SOUP: ['soup'], GAS: ['gas'], GROPES: ['gropes'], JACKOFF: ['boss', 'boss2'], VAS: ['vas'], JIGGLES: ['jiggles'], DOOLEY: ['dooley'], RAMIREZ: ['ramirez'] };
 const H3 = { crab: 0.32, bee: 0.95, condom: 0.6, chili: 0.55, ice: 0.4, trap: 0.1, target: 0.72, boss: 1.1 };   // where a glob should hit, per type (metres)
 const spriteCache = new Map();
 function spriteFromPainter(name, painter, pose = {}, additive = false) {
@@ -36,6 +36,8 @@ function makeView(e) {
   } else if (e.kind === 'npc') {
     const S = { sarge: { hat: 'drill', face: 'sarge', scale: 1.2, gear: true, gearC: '#6b6a4a', pistol: true }, prick: { hat: 'boonie', face: 'prick', skin: '#cfc0cc', head: '#b992a8', cigar: true, scale: 1.2, gear: true, gun: 'rifle' },
       soup: { hat: 'helmet', helmetC: '#5b6b3c', scale: 1.15, gear: true, gun: 'rifle' }, mac: { hat: 'boonie', face: 'prick', skin: '#8a9a5a', head: '#7a8a4a', scale: 1.15, gear: true, gearC: '#5a6a3a', gun: 'sniper' }, tvop: { hat: 'helmet', helmetC: '#3a4a6a', scale: 1.1, gear: true }, thug: { hat: 'beanie', face: 'angry', scale: 1.15, gear: true, gearC: '#2a2a2e', gun: 'rifle' }, gas: { hat: 'helmet', helmetC: '#3a4a6a', bandana: true, scale: 1.15, gear: true, gearC: '#3e4a5a', gun: 'rifle' }, gropes: { hat: 'helmet', helmetC: '#6a3a3a', scale: 1.15, gear: true, gun: 'rifle' },
+      vas: { hat: 'helmet', helmetC: '#8a7e5a', face: 'prick', skin: '#e0b89a', head: '#c9867c', cigar: true, scale: 1.18, gear: true, gearC: '#7a6e4e', gun: 'rifle' }, jiggles: { hat: 'helmet', helmetC: '#7e7654', bandana: true, scale: 1.2, gear: true, gearC: '#6e6446', gun: 'rifle' },
+      dooley: { hat: 'helmet', helmetC: '#857a58', scale: 1.1, gear: true, gearC: '#746a4c', gun: 'rifle', skin: '#c99a7a', head: '#b87a6a' }, ramirez: { hat: 'helmet', helmetC: '#7a7050', scale: 1.14, gear: true, gearC: '#6a6046', gun: 'rifle', skin: '#b98a68', head: '#a86a5a' },
       boss: { coat: true, onearm: true, face: 'boss', skin: '#e9b39d', scale: 3.2 }, boss2: { coat: true, face: 'boss', skin: '#e9b39d', scale: 2.3 } }[e.spr];
     if (e.spr === 'lady') o = MD.makeLady({ dress: e.dress, hair: e.hair });
     else if (S) o = MD.makeDick(e.mscale ? Object.assign({}, S, { scale: e.mscale }) : S);
@@ -45,7 +47,7 @@ function makeView(e) {
   } else if (e.kind === 'deco') {
     if (e.spr === 'heli') { o = MD.makeHeli(); o.scale.setScalar(1.5); }
     else if (e.spr === 'chinook') { o = MD.makeChinook(); o.scale.setScalar(e.scale || 1); }
-    else if (MD.PROP3D[e.spr]) o = MD.PROP3D[e.spr]();
+    else if (MD.PROP3D[e.spr]) { o = MD.PROP3D[e.spr](); if (e.scale) o.scale.setScalar(e.scale); }
     else if (SIGNS[e.spr]) { const s = SIGNS[e.spr]; o = MD.makeSign(s[0], s[1], s[2], s[3]); o.rotation.y = Math.atan2(M.start[0] - e.x, M.start[1] - e.y); }
     else if (e.spr === 'sign') o = MD.makeSign('SIGN', '');
     else if (e.spr === 'board') { const c = mkCanvas(256, 140); boardTex = new THREE.CanvasTexture(c); boardTex.colorSpace = THREE.SRGBColorSpace; paintBoard(); o = new THREE.Group(); o.add(new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.6, 0.05), new THREE.MeshBasicMaterial({ map: boardTex }))); o.children[0].position.y = 1.7; }
@@ -141,6 +143,9 @@ function syncViews() {
       if (ud.spin) { if (ud.spin.userData.slow) ud.spin.rotation.z += 0.0015; else ud.spin.rotation.y += 0.008; }
       if (ud.strobe) ud.strobe.visible = t % 40 < 4;
       if (e.faceA !== undefined && !o.isSprite) o.rotation.y = e.faceA;
+      if (e.rock !== undefined) o.rotation.z = e.rock;
+      if (ud.turret && e.turretA !== undefined) ud.turret.rotation.y = -e.turretA - (e.faceA || 0);
+      if (ud.barrel) ud.barrel.position.x = 0.8 - (e.recoil || 0) * 0.35;
       if (ud.flag) ud.flag.rotation.y = Math.sin(t * 0.05) * 0.2;
     }
   }
@@ -151,6 +156,7 @@ function syncViews() {
   for (const g of globs) { if (player && dist(g, player) < 0.8) continue;   // a glob right at the muzzle filled half the screen: only show it once it's out in front
     const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.scale.setScalar(0.09); o.position.set(g.x, g.y3 !== undefined ? g.y3 : 0.6, g.y); }
   for (const q of eproj) { const o = pooled(q.spr, () => { const m = q.spr === 'bottle' ? MD.makeBottle() : q.spr === 'condomshot' ? MD.makeCondomShot() : MD.makeStinger(); m.userData.pooled = true; return m; }); o.position.set(q.x, (q.z || 0.5) * YS, q.y); o.rotation.y = Math.atan2(q.vx, q.vy) + Math.PI; if (q.spr === 'bottle') o.rotation.x += 0.3; if (q.spr === 'condomshot') o.rotation.z += 0.25; }
+  for (const g of aglobs) { if (g.delay > 0) continue; const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.scale.setScalar(0.06); o.position.set(g.x, g.y3, g.y); }
   for (const r of rockets) { if (player && dist(r, player) < 1.2) continue; const o = pooled('rocket', () => { const m = MD.makeDildoRocket(); m.userData.pooled = true; return m; }); o.position.set(r.x, r.y3, r.y); o.rotation.set(0, -r.a, 0); }
   for (const n of nades) { if (player && dist(n, player) < 0.9) continue; if (n.impact) { const o = pooled('glob', () => { const m = MD.makeGlob(); m.userData.pooled = true; return m; }); o.position.set(n.x, n.z * YS, n.y); o.scale.setScalar(0.14); continue; }
     const o = pooled('nut', () => { const m = MD.makeNut(); m.userData.pooled = true; return m; }); o.position.set(n.x, n.z * YS, n.y); o.rotation.x += 0.3; }

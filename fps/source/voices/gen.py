@@ -16,6 +16,11 @@ CAST = {
   'GROPES':   ('am_eric', 1.0, 'en-us', True),
   'TV OP':    ('am_echo', 1.0, 'en-us', True),
   'YOU':      ('am_adam', 1.05, 'en-us', False),
+  'VAS':      ('am_fenrir', 0.98, 'en-us', True),
+  'JIGGLES':  ('am_puck', 1.08, 'en-us', True),
+  'DOOLEY':   ('am_liam', 1.1, 'en-us', True),
+  'RAMIREZ':  ('am_eric', 1.08, 'en-us', True),
+  'PECKER':   ('am_santa', 1.0, 'en-us', True),
 }
 lines = json.load(open(os.path.join(os.path.dirname(__file__), 'lines.json')))
 for i, l in enumerate(lines):

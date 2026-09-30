@@ -127,11 +127,11 @@ const worldPass = new RenderPass(scene, camera); composer.addPass(worldPass);
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(480, 270), 0.35, 0.4, 0.9); bloomPass.enabled = !isTouch; composer.addPass(bloomPass);
 const vmPass = new RenderPass(vmScene, vmCam); vmPass.clear = false; vmPass.clearDepth = true; composer.addPass(vmPass);
 const gradePass = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, sat: { value: 0.85 }, con: { value: 1.12 }, shadow: { value: new THREE.Vector3(0.92, 1.0, 1.06) }, high: { value: new THREE.Vector3(1.06, 1.0, 0.92) }, vig: { value: 0.35 }, grain: { value: 0.03 }, time: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, sat: { value: 0.85 }, con: { value: 1.12 }, shadow: { value: new THREE.Vector3(0.92, 1.0, 1.06) }, high: { value: new THREE.Vector3(1.06, 1.0, 0.92) }, vig: { value: 0.35 }, grain: { value: 0.03 }, time: { value: 0 }, gam: { value: 1 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float sat, con, vig, grain, time; uniform vec3 shadow, high; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float sat, con, vig, grain, time, gam; uniform vec3 shadow, high; varying vec2 vUv;
     float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)) + time) * 43758.5453); }
-    void main(){ vec4 t = texture2D(tDiffuse, vUv); vec3 c = t.rgb;
+    void main(){ vec4 t = texture2D(tDiffuse, vUv); vec3 c = pow(max(t.rgb, vec3(0.0)), vec3(gam));
       float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
       c = mix(vec3(l), c, sat);
       c = max(vec3(0.0), (c - 0.18) * con + 0.18);
@@ -165,8 +165,9 @@ let gradeBase = null;
 const _gs = new THREE.Vector3(), _gh = new THREE.Vector3();
 function gradeTick() {   // per-area overrides (e.g. the red emergency-lit corridor on the ship), blended smoothly
   if (!gradeBase || !M || !player) return;
-  const ag = M.areaGrade ? M.areaGrade(player.x, player.y) : null, tg = ag ? Object.assign({}, gradeBase, ag) : gradeBase, u = gradePass.uniforms;
-  u.shadow.value.lerp(_gs.set(...tg.shadow), 0.06); u.high.value.lerp(_gh.set(...tg.high), 0.06); u.sat.value = lerp(u.sat.value, tg.sat, 0.06); u.vig.value = lerp(u.vig.value, tg.vig, 0.06);
+  const ag = M.nvg ? NVG_GRADE : M.areaGrade ? M.areaGrade(player.x, player.y) : null, tg = ag ? Object.assign({}, gradeBase, ag) : gradeBase, u = gradePass.uniforms;
+  if (M.nvgOK) renderer.toneMappingExposure = lerp(renderer.toneMappingExposure, (M.pal.exposure || 1.05) * (M.nvg ? 1.6 : 1), 0.08);
+  u.shadow.value.lerp(_gs.set(...tg.shadow), 0.06); u.high.value.lerp(_gh.set(...tg.high), 0.06); u.sat.value = lerp(u.sat.value, tg.sat, 0.06); u.vig.value = lerp(u.vig.value, tg.vig, 0.06); u.gam.value = lerp(u.gam.value, tg.gam || 1, 0.08);
   // storms: lightning
   if (M.pal.lightning) { M.ltT = (M.ltT || 400) - 1; if (M.ltT <= 0) { M.ltT = 500 + Math.random() * 700; M.ltF = 14; setTimeout(() => sfx('boom'), 500 + Math.random() * 900); } if (M.ltF > 0) { M.ltF--; hemi.intensity = (M.pal.hemiI || 1.2) * (M.ltF % 5 < 3 ? 3.5 : 1.2); } else hemi.intensity = M.pal.hemiI || 1.2; }
 }

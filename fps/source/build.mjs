@@ -6,7 +6,7 @@ let src = order.map(n => fs.readFileSync(root + 'parts/' + n + '.js', 'utf8')).j
 const dbg = process.argv.includes('--dbg') && fs.existsSync(root + 'parts/dbg.js') ? fs.readFileSync(root + 'parts/dbg.js', 'utf8') : '';
 src = src.replace('//__DBG__', dbg);
 fs.writeFileSync(root + 'src/game.js', src);
-execSync(`npx esbuild ${root}src/game.js --bundle --format=iife --minify --target=es2020 --legal-comments=none --outfile=${root}build/game.min.js`, { cwd: root, stdio: 'inherit' });
+execSync(`npx esbuild ${root}src/game.js --bundle --format=iife ${dbg ? "--minify-whitespace --minify-syntax" : "--minify"} --target=es2020 --legal-comments=none --outfile=${root}build/game.min.js`, { cwd: root, stdio: 'inherit' });
 const js = fs.readFileSync(root + 'build/game.min.js', 'utf8');
 const html = `<!DOCTYPE html>
 <html lang="en">

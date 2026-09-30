@@ -14,6 +14,7 @@ const MISSION_META = [
   { name: 'Bootie Camp', place: 'S.A.S. HQ, Crotchenhill, U.K.', date: 'DAY 1 · 06:09', icon: () => iconDick({ hat: 'drill', stache: 1.3, angry: true, yell: true }) },
   { name: 'All Girthed Up', place: 'Pubyat, 15 years ago', date: 'DAY -5475 · 04:20', icon: () => { ctx.save(); ctx.translate(0, 8); pubeArt(0, 0, { f: 1 }); ctx.restore(); } },
   { name: 'Crew Expandable', place: 'Cargo ship "MV Blue Balls", Bering Sea', date: 'DAY 3 · 01:00', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.7, 0.7); crabArt(0, 0, { f: 0 }); ctx.restore(); } },
+  { name: 'The Bog', place: 'The Bog. Somewhere very moist.', date: 'DAY 5 · 23:40', icon: () => { ctx.save(); ctx.translate(0, -6); ctx.scale(1.2, 1.2); ctx.fillStyle = '#8c8460'; ctx.strokeStyle = INK; ctx.lineWidth = 3; rr(-40, -14, 80, 22, 5); ctx.fill(); ctx.stroke(); rr(-20, -30, 38, 18, 5); ctx.fill(); ctx.stroke(); rr(14, -26, 34, 9, 4); fs(SKIN, INK, 2.5); E(50, -21.5, 7, 6); fs(HEAD, INK, 2.5); rr(-44, 6, 88, 12, 6); fs('#26262a', INK, 2.5); ctx.restore(); } },
   { name: "No Rushin'", place: 'Terminal 69, Pubyat International', date: 'DAY 4 · 10:30', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.65, 0.65); condomArt(0, 0, { f: 0 }); ctx.restore(); } },
   { name: 'GAME OVA', place: 'Bridge over the Tubes', date: 'DAY 6 · 11:11', icon: () => iconDick({ coat: true, onearm: true, angry: true, frown: true, scar: true, skin: '#e9b39d', skin2: '#d8927c' }) },
 ];
@@ -23,6 +24,7 @@ const PAL = {   // v4.3: CoD-ish palettes — overcast UK, grey pre-dawn Pubyat,
   ship: { moon: true, clouds: true, cloudC: 'rgba(40,48,58,0.9)', silhouette: 'sea', silC: '#101820', weather: 'rain', ceil: ['#070b10', '#1c2632'], fog: '#131b24', fogDist: 10, dark: 0.08, lightning: true },
   clinic: { ceil: ['#e8ece8', '#ffffff'], fog: '#c8ccc8', fogDist: 28 },
   bridge: { ceil: ['#5d8cc0', '#d8e2ea'], fog: '#b4c0c8', fogDist: 20, sun: true, clouds: true, cloudC: 'rgba(240,242,245,0.95)', silhouette: 'mountains', silC: '#6d7a7c', plumes: 5 },
+  bog: { moon: true, clouds: true, cloudC: 'rgba(52,44,36,0.9)', silhouette: 'mountains', silC: '#1a1610', ceil: ['#0a0a0e', '#4a3420'], fog: '#2c2418', fogDist: 14, weather: 'embers', plumes: 6 },
   finale: { ceil: ['#3a3a3c', '#8a8680'], fog: '#4a4846', fogDist: 12, dark: 0.1, silhouette: 'mountains', silC: '#2a2a2a', weather: 'embers', plumes: 6 },
 };
 Object.assign(PAL.camp, { hemiSky: '#dfe6ee', hemiGround: '#6a6a58', hemiI: 1.45, sunC: '#fff1dc', sunI: 1.9, fogNear: 16, carousel: [60, -40, 1.6], cod: { sat: 0.8, con: 1.1, shadow: [0.94, 1.0, 1.05], high: [1.03, 1.0, 0.95], vig: 0.35, bloom: 0.25 } });
@@ -30,6 +32,7 @@ Object.assign(PAL.bush, { exposure: 1.55, hemiSky: '#c4ccd0', hemiGround: '#5a5a
 Object.assign(PAL.ship, { exposure: 1.5, hemiSky: '#9ab0c8', hemiGround: '#3a424c', hemiI: 2.1, sunC: '#c8d8f0', sunI: 1.3, fogNear: 7, cod: { sat: 0.7, con: 1.2, shadow: [0.88, 0.98, 1.1], high: [1.0, 1.0, 1.02], vig: 0.5, grain: 0.025, bloom: 0.45 } });
 Object.assign(PAL.clinic, { hemiSky: '#ffffff', hemiGround: '#b8bcb8', hemiI: 1.5, sunC: '#f6fff4', sunI: 1.3, fogNear: 16, cod: { sat: 0.8, con: 1.1, shadow: [0.96, 1.02, 1.0], high: [1.0, 1.02, 0.97], vig: 0.4, bloom: 0.35 } });
 Object.assign(PAL.bridge, { hemiSky: '#dbe6f0', hemiGround: '#4a4a42', hemiI: 1.35, sunC: '#fff4e4', sunI: 2.3, fogNear: 16, carousel: [40, -60, 2.4], cod: { sat: 0.8, con: 1.12, shadow: [0.94, 0.99, 1.05], high: [1.04, 1.0, 0.95], vig: 0.35, bloom: 0.35 } });
+Object.assign(PAL.bog, { exposure: 2.2, hemiSky: '#a8b0c4', hemiGround: '#5a4830', hemiI: 2.6, sunC: '#c0cce8', sunI: 1.3, fogNear: 6, cod: { sat: 0.5, con: 1.22, shadow: [0.86, 0.95, 1.12], high: [1.12, 1.0, 0.84], vig: 0.6, grain: 0.045, bloom: 0.6 } });
 Object.assign(PAL.finale, { hemiSky: '#c8b8a8', hemiGround: '#2a2622', hemiI: 1.0, sunC: '#ffb070', sunI: 1.6, fogNear: 6, cod: { sat: 0.45, con: 1.25, shadow: [0.95, 0.97, 1.02], high: [1.08, 1.0, 0.92], vig: 0.65, grain: 0.06, bloom: 0.5 } });
 
 // ---------- 1. BOOTIE CAMP ----------
@@ -481,6 +484,286 @@ const M3 = () => {
   };
 };
 
+// ---------- 4. THE BOG (v5: the long one with the squad) ----------
+// night street push with the squad → the dark apartments (night vision) → the Z-PUBE on the overpass (Cum-4)
+// → down into the bog to WAR PECKER → JAVELUBE vs the Big Meaty Pickups → hold while the tank unsticks → escort it out
+const MB = () => {
+  const g = grid(80, 40);
+  // A: the street
+  carve(g, 1, 15, 24, 20);
+  for (const [a, b] of [[4, 8], [13, 17], [20, 23]]) carve(g, a, 12, b, 14);          // shopfronts, north side
+  for (const [a, b] of [[6, 10], [15, 19]]) carve(g, a, 21, b, 23);                    // shopfronts, south side
+  for (const [x, y] of [[11, 16], [12, 16], [18, 19], [19, 19], [5, 19], [22, 16]]) put(g, x, y, 'A');
+  // B: Lubeview Apartments (it's dark in there)
+  carve(g, 25, 8, 44, 26, 'C'); carve(g, 25, 16, 43, 18);
+  for (const [a, b] of [[26, 30], [32, 37], [39, 43]]) { carve(g, a, 9, b, 14); carve(g, a, 20, b, 25); const m = (a + b) >> 1; put(g, m, 15, '.'); put(g, m, 19, '.'); }
+  put(g, 31, 11, '.'); put(g, 38, 11, '.'); put(g, 31, 23, '.'); put(g, 38, 23, '.');
+  put(g, 44, 11, '.');                                                                  //   out onto the overpass
+  // C: the overpass and the Z-PUBE
+  carve(g, 45, 3, 58, 13);
+  for (const [x, y] of [[48, 6], [48, 7], [51, 10], [52, 10], [56, 9], [50, 4]]) put(g, x, y, 'A');
+  carve(g, 55, 14, 58, 18);                                                             //   the ramp down
+  // D: the bog
+  carve(g, 44, 19, 78, 38);
+  carve(g, 47, 22, 49, 23); carve(g, 68, 20, 70, 21); carve(g, 71, 31, 73, 33); carve(g, 50, 33, 52, 34);    // ruins
+  for (const [x, y] of [[55, 25], [56, 25], [66, 24], [67, 24], [60, 33], [61, 33], [74, 27], [53, 30]]) put(g, x, y, 'A');
+  const LUBE = [{ x: 52, y: 29, r: 2.6 }, { x: 68, y: 35, r: 2.1 }, { x: 57.5, y: 21.5, r: 1.7 }, { x: 72.5, y: 25.5, r: 1.6 }, { x: 46.5, y: 36, r: 2 }];
+  const inLube = (x, y) => LUBE.some(l => Math.hypot(x - l.x, y - l.y) < l.r);
+  const TANK0 = [62, 28], TANK_END = 74;
+  const SQ_START = [[5.4, 15.8], [5, 19.2], [1.8, 15.6], [1.8, 19.2]];
+  const SQ_TANK = [[60, 25.2], [65.5, 25.8], [58.8, 31.2], [65.2, 31]];
+  let tank = null, zpu = null, bmps = [], zone = [], flares = [], crate = null;
+  const inApt = (x, y) => x > 24.6 && x < 44.6 && y > 7.6 && y < 26.4;
+  // spawn some enemies that already know you're here, and remember them for this part of the level
+  const wave = (list, o = {}) => { const out = spawnWave(list); for (const e of out) { e.ai = 'chase'; e.sightMul = 3; Object.assign(e, o); } zone.push(...out); return out; };
+  const idle = (list) => { const out = spawnWave(list); for (const e of out) { e.sightMul = 1.4; } zone.push(...out); return out; };
+  const zoneLeft = () => zone.filter(e => !e.dead);
+  const tankBlock = (on) => { if (!tank) return; for (let y = (tank.y - 1) | 0; y <= ((tank.y + 0.9) | 0); y++) for (let x = (tank.x - 1.8) | 0; x <= ((tank.x + 1.8) | 0); x++) blocked[y * MW + x] = on ? 1 : 0; };
+  const placeTank = (x) => { tankBlock(false); tank.x = x; tankBlock(true); };
+  const killZpu = () => { if (!zpu || zpu.dead) return; zpu.dead = true; zpu.firing = false; zpu.turretA = 0.4; spawnProp('fire', 54.5, 5.2, { passable: true, z: 0.3 }); spawnProp('smoke', 54.5, 5.3, { passable: true, z: 0.9 }); };
+  const spawnBmp = (x0, y0, x1, y1, delay = 0) => {
+    const b = spawnDeco('bmp', x0, y0, 1.4, 3, { shootable: true, armor: true, hp: 460, maxhp: 460, r: 1.25, far: 80, reveal: true, faceA: -Math.atan2(y1 - y0, x1 - x0), turretA: Math.atan2(y1 - y0, x1 - x0), to: [x1, y1], delay, fireT: 120,
+      onDeath: e => { e.shootable = false; e.reveal = false; explodeAt(e.x, e.y, 3, 150); spawnProp('fire', e.x, e.y, { passable: true, z: 0.5 }); spawnProp('smoke', e.x, e.y, { passable: true, z: 1.2 }); stats.kills++; xpPop(250); announce('BIG MEATY PICKUP DESTROYED', pickOne(['tenderised.', 'well done. not medium.', 'that one\'s pulled pork now.']), 34); if (bmps.every(q => q.dead)) return; say('VAS', pickOne(['Scratch one Pickup!', 'Pickup down! Good hit, Jerkson!', 'That\'s a direct hit!']), 150); } });
+    bmps.push(b); return b;
+  };
+  const bmpTick = () => {
+    for (const b of bmps) {
+      if (b.dead || b.gone) continue;
+      if (b.delay > 0) { b.delay -= ts; continue; }
+      const [tx, ty] = b.to, d = Math.hypot(tx - b.x, ty - b.y);
+      if (d > 0.1) { const a = Math.atan2(ty - b.y, tx - b.x), sp = Math.min(d, 0.022 * ts); b.x += Math.cos(a) * sp; b.y += Math.sin(a) * sp; if (t % 11 === 0 && dist(b, player) < 20) sfx('step'); }
+      const aim = angleTo(b, player); b.turretA = lerpA(b.turretA, aim, 0.04);
+      b.fireT -= ts;
+      if (b.fireT <= 0 && dist(b, player) < 20 && los(b.x, b.y, player.x, player.y) && M.state === 'play') {
+        b.fireT = diff === 'regular' ? 90 : 130;
+        for (let i = -1; i <= 1; i++) { const a = aim + i * 0.08; eproj.push({ x: b.x + Math.cos(a) * 1.2, y: b.y + Math.sin(a) * 1.2, vx: Math.cos(a) * 0.15, vy: Math.sin(a) * 0.15, life: 150, dmg: 5, spr: 'stinger', z: 0.8, h: 0.25, w: 0.35, seed: 0 }); }
+        sfx('shoot'); burst3d(b.x + Math.cos(aim) * 1.3, b.y + Math.sin(aim) * 1.3, 1.1, 5, 'spark', 0.08);
+      }
+    }
+  };
+  // parachute flares drifting down over the fight: the only light out here
+  const flareTick = () => {
+    if (t % 520 === 0 && flares.length < 2 && !inApt(player.x, player.y)) {
+      const a = rand(0, TAU), x = player.x + Math.cos(a) * rand(4, 9), y = player.y + Math.sin(a) * rand(4, 9);
+      const l = new THREE.PointLight('#ffb070', 0, 26, 1.2); l.position.set(x, 9, y); level.add(l);
+      const s = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshBasicMaterial({ color: '#fff0c0', fog: false })); s.position.copy(l.position); level.add(s);
+      flares.push({ l, s, f: 0 });
+    }
+    for (const fl of flares) { fl.f += ts; const k = fl.f / 600; fl.l.position.y = 9 - k * 7; fl.l.position.x += Math.sin(fl.f * 0.02) * 0.01; fl.s.position.copy(fl.l.position); fl.l.intensity = (k < 0.1 ? k * 10 : k > 0.85 ? (1 - k) / 0.15 : 1) * (16 + Math.sin(fl.f * 0.7) * 3); if (k >= 1) { level.remove(fl.l); level.remove(fl.s); fl.dead = true; } }
+    flares = flares.filter(f => !f.dead);
+  };
+  return {
+    map: g, heights: { '#': 2.4, A: 0.8, C: 2.2, G: 2.0 }, tex: { '#': 'concrete', A: 'sand', C: 'panelblock', G: 'door' }, variants: { '#': ['panelblock', 5], A: ['crate', 6] },
+    floor: 'rubble', floorOf: (x, y) => inLube(x, y) ? 'lube' : inApt(x, y) ? 'lino' : (y >= 15 && y <= 20 && x < 25) || (x >= 45 && y <= 18) ? 'asphalt' : x >= 44 ? 'dirt' : null,
+    roofs: [[25, 8, 45, 27, 'concrete', 2.2, '#3a3a30']], indoor: (x, y) => inApt(x, y),
+    areaGrade: (x, y) => inApt(x, y) ? { shadow: [0.28, 0.3, 0.38], high: [0.5, 0.52, 0.62], sat: 0.4, vig: 0.8 } : null,
+    outer: { ground: 'dirt', ring: 'city' }, pal: PAL.bog, start: [3, 17.5, 0], par: 600, music: 'tense', amb: 'wind', scope: false, killWho: ['VAS', 'JIGGLES'], leadWho: 'VAS',
+    card: ['Day 5 – 23:40:00', 'Sgt. Paul Jerkson', '1st Force Wreckon — U.S.M.C.', 'The Bog. It\'s wet. Don\'t ask.'],
+    props: [['wreck', 7, 17.6], ['wreck', 15.5, 18.7], ['car', 21, 16], ['fire', 7, 17.3, { passable: true }], ['smoke', 7, 17.2, { passable: true, z: 0.8 }], ['barrel', 2.4, 15.4], ['barrel', 9.5, 20.4], ['lampost', 3, 20.4], ['lampost', 12, 15.3], ['lampost', 20, 20.4], ['cratestack', 23.4, 19.4], ['sandbags', 16, 15.4], ['tires', 4.5, 12.6],
+      ['desk', 27.5, 9.6], ['desk', 35, 24.6], ['cratestack', 42.5, 9.6], ['barrel', 26.6, 24.6], ['barrel', 27.4, 24.6], ['barrel', 33, 9.6], ['magrack', 40, 24.6], ['cooler', 36.5, 9.6], ['chair', 29, 12], ['chair', 41, 21.5], ['sign', 24.2, 18.4, { spr: 'sign_apt' }],
+      ['barrier', 46.5, 12], ['barrier', 57.5, 12.4], ['car', 46.5, 4.5], ['wreck', 53, 12.2], ['lampost', 45.4, 8], ['lampost', 58.4, 3.6], ['cone', 57, 13.5, { passable: true }],
+      ['palm', 45.5, 20], ['palm', 76.5, 20], ['palm', 76.5, 37], ['palm', 45.5, 30], ['palm', 63, 37.3], ['wreck', 54, 36.5], ['wreck', 75, 32], ['barrel', 58.6, 29.6], ['barrel', 66, 29.6], ['fire', 48, 21.3, { passable: true }], ['fire', 69, 22.2, { passable: true }], ['smoke', 69, 22, { passable: true, z: 0.8 }], ['sign', 60, 19.5, { spr: 'sign_bog' }], ['sandbags', 57.6, 23.8], ['sandbags', 67.5, 32.4], ['tires', 76.6, 29.5]],
+    brief: ['> THE BOG. 23:40. EXTREMELY MOIST.', 'Two nights ago the M1 "WAR PECKER" drove into the Bog and got stuck. Stuck like a tank in lube. Because that\'s what it is.',
+      'You are Sgt. Paul Jerkson, U.S.M.C. Lt. Vas-Deferens has the squad. Stay with him. He has a cigar. That means he\'s in charge.',
+      'Push up the street. Clear Lubeview Apartments (no power: use your night vision). Blow the Z-PUBE anti-air gun so the jets can come play.',
+      'Then get down into the bog, protect the Pecker, and escort it out.', '> OBJECTIVE: pull out the Pecker. Don\'t get stuck yourself.'],
+    init() {
+      bakeSign('sign_apt', 'LUBEVIEW APTS', 'no vacancy · no power', '#fff6e0', INK); bakeSign('sign_bog', '⚠ THE BOG', 'lube hazard · keep moving', YEL, INK);
+      spawnSquad([['vas', 'VAS', ...SQ_START[0], 3.6, -1.7], ['jiggles', 'JIGGLES', ...SQ_START[1], 3.0, 1.8], ['dooley', 'DOOLEY', ...SQ_START[2], -1.4, -1.5], ['ramirez', 'RAMIREZ', ...SQ_START[3], -1.6, 1.5]]);
+      tank = spawnDeco('tank', TANK0[0], TANK0[1], 1.6, 4, { faceA: 0, hullA: 0, turretA: Math.PI * 0.8, restA: Math.PI * 0.8, far: 90, guns: false, range: 22, rof: 300 }); tankBlock(true);
+      zpu = spawnProp('zpu', 54.5, 5.5, { far: 70, scale: 1.5 }); zpu.turretA = -0.6; zpu.firing = true;
+      crate = null;
+      M.always = () => {
+        flareTick(); bmpTick();
+        if (tank && tank.guns) tankTick(tank);
+        // lube: it's slippery AND slow. somehow.
+        const wet = inLube(player.x, player.y); player.speedMul = (M.baseSpeed || 1) * (wet ? 0.55 : 1);
+        if (wet && t % 18 === 0) { sfx('splat'); burst3d(player.x, player.y, 0.05, 2, 'drop', 0.05); }
+        if (wet && !M.flags.lubeTip) { M.flags.lubeTip = true; say('JIGGLES', 'Ugh. It\'s in my boots. It\'s in my BOOTS, Jerkson.', 180); }
+        if (zpu && zpu.firing) { zpu.turretA = -0.6 + Math.sin(t * 0.01) * 0.5; if (t % 5 === 0) burst3d(zpu.x + Math.cos(zpu.turretA) * 1.2, zpu.y + Math.sin(zpu.turretA) * 1.2, 2.2 + (t % 20) * 0.3, 1, 'spark', 0.02); if (t % 7 === 0 && dist(zpu, player) < 24) sfx('shoot'); }
+        // ambient war: distant booms and tracer fizz
+        if (t % 400 === 150) { sfx('boom'); shake = Math.max(shake, 2); }
+      };
+      say('VAS', 'Listen up, Marines. WAR PECKER is stuck in the Bog. Two nights now. Bogged. Lubed. Stuck.', 300);
+      say('JIGGLES', 'Sir, why is there so much lube in a swamp?', 170);
+      say('VAS', 'Nobody knows, Jiggles. We don\'t ask. We push up this street, clear the apartments, kill the triple-A, and pull the Pecker out.', 340);
+      say('JIGGLES', 'Pull the Pecker out. Hoo-rah.', 150);
+    },
+    triggers: [
+      { x: 25, y: 17, r: 1.8, fn: () => { say('VAS', 'Lubeview Apartments. No power. Goggles on. Check your corners, check your holes.', 260); } },
+      { x: 28.5, y: 16.5, r: 1.4, fn: () => { idle([['condom', 28, 11], ['crab', 27.5, 13]]); } },
+      { x: 34.5, y: 17.5, r: 1.6, fn: () => { wave([['condom', 34.5, 22.5], ['condom', 36.5, 24.5], ['crab', 33, 21]]); chatter('JIGGLES', 'Door on the right! Door on the right!', 130); } },
+      { x: 38, y: 17, r: 1.6, fn: () => { idle([['condom', 35, 10.5], ['chili', 33, 12.5]]); } },
+      { x: 41.5, y: 17, r: 1.6, fn: () => { wave([['crab', 41, 22], ['crab', 42.5, 24.5], ['bee', 40, 23]]); say('DOOLEY', 'Crabs! Big ones! In the bathroom!', 150); say('RAMIREZ', 'Why is it always the bathroom?!', 150); } },
+    ],
+    stages: [
+      // 0 — the briefing behind the burning car
+      { obj: '', checkpoint: false,
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.introT = t; player.a = -0.9; pitch = 0; for (const s of M.squad) s.lookA = Math.atan2(player.x - s.x, player.y - s.y); },
+        tick() { const f = t - M.flags.introT, vas = M.squad[0]; player.a = lerpA(player.a, f < 520 ? angleTo(player, vas) : 0, 0.04); if (f === 60) sfx('boom');
+          for (const s of M.squad) s.lookA = Math.atan2(player.x - s.x, player.y - s.y); },
+        done: () => t - M.flags.introT > 560,
+        end() { M.state = 'play'; player.canMove = true; player.canFire = true; for (const s of M.squad) s.lookA = undefined; } },
+      // 1 — the street
+      { obj: 'Push up the street with your squad. Stay with Lt. Vas.', count: () => `Hostiles on the street: ${zoneLeft().length}`, hint: 'Use the wrecked cars for cover. Your squad shoots too — let them draw fire.', at: [3, 17.5, 0],
+        clearAll: true, clearList: () => zoneLeft(),
+        pre() { M.state = 'play'; player.canMove = true; player.canFire = true; squadWarp(SQ_START); },
+        start() {
+          zone = []; M.goal = { x: 23, y: 17.5 };
+          idle([['condom', 6, 13], ['condom', 7.5, 12.5], ['crab', 8, 22], ['chili', 15.5, 13]]);
+          say('VAS', 'Move up! Stay off the middle of the road!', 180);
+        },
+        tick() {
+          const x = player.x;
+          if (x > 8 && !M.flags.s1a) { M.flags.s1a = true; wave([['condom', 15, 12.5], ['condom', 17, 13.5], ['chili', 16.5, 22], ['crab', 19, 22.5]]); chatter('RAMIREZ', 'Windows! Second shop, both sides!', 140); }
+          if (x > 14 && !M.flags.s1b) { M.flags.s1b = true; wave([['condom', 21.5, 13], ['condom', 23, 13.5], ['bee', 22, 17], ['crab', 23.5, 19]]); say('VAS', 'They\'re dug in at the end of the street! Push, push!', 180); }
+          if (x > 18 && !M.flags.s1c) { M.flags.s1c = true; wave([['condom', 23.5, 16], ['chili', 23, 18.5]]); }
+          // the end of the street: once it's quiet, a second lot comes out of the apartments
+          if (M.flags.s1c && !M.flags.s1d && zoneLeft().length === 0) { M.flags.s1d = true; M.flags.s1dT = t; wave([['condom', 27, 16.5], ['condom', 27.5, 18], ['crab', 26, 17], ['bee', 24, 13.5], ['chili', 22, 22.5]], { sightMul: 4 }); say('JIGGLES', 'Door! They\'re coming out of the apartments!', 160); say('VAS', 'Hold here! Let them come to us!', 150); }
+          if (M.flags.s1d && !M.flags.s1e && t - M.flags.s1dT > 420) { M.flags.s1e = true; wave([['condom', 26.5, 16.5], ['crab', 26.5, 18], ['condom', 21.5, 13]], { sightMul: 4 }); chatter('DOOLEY', 'More of them! Same door!', 130); }
+        },
+        done: () => M.flags.s1e && zoneLeft().length === 0 && player.x > 17,
+        end() { M.goal = null; say('VAS', 'Street\'s clear! Stack up on the apartments. Jerkson, you\'re on point.', 220); } },
+      // 2 — Lubeview Apartments, in the dark
+      { obj: isTouch ? 'Clear Lubeview Apartments with the squad. It\'s pitch black: tap NVG for night vision.' : 'Clear Lubeview Apartments with the squad. It\'s pitch black: press N for night vision.', at: [21, 17.5, 0],
+        count: () => `Hostiles inside: ${zoneLeft().length} · Night vision: ${M.nvg ? 'ON' : 'off'}`, hint: 'Down the corridor, check every room on both sides. The exit is the far room on the north-east side.', hintAfter: 1500, clearAll: true, clearList: () => zoneLeft(),
+        pre() { squadWarp([[19, 16.5], [19, 18.5], [17, 16.5], [17, 18.5]]); },
+        start() {
+          zone = []; M.nvgOK = true; M.goal = { x: 42, y: 11.5 };
+          idle([['condom', 42, 12.5], ['condom', 40, 10], ['crab', 29, 22.5], ['condom', 27.5, 24.5], ['condom', 36, 13.5], ['crab', 30, 9.5]]);
+          announce(isTouch ? 'TAP NVG' : 'PRESS N', 'night vision', 36);
+        },
+        tick() {
+          if (!M.flags.nvgNag && inApt(player.x, player.y) && !M.nvg && M.stageT > 200) { M.flags.nvgNag = true; say('VAS', isTouch ? 'Can\'t see your own dick in here. Goggles, Jerkson! Tap NVG!' : 'Can\'t see your own dick in here. Goggles, Jerkson! Press N!', 220); }
+          if (player.x > 39 && player.y < 15 && !M.flags.s2x) { M.flags.s2x = true; wave([['condom', 42.5, 13.5], ['chili', 41, 9.5]]); chatter('VAS', 'Last room! Clear it!', 120); }
+          if (player.x > 36 && !M.flags.s2back) { M.flags.s2back = true; wave([['condom', 25.5, 17], ['condom', 25.5, 16.2], ['crab', 25.5, 18]], { sightMul: 5 }); say('RAMIREZ', 'Contact rear! They came in behind us!', 150); say('VAS', 'Dooley, Ramirez, turn around! Jerkson, keep pushing!', 190); }
+          if (M.stageT === 60 * 60) say('JIGGLES', 'This place smells like a gym sock full of Vaseline.', 200);
+        },
+        done: () => zoneLeft().length === 0 && M.flags.s2x && player.x > 38.5,
+        end() { M.goal = null; say('VAS', 'Building clear. Overpass is right outside that door. The Z-PUBE is on it.', 220); say('JIGGLES', 'The what?', 90); say('VAS', 'Anti-aircraft gun. Quad barrel. Very hairy. Jets can\'t come in till it\'s dead.', 240); } },
+      // 3 — the Z-PUBE
+      { obj: 'Get onto the overpass and plant Cum-4 on the Z-PUBE anti-air gun (stand next to it)', at: [42, 11.5, 0],
+        count: () => M.flags.plant ? `Planting: ${Math.round(M.flags.plant * 100)}%` : `Hostiles on the overpass: ${zoneLeft().length}`, hint: 'The Z-PUBE is the hairy quad gun shooting at the sky. Walk right up to it and stand still until the charge is planted.',
+        pre() { M.nvgOK = true; squadWarp([[40, 10.5], [40, 12.5], [38, 10.5], [38, 12.5]]); },
+        start() {
+          zone = []; M.goal = { x: 53.5, y: 6.5 }; M.flags.plant = 0;
+          wave([['condom', 51, 4.5], ['condom', 53, 8], ['chili', 57, 7], ['crab', 49, 9.5], ['condom', 56.5, 11]]);
+          say('VAS', 'On the overpass! Jiggles, Dooley, cover fire! Jerkson, get that charge on the gun!', 220);
+        },
+        tick() {
+          if (M.stageT % 480 === 240 && zoneLeft().length < 4) wave([[pickOne(['condom', 'crab', 'chili']), 50 + rand(0, 7), 3.5], ['condom', 57, rand(4, 11)]]);
+          const nearGun = dist(player, zpu) < 1.9;
+          if (nearGun) { M.flags.plant = Math.min(1, M.flags.plant + 1 / 150 * ts); M.meter = { label: 'PLANTING CUM-4', k: M.flags.plant, color: '#fff2c4' }; if (t % 10 === 0) sfx('tick'); }
+          else if (M.flags.plant > 0 && M.flags.plant < 1) { M.meter = { label: 'PLANTING CUM-4 (get back to the gun)', k: M.flags.plant, color: '#fff2c4' }; }
+          if (M.flags.plant >= 1 && !M.flags.planted) { M.flags.planted = true; M.flags.plantT = t; M.meter = null; announce('CHARGE PLANTED', 'get clear. it\'s gonna blow.', 38); say('YOU', 'Charge set! Get back!', 120); M.goal = { x: 47, y: 10.5 }; }
+          if (M.flags.planted) { const k = t - M.flags.plantT; if (k < 300 && k % 60 === 0) sfx('tick');
+            if (k === 300) { const close = dist(player, zpu) < 3.5; explodeAt(zpu.x, zpu.y, 4, 400); killZpu(); shake = 30; flash = 1; sfx('boom'); if (close && !player.invul) hurtPlayer(60, 'c4', zpu); M.flags.zpuDead = true; } }
+        },
+        done: () => M.flags.zpuDead && t - M.flags.plantT > 330,
+        end() { M.meter = null; M.goal = null; announce('Z-PUBE DESTROYED', 'the sky is open for business', 40); say('VAS', 'Triple-A is down! Tell the jets they can come play.', 200); say('PILOT', 'Hog Two-Six, cleared hot. Bringing the rain.', 200); M.flags.jetT = t; } },
+      // 4 — the jets, then down into the bog
+      { obj: 'Follow the squad down the ramp into the bog. Get to WAR PECKER.', at: [49, 9, Math.PI / 2],
+        count: () => `Distance to WAR PECKER: ${Math.max(0, Math.round((dist(player, tank) - 3) * 3))} m`, hint: 'Down the ramp at the south-east corner of the overpass. Go around the shiny lube puddles, they slow you right down.',
+        pre() { killZpu(); M.nvgOK = true; squadWarp([[50, 8], [51, 11], [48, 11], [47, 8]]); if (!M.flags.jetT) M.flags.jetT = t - 400; },
+        start() {
+          zone = []; M.goal = { x: 59.5, y: 25.5 }; M.nvg = false;
+          for (const e of ents) if (e.kind === 'enemy' && !e.dead && e.y < 14) killEnt(e, false, 'HOG 2-6');
+          idle([['condom', 50, 26], ['crab', 53, 23], ['condom', 66, 22.5], ['chili', 57, 31], ['condom', 47, 31]]);
+        },
+        tick() {
+          const f = t - M.flags.jetT;
+          if (f > 0 && f < 200 && f % 40 === 0) { const x = 50 + rand(-4, 20), y = rand(20, 37); explodeAt(x, y, 2.6, 300, 'HOG 2-6'); if (f === 40) { sfx('streak'); announce('AIR STRIKE', 'danger close. dangerously close.', 30); } }
+          if (player.y > 18 && !M.flags.s4a) { M.flags.s4a = true; say('PECKER', 'Friendlies on the ramp! About time! This is WAR PECKER. We are stuck. We are SO stuck.', 260); wave([['condom', 70, 22.5], ['crab', 67, 26], ['bee', 64, 22]]); }
+          if (player.y > 22 && !M.flags.s4b) { M.flags.s4b = true; wave([['condom', 48, 35], ['crab', 52, 31.5], ['chili', 70, 33.5], ['condom', 75, 29]]); say('DOOLEY', 'They\'re in the swamp! Left and right!', 150); }
+        },
+        done: () => dist(player, tank) < 4.4 && zoneLeft().filter(e => dist(e, tank) < 12).length < 3,
+        end() { M.goal = null; say('VAS', 'Pecker, Vas. What do you need?', 150); say('PECKER', 'Main gun\'s gummed up. Big Meaty Pickups inbound from the east. We need somebody on the JAVELUBE.', 280); say('VAS', 'Jerkson. Crate by the tank. Go.', 150); } },
+      // 5 — JAVELUBE vs the Big Meaty Pickups
+      { obj: 'Grab the JAVELUBE from the crate by the tank, then destroy the 3 Big Meaty Pickups (armour)', at: [59, 26, 0],
+        count: () => `Big Meaty Pickups: ${bmps.filter(b => !b.dead).length} left · DILDO-7 rockets: ${player.rockets}`, hint: isTouch ? 'Tap SWAP for the DILDO-7 and aim at the armoured trucks (red arrows). Globs bounce off them. Refill at the crate.' : 'Press 2 for the DILDO-7 and aim at the armoured trucks (red arrows). Globs bounce off them. Refill at the crate by the tank.', hintAfter: 900,
+        pre() { killZpu(); M.nvgOK = true; squadWarp(SQ_TANK); M.squadAt = SQ_TANK; },
+        start() {
+          zone = []; bmps = []; M.squadAt = SQ_TANK;
+          crate = spawnPickup('crate', 58.6, 26.2); crate.onGet = () => { M.flags.gotJav = true; player.rockets = Math.max(player.rockets, 8); setWeapon('rocket'); announce('JAVELUBE', 'DILDO-7 · 8 rockets · aim at the armour', 36); say('VAS', 'Got it? Good. Light \'em up.', 140); };
+          M.goal = { x: 58.6, y: 26.2 };
+        },
+        tick() {
+          if (M.flags.gotJav && !M.flags.bmpIn) { M.flags.bmpIn = true; M.goal = null;
+            spawnBmp(82, 25, 71.5, 25); spawnBmp(66, 42, 66, 35.5, 500); spawnBmp(83, 35, 75.5, 35.2, 1000);
+            say('PECKER', 'Big Meaty Pickup, east side! Coming down the road!', 180);
+            wave([['condom', 76, 22], ['condom', 77, 29], ['chili', 75, 24]]); }
+          if (M.flags.bmpIn) {
+            if (M.stageT % 720 === 360 && zoneLeft().length < 5) wave([[pickOne(['condom', 'chili']), 77, rand(21, 37)], [pickOne(['crab', 'condom']), rand(48, 76), 37.5]]);
+            const nb = bmps.filter(b => !b.dead && b.delay <= 0); if (nb.length && t % 90 === 0) { const b2 = nb[0]; if (!b2.called) { b2.called = true; say(pickOne(['JIGGLES', 'RAMIREZ', 'DOOLEY']), b2.y > 33 ? (b2.x < 70 ? 'Pickup! South side, by the palm!' : 'Another Pickup, south-east!') : 'Pickup on the road, east!', 150); } }
+            // out of rockets: the crate refills
+            if (player.rockets <= 0 && (!crate || crate.got) && !M.flags.refillT) { M.flags.refillT = t; }
+            if (M.flags.refillT && t - M.flags.refillT > 90) { M.flags.refillT = 0; crate = spawnPickup('crate', 58.6, 26.2); crate.onGet = () => { player.rockets = 8; setWeapon('rocket'); announce('MORE JAVELUBE', '8 rockets', 26); }; say('VAS', 'Out of rockets? More in the crate by the tank!', 170); }
+          }
+        },
+        done: () => M.flags.bmpIn && bmps.length === 3 && bmps.every(b => b.dead),
+        end() { say('PECKER', 'That\'s all three! Beautiful! Main gun\'s unjammed. We\'re gonna try and rock her loose.', 240); say('VAS', 'Everybody around the tank! Nobody touches the Pecker!', 200); } },
+      // 6 — hold while WAR PECKER unsticks
+      { obj: 'Defend WAR PECKER while it rocks itself loose. Stay close to the tank.', at: [61, 25.4, -Math.PI / 2],
+        count: () => `Unsticking: ${Math.round(100 * (1 - M.timer / (60 * 120)))}% · Hostiles: ${aliveEnemies().filter(e => dist(e, tank) < 22).length}`, hint: 'They come from the north ruins, the east road and the south. WAR PECKER shoots the big groups. Grab lotion when you shrink.',
+        pre() { killZpu(); M.nvgOK = true; squadWarp(SQ_TANK); M.squadAt = SQ_TANK; for (const b of bmps) b.gone = true; },
+        start() {
+          zone = []; M.squadAt = SQ_TANK; tank.guns = true; tank.rof = 280;
+          M.timer = 60 * 120; M.timerLabel = 'UNSTICK'; M.onTimeout = () => { M.flags.free = true; }; M.flags.fw = t - 300; M.flags.wv = 0; player.nades = Math.max(player.nades, 3); player.rockets = Math.max(player.rockets, 3);
+          say('PECKER', 'Driver, rock it! Forward... back... forward... back...', 200);
+        },
+        tick() {
+          const f = t - M.flags.fw;
+          tank.rock = Math.sin(t * 0.08) * 0.06; if (t % 30 === 0 && dist(player, tank) < 14) { sfx('thud'); burst3d(tank.x + rand(-1.5, 1.5), tank.y + rand(-1, 1), 0.1, 4, 'drop', 0.06); }
+          if (f > 600 && !M.flags.free) { M.flags.fw = t; const w = M.flags.wv++;
+            const L = [
+              [['condom', 50, 20], ['condom', 58, 20.5], ['crab', 54, 20.5], ['chili', 47, 25]],
+              [['condom', 77, 23], ['condom', 77, 30], ['crab', 76, 26], ['bee', 74, 22]],
+              [['crab', 60, 37.5], ['crab', 66, 37.5], ['condom', 50, 37], ['chili', 71, 37.5]],
+              [['condom', 50, 20], ['condom', 77, 30], ['chili', 66, 20.5], ['bee', 55, 37], ['crab', 45.5, 27]],
+              [['condom', 77, 22], ['condom', 77, 36], ['crab', 60, 37.5], ['crab', 50, 20.5], ['chili', 74, 20.5], ['bee', 62, 20.5]],
+            ];
+            wave(L[Math.min(w, L.length - 1)], { sightMul: 5 });
+            const calls = [['VAS', 'Contact north! By the ruins!'], ['JIGGLES', 'East road! More of \'em!'], ['DOOLEY', 'South side! Crabs in the lube!'], ['RAMIREZ', 'They\'re coming from everywhere!'], ['VAS', 'Last push! Hold the line, Marines!']];
+            const c = calls[Math.min(w, calls.length - 1)]; say(c[0], c[1], 150);
+          }
+          if (M.timer < 60 * 55 && !M.flags.half) { M.flags.half = true; say('PECKER', 'She\'s moving! I felt it move! Keep them off us!', 180); say('JIGGLES', 'That\'s what she said.', 110); say('VAS', 'Jiggles.', 80); }
+          if (dist(player, tank) > 16 && t - (M.flags.farNag || -999) > 600) { M.flags.farNag = t; say('VAS', 'Jerkson! Get back to the tank!', 140); }
+        },
+        done: () => M.flags.free,
+        end() { M.timer = null; tank.rock = 0; shake = 14; sfx('boom'); burst3d(tank.x, tank.y, 0.3, 30, 'drop', 0.12); announce('THE PECKER IS OUT', 'with a very loud noise', 44); say('PECKER', 'WE\'RE FREE! WAR PECKER IS OUT OF THE BOG!', 200); say('VAS', 'Escort it east! Stay on the tank!', 170); } },
+      // 7 — escort it out
+      { obj: 'Escort WAR PECKER east out of the bog. It only moves while you\'re close.', at: [60, 25.6, 0],
+        count: () => `WAR PECKER: ${Math.round(100 * clamp((tank.x - TANK0[0]) / (TANK_END - TANK0[0]), 0, 1))}% out · ${dist(player, tank) < 8 ? 'moving' : 'WAITING FOR YOU'}`, hint: 'Walk alongside the tank. If you wander off it stops and waits.',
+        pre() { killZpu(); M.nvgOK = true; tank.guns = true; for (const b of bmps) b.gone = true; },
+        start() { zone = []; M.squadAt = null; M.goal = { x: 76, y: 26 }; M.flags.amb = 0; tank.restA = 0; },
+        tick() {
+          const close = dist(player, tank) < 8; M.goal = { x: Math.min(76, tank.x + 1.5), y: tank.y - 2.4 };
+          if (close && tank.x < TANK_END) { placeTank(Math.min(TANK_END, tank.x + 0.007 * ts)); if (t % 14 === 0) sfx('step'); }
+          M.squadAt = [[tank.x - 1.8, tank.y - 2.2], [tank.x + 0.6, tank.y - 2.3], [tank.x - 1.8, tank.y + 2.3], [tank.x + 0.6, tank.y + 2.4]].map(([x, y]) => walkNav(x, y) ? [x, y] : null);
+          if (tank.x > 65 && !M.flags.amb1) { M.flags.amb1 = true; wave([['condom', 77, 22], ['condom', 77, 33], ['chili', 76.5, 27], ['crab', 70, 37.5]], { sightMul: 5 }); say('RAMIREZ', 'Ambush! Up the road!', 140); }
+          if (tank.x > 70 && !M.flags.amb2) { M.flags.amb2 = true; wave([['condom', 77, 21], ['crab', 77, 30], ['bee', 76, 36], ['condom', 77, 37]], { sightMul: 5 }); say('VAS', 'Last of them! Keep that tank moving!', 150); }
+        },
+        done: () => tank.x >= TANK_END - 0.01 && aliveEnemies().filter(e => dist(e, tank) < 14).length === 0,
+        end() { M.goal = null; } },
+      // 8 — out
+      { obj: '', checkpoint: false,
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.outT = t; tank.guns = false; M.squadAt = [[72, 24.6], [73.5, 30.8], [70.5, 25], [70.8, 31.2]]; M.squadCut = true; for (const e of ents) if (e.kind === 'enemy') e.gone = true; },
+        tick() {
+          const f = t - M.flags.outT; player.a = lerpA(player.a, angleTo(player, M.squad[0]), 0.04); pitch = lerp(pitch, 0, 0.05);
+          if (f === 30) say('VAS', 'Good work, Marines. The Pecker is out.', 180);
+          if (f === 30) say('PECKER', 'Thanks for the extraction, boys. It was getting real sticky in there.', 220);
+          if (f === 30) say('JIGGLES', 'Hoo-rah.', 90);
+          if (f === 30) say('VAS', 'Jerkson. Never tell anyone we pulled the Pecker out of the Bog.', 240);
+          if (f > 860) M.blackOut = Math.min(1, (f - 860) / 60);
+          if (f > 900) M.fadeText = ['THE BOG', 'pecker: successfully pulled out'];
+          if (f > 700 && tank.x < 79) { tankBlock(false); tank.x += 0.02; }
+        },
+        done: () => t - M.flags.outT > 1080,
+        end() { M.blackOut = 0; M.fadeText = null; M.squadCut = false; } },
+    ],
+  };
+};
+
 // ---------- 4. NO RUSHIN' ----------
 const M4 = () => {
   // v4.6: the No Russian parody. Elevator with Jackoff's crew, "remember... no rushin'", a slow walk through the terminal, then the Pleasure Dome.
@@ -658,5 +941,5 @@ const M5 = () => {
     ],
   };
 };
-const MISSIONS = [M1, M2, M3, M4, M5];
+const MISSIONS = [M1, M2, M3, MB, M4, M5];
 

@@ -33,7 +33,7 @@ function drawTitle() {
     btn(W / 2 - bw - 10, y0, bw, bh, 'NEW GAME', newGame, isTouch ? '' : 'N');
     btn(W / 2 + 10, y0, bw, bh, 'CONTINUE', () => startBrief(unlockedM), `mission ${unlockedM}${isTouch ? '' : ' · SPACE'}`);
   } else btn(W / 2 - bw / 2, y0, bw, bh, 'NEW GAME', newGame, isTouch ? 'tap' : 'SPACE');
-  btn(W / 2 - bw - 10, y0 + 66, bw, bh, 'MISSION SELECT', () => { state = 'select'; }, `${unlockedM} of 5 unlocked`);
+  btn(W / 2 - bw - 10, y0 + 66, bw, bh, 'MISSION SELECT', () => { state = 'select'; }, `${unlockedM} of ${MISSIONS.length} unlocked`);
   btn(W / 2 + 10, y0 + 66, bw, bh, `DIFFICULTY: ${diff.toUpperCase()}`, () => { diff = diff === 'easy' ? 'regular' : 'easy'; save(); }, diff === 'easy' ? 'recommended. seriously.' : 'a few more enemies. still easy.');
   txt(isTouch ? 'left thumb: move · right thumb: look & tap to shoot' : 'WASD + mouse · click shoot · SPACE jump · R reload · G nut', W / 2, H - 38, 18, '#fff', 'center', null);
   txt('sequel to Cum of Duty: Wrong Hole', W / 2, H - 16, 14, '#ffd6e7', 'center', null);
@@ -44,15 +44,15 @@ function drawSelect() {
   buttons = [];
   skyBg('#4a1d3a', '#7a3fb5', '#c96bff');
   txt('MISSION SELECT', W / 2, 50, 44, YEL);
-  const cw = 172, ch = 250, gap = 12, x0 = (W - (cw * 5 + gap * 4)) / 2, y0 = 100;
-  for (let i = 0; i < 5; i++) {
+  const NM = MISSION_META.length, cw = NM > 5 ? 146 : 172, ch = 250, gap = NM > 5 ? 8 : 12, x0 = (W - (cw * NM + gap * (NM - 1))) / 2, y0 = 100;
+  for (let i = 0; i < NM; i++) {
     const m = MISSION_META[i], x = x0 + i * (cw + gap), open = i + 1 <= unlockedM, b = bestM[i + 1];
     rr(x, y0, cw, ch, 14); fs(open ? 'rgba(255,246,224,0.95)' : 'rgba(74,29,58,0.7)', open ? YEL : INK, 3);
     txt(`MISSION ${i + 1}`, x + cw / 2, y0 + 24, 16, open ? PINK : '#a08aa0', 'center', null);
     txtWrap(m.name, x + cw / 2, y0 + 52, 20, cw - 16, open ? INK : '#c0b0c0', 'center', null, 1.1);
-    txt(m.place, x + cw / 2, y0 + 100, 12, open ? '#7a3fb5' : '#a08aa0', 'center', null);
+    txtWrap(m.place, x + cw / 2, y0 + 100, 11, cw - 14, open ? '#7a3fb5' : '#a08aa0', 'center', null, 1.1);
     if (open) {
-      ctx.save(); ctx.translate(x + cw / 2, y0 + 190); m.icon(); ctx.restore();
+      ctx.save(); ctx.translate(x + cw / 2, y0 + (NM > 5 ? 184 : 190)); if (NM > 5) ctx.scale(0.8, 0.8); m.icon(); ctx.restore();
       txt(b ? b.rank : 'not yet attempted', x + cw / 2, y0 + 215, b ? 13 : 12, b ? PINK : '#8a7a8a', 'center', null);
       if (b) txt(`${b.kills} kills · ${Math.round(b.acc * 100)}% · ${Math.round(b.time)}s`, x + cw / 2, y0 + 234, 11, INK, 'center', null);
       buttons.push({ x, y: y0, w: cw, h: ch, fn: () => startBrief(i + 1) });
@@ -135,7 +135,7 @@ function drawClear() {
   rows.forEach(([l, v], i) => { txt(l, W / 2 - 60, 200 + i * 38, 22, '#7a3fb5', 'right', null); txt(String(v), W / 2 - 30, 200 + i * 38, 26, INK, 'left', null); });
   if (stateT > 40) { txt('RANK', W / 2, 330, 18, '#7a3fb5', 'center', null); txt(stats.rank, W / 2, 362, 40, YEL); txt(`"${stats.rankLine}"`, W / 2, 400, 20, INK, 'center', null); }
   ctx.restore();
-  if (stateT > 60 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? (missionIdx === 5 ? 'Tap for the credits' : `Tap for mission ${missionIdx + 1}`) : (missionIdx === 5 ? 'SPACE for the credits' : `SPACE for mission ${missionIdx + 1}`), W / 2, 500, 28, '#fff');
+  if (stateT > 60 && Math.floor(t / 30) % 2 === 0) txt(isTouch ? (missionIdx === MISSIONS.length ? 'Tap for the credits' : `Tap for mission ${missionIdx + 1}`) : (missionIdx === MISSIONS.length ? 'SPACE for the credits' : `SPACE for mission ${missionIdx + 1}`), W / 2, 500, 28, '#fff');
 }
 const CREDITS = ['CUM OF DUTY', 'MODERN WHARFARE', '', 'a Cock Carousel production', '', 'STARRING', 'You (a dick)', 'Captain Prick', 'Sarge', 'Soup · Gas · Gropes', 'Imran Jackoff (as himself)', '',
   'ENEMIES', 'the crabs', 'the bees', 'that one mousetrap', 'the Condom Troopers (they were just doing their job)', 'the chilis', 'an ice cube', '',
