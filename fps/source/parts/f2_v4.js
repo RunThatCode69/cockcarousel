@@ -158,7 +158,7 @@ function updateRockets() {
 
 // ---------- voices: the radio lines are read out by the browser's built-in speech synth, one voice per character ----------
 const VOICE = { on: (() => { try { return localStorage.getItem('mw_voices') !== '0'; } catch (e) { return true; } })(), primed: false };
-const VP = { PRICK: { p: 0.72, r: 0.95, gb: 1 }, MACMILLI: { p: 0.62, r: 0.86, gb: 1 }, SARGE: { p: 0.5, r: 1.1, gb: 1 }, JACKOFF: { p: 0.35, r: 0.8 }, PILOT: { p: 1.05, r: 1.15 }, SOUP: { p: 1.2, r: 1.1, gb: 1 }, GAS: { p: 0.95, r: 1.05, gb: 1 }, GROPES: { p: 0.85, r: 1.0, gb: 1 }, 'TV OP': { p: 0.9, r: 1.05 }, YOU: { p: 1.3, r: 1.1 }, VAS: { p: 0.8, r: 1.0, gb: 1 }, JIGGLES: { p: 1.15, r: 1.1, gb: 1 }, DOOLEY: { p: 1.0, r: 1.05, gb: 1 }, RAMIREZ: { p: 0.9, r: 1.1, gb: 1 }, PECKER: { p: 0.7, r: 1.0 } };
+const VP = { PRICK: { p: 0.72, r: 0.95, gb: 1 }, MACMILLI: { p: 0.62, r: 0.86, gb: 1 }, SARGE: { p: 0.5, r: 1.1, gb: 1 }, JACKOFF: { p: 0.35, r: 0.8 }, PILOT: { p: 1.05, r: 1.15 }, SOUP: { p: 1.2, r: 1.1, gb: 1 }, GAS: { p: 0.95, r: 1.05, gb: 1 }, GROPES: { p: 0.85, r: 1.0, gb: 1 }, 'TV OP': { p: 0.9, r: 1.05 }, YOU: { p: 1.3, r: 1.1 }, VAS: { p: 0.8, r: 1.0, gb: 1 }, JIGGLES: { p: 1.15, r: 1.1, gb: 1 }, DOOLEY: { p: 1.0, r: 1.05, gb: 1 }, RAMIREZ: { p: 0.9, r: 1.1, gb: 1 }, PECKER: { p: 0.7, r: 1.0 }, SACKMAN: { p: 0.6, r: 0.95, gb: 1 }, CHUCK: { p: 0.9, r: 1.0, gb: 1 }, GRINDER: { p: 1.1, r: 1.1, gb: 1 }, OVERLORD: { p: 0.8, r: 1.0 }, GRANOLA: { p: 1.0, r: 1.1 }, HOG: { p: 0.9, r: 1.1 } };
 // v4.7: real recorded-style lines (Kokoro TTS, generated offline into fps/voices/<hash>.mp3). Unknown lines just stay silent.
 let curVoice = null;
 const VBASE = location.protocol === 'file:' ? 'voices/' : '/fps/voices/';   // /fps is served without a trailing slash, so relative paths would miss
@@ -310,16 +310,16 @@ function squadTick() {
     const pd = dist(s, p); if (pd < 0.55 && pd > 0.001) moveBody(s, (s.x - p.x) / pd * 0.03, (s.y - p.y) / pd * 0.03, 0.28);
     for (const o of sq) { if (o === s) continue; const od = dist(s, o); if (od < 0.6 && od > 0.001) moveBody(s, (s.x - o.x) / od * 0.02, (s.y - o.y) / od * 0.02, 0.28); }
     // ---- shoot ----
-    let tg = null, td = M.squadRange || 10;
-    for (const e of foes) { const ed = dist(s, e); if (ed < td && losShot(s.x, s.y, e.x, e.y)) { td = ed; tg = e; } }
+    let tg = null, td = M.squadRange || 9;
+    for (const e of foes) { const ed = dist(s, e); if ((e.ai === 'chase' || ed < 5) && ed < td && losShot(s.x, s.y, e.x, e.y)) { td = ed; tg = e; } }
     if (tg) {
       s.faceA = Math.atan2(tg.x - s.x, tg.y - s.y);
       if (s.fireCd <= 0) {
-        const burst = 2 + ((Math.random() * 2) | 0);
-        for (let k = 0; k < burst; k++) { const a = angleTo(s, tg) + rand(-0.09, 0.09) * (1 + td / 6), v = 0.36; aglobs.push({ x: s.x + Math.cos(a) * 0.4, y: s.y + Math.sin(a) * 0.4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, y3: 0.62 + (tg.z || 0) * YS * 0.2, delay: k * 5, life: 60, by: s.name, dmg: M.squadDmg || 12 }); }
-        s.fireCd = rand(55, 100) * (M.squadCdMul || 1); s.attackT = 14;
-        if (pd < 12 && t - (s.sfxT || -99) > 8) { s.sfxT = t; sfx('shoot'); }
-        if (!s.saidContact && Math.random() < 0.5) { s.saidContact = true; chatter(s.name, pickOne(SQUAD_BARKS.contact), 120); }
+        const burst = 1 + (Math.random() < 0.4 ? 1 : 0);
+        for (let k = 0; k < burst; k++) { const a = angleTo(s, tg) + rand(-0.09, 0.09) * (1 + td / 6), v = 0.36; aglobs.push({ x: s.x + Math.cos(a) * 0.4, y: s.y + Math.sin(a) * 0.4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, y3: 0.62 + (tg.z || 0) * YS * 0.2, delay: k * 5, life: 60, by: s.name, dmg: M.squadDmg || 18 }); }
+        s.fireCd = rand(110, 190) * (M.squadCdMul || 1); s.attackT = 14;
+        if (t - (M.squadSfxT || -99) > 22) { M.squadSfxT = t; sfx(pd < 7 ? 'ashot' : 'ashotfar'); }
+        if (!s.saidContact && t - (M.barkT || -9999) > 60 * 30 && Math.random() < 0.5) { s.saidContact = true; M.barkT = t; chatter(s.name, pickOne(SQUAD_BARKS.contact), 120); }
       }
     } else { s.saidContact = false; s.faceA = dd > 0.6 ? Math.atan2(d.x - s.x, d.y - s.y) : (s.lookA !== undefined ? s.lookA : Math.atan2(Math.cos(p.a), Math.sin(p.a))); }
   });
@@ -329,7 +329,7 @@ function squadTick() {
     g.x += g.vx * ts; g.y += g.vy * ts; g.life -= ts;
     if (solid(g.x, g.y) && g.y3 < wallH(cell(g.x | 0, g.y | 0)) * YS) { g.life = 0; continue; }
     for (const e of ents) { if (!alive(e) || e.friendly || e.kind !== 'enemy' && !e.shootable) continue; if (dist(g, e) < e.r + 0.12) { g.life = 0; damageEnt(e, g.dmg, false, g.by);
-      if (e.dead && Math.random() < 0.4) chatter(g.by, pickOne(SQUAD_BARKS.kill), 110); break; } }
+      if (e.dead && t - (M.barkT || -9999) > 60 * 20 && Math.random() < 0.35) { M.barkT = t; chatter(g.by, pickOne(SQUAD_BARKS.kill), 110); } break; } }
   }
   aglobs = aglobs.filter(g => g.life > 0);
 }
@@ -361,4 +361,32 @@ function tankTick(tk) {
     const tx = tg.x, ty = tg.y; setTimeout(() => { if (state === 'game') explodeAt(tx, ty, 2.6, 260, 'WAR PECKER'); }, 120);
     if (Math.random() < 0.5) chatter('PECKER', pickOne(['Firing!', 'On the way!', 'Target! ...Target destroyed.', 'Main gun, fire!', 'Say hello to my big friend.', 'Pecker away!']), 110);
   }
+}
+
+// ================================================================
+//  v5.2: multi-map missions (rooftops → street → rubble), flashlights, a building that falls on you
+// ================================================================
+function swapMap(o) {   // o: { map, heights, tex, variants, floor, floorOf, roofs, indoor, areaGrade, outer, pal, props }
+  for (const e of ents) e.gone = true; ents = []; globs = []; eproj = []; aglobs = []; rockets = []; nades = []; puddles = []; parts3 = [];
+  for (const k of ['heights', 'tex', 'variants', 'floor', 'floorOf', 'roofs', 'indoor', 'areaGrade', 'outer', 'pal', 'ceil']) M[k] = o[k];
+  loadMap(o.map); flowF = null; M.goal = null; M.squad = null; M.squadAt = null;
+  disposeTree(dyn); dyn.clear(); for (const k in pools) { pools[k].free.length = 0; pools[k].used.length = 0; }
+  if (M.flash) { scene.remove(M.flash); scene.remove(M.flash.target); M.flash = null; }
+  buildLevel();
+  if (o.props) for (const [ty, x, y, op] of o.props) spawnProp(ty, x, y, op || {});
+  if (o.start) { player.x = o.start[0]; player.y = o.start[1]; player.a = o.start[2] || 0; }
+}
+function flashlight(on) {   // a torch on your gun, for the dark bits
+  if (on && !M.flash) { const l = new THREE.SpotLight('#fff4dc', 22, 18, 0.5, 0.6, 1.0); scene.add(l); scene.add(l.target); M.flash = l; }
+  if (!on && M.flash) { scene.remove(M.flash); scene.remove(M.flash.target); M.flash = null; }
+}
+function flashlightTick() {
+  const l = M.flash; if (!l || !player) return; const p = player, ca = Math.cos(p.a), sa = Math.sin(p.a), pt = Math.tan(pitch * PX2RAD);
+  l.position.set(p.x + ca * 0.2, camH * YS - 0.15, p.y + sa * 0.2); l.target.position.set(p.x + ca * 4, camH * YS - 0.15 + pt * 4, p.y + sa * 4); l.intensity = 21 + Math.sin(t * 0.7) * 1;
+}
+// a whole building as one object: a box of windows you can tilt over
+function makeTowerBlock(x, y, w, d, h, base = 0) {
+  const g = new THREE.Group(); const tx = windowTex(true); tx.repeat.set(w / 4, h / 8);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.9 })); m.position.y = h / 2; m.castShadow = true; g.add(m);
+  g.position.set(x, base, y); level.add(g); return g;
 }

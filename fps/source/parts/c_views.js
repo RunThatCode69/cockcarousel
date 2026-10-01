@@ -7,7 +7,7 @@ function bakeSign(name, text, sub, bg, fg) { SIGNS[name] = [text, sub, bg, fg]; 
 let boardN = 4, boardTex = null;
 function bakeBoard(n) { boardN = n; if (boardTex) { paintBoard(); boardTex.needsUpdate = true; } }
 function paintBoard() { const c = boardTex.image; const g = c.getContext('2d'); const old = A2.ctx; setCtx(g); g.clearRect(0, 0, 256, 140); rr(6, 6, 244, 128, 12); fs('#1a1a2a', INK, 6); txt('NOW SERVING', 128, 40, 26, CYAN, 'center', null); txt(String(boardN), 128, 96, 56, '#ff4d6d', 'center', null); setCtx(old); }
-const WHO_SPR = { PRICK: ['prick'], MACMILLI: ['mac'], SARGE: ['sarge'], SOUP: ['soup'], GAS: ['gas'], GROPES: ['gropes'], JACKOFF: ['boss', 'boss2'], VAS: ['vas'], JIGGLES: ['jiggles'], DOOLEY: ['dooley'], RAMIREZ: ['ramirez'] };
+const WHO_SPR = { PRICK: ['prick'], MACMILLI: ['mac'], SARGE: ['sarge'], SOUP: ['soup'], GAS: ['gas'], GROPES: ['gropes'], JACKOFF: ['boss', 'boss2'], VAS: ['vas'], JIGGLES: ['jiggles'], DOOLEY: ['dooley'], RAMIREZ: ['ramirez'], SACKMAN: ['vas'], CHUCK: ['gas'], GRINDER: ['gropes'] };
 const H3 = { crab: 0.32, bee: 0.95, condom: 0.6, chili: 0.55, ice: 0.4, trap: 0.1, target: 0.72, boss: 1.1 };   // where a glob should hit, per type (metres)
 const spriteCache = new Map();
 function spriteFromPainter(name, painter, pose = {}, additive = false) {

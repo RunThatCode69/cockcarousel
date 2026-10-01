@@ -100,6 +100,8 @@ v4 made every mission several times longer (about 5 minutes each for a first pla
    - Briefing behind a burning car, then a push up the street, shopfront by shopfront, until a second lot comes out of the apartments.
    - Lubeview Apartments: no power. **Night vision** (`N` / NVG button) turns it green. Room by room, with a counterattack from behind.
    - The overpass: stand next to the **Z-PUBE** anti-air gun to plant Cum-4, get clear, boom. Then the jets come in.
+   - The bridge: three T-69 tanks (a condom on every barrel) roll across. JAVELUBE them from the overpass and duck their shells behind the sandbags.
+   - The back alleys: tight lanes, chain-link, side yards, enemies coming up from the bog.
    - Down into the bog, around the lube puddles (they slow you down), to **WAR PECKER**, an M1 whose main gun is exactly what you'd expect.
    - The **JAVELUBE**: grab the DILDO-7 from the crate by the tank and take out three armoured **Big Meaty Pickups** (globs bounce off; the crate refills).
    - Hold around the tank for two minutes while it rocks itself loose. Its gun fires at the big groups now.
@@ -108,7 +110,15 @@ v4 made every mission several times longer (about 5 minutes each for a first pla
    - A silent elevator ride with Imran Jackoff's crew: "Remember... no rushin'."
    - A slow walk (no running) through Terminal 69, fighting off Condom Trooper airport security.
    - The crew walks into the Pleasure Dome, a club full of dancing women. Fade to black: "What happens in the Pleasure Dome stays in the Pleasure Dome."
-6. **GAME OVA** (Game Over). Bridge over the Tubes.
+6. **Scorched Girth** (Scorched Earth, MW3). Boinlin. Delta Forcefully: Sackman (Meatal 0-1), Chuck, Grinder, and you as Frosting. Told the way the original is: cold open first.
+   - Cold open: buried under the Hotel Gutentag. Mash `SPACE` / JUMP to dig out to Sackman. Then "20 MINUTES EARLIER".
+   - Black Hawks over the burning city to a rooftop. Floor 40 and floor 39 of an office tower, cubicle by cubicle, joined by a stairwell.
+   - The roof yard, then **overwatch** with the scoped DICK-50 cal: shoot down into the street to save Granola team.
+   - **Paint three T-69s** for the Wart-Hog gun runs (hold your scope on each tank). The tower across the street leans, then falls.
+   - Ropes down to the boulevard. Push up past Deutsche Bonk with WAR PECKER (back from the bog).
+   - The kill zone: "Get out of the kill zone! Head for the building!" You sprint for the hotel lobby, and it comes down on you.
+   - The collapsed basement by flashlight, crabs in the walls, up the TREPPE, a slow-motion breach, and out into daylight.
+7. **GAME OVA** (Game Over). Bridge over the Tubes.
    - A much longer truck ride, with the **HUNG-24** chasing you (you can shoot it down) and pursuit trucks unloading crabs.
    - The truck crashes. Get to Prick behind the wreck and **hold for 60 seconds** as they come down the bridge.
    - The tanker blows, then the crawl, the executions, the pistol slide, one slow-motion glob and the credits.
@@ -117,7 +127,7 @@ Each mission opens with a typewriter briefing over a "satellite map" (it's a scr
 
 ## Progression
 
-`localStorage`: `mw_unlocked` (highest mission unlocked; v5 moves old progress past mission 3 up one slot, `mw_v5` marks that as done), `mw_best` (best stats per mission), `mw_diff`. Title screen has New Game / Continue / Mission Select and a difficulty toggle: **Easy** (default) or **Regular** (about 40% more enemies in each wave, slightly more damage).
+`localStorage`: `mw_unlocked` (highest mission unlocked; v5 and v5.2 move old progress up a slot each time a mission is inserted; `mw_v5`/`mw_v6` mark that as done), `mw_best` (best stats per mission), `mw_diff`. Title screen has New Game / Continue / Mission Select and a difficulty toggle: **Easy** (default) or **Regular** (about 40% more enemies in each wave, slightly more damage).
 
 ## Testing
 

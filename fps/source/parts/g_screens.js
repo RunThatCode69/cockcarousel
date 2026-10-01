@@ -44,7 +44,7 @@ function drawSelect() {
   buttons = [];
   skyBg('#4a1d3a', '#7a3fb5', '#c96bff');
   txt('MISSION SELECT', W / 2, 50, 44, YEL);
-  const NM = MISSION_META.length, cw = NM > 5 ? 146 : 172, ch = 250, gap = NM > 5 ? 8 : 12, x0 = (W - (cw * NM + gap * (NM - 1))) / 2, y0 = 100;
+  const NM = MISSION_META.length, cw = NM > 6 ? 128 : NM > 5 ? 146 : 172, ch = 250, gap = NM > 6 ? 6 : NM > 5 ? 8 : 12, x0 = (W - (cw * NM + gap * (NM - 1))) / 2, y0 = 100;
   for (let i = 0; i < NM; i++) {
     const m = MISSION_META[i], x = x0 + i * (cw + gap), open = i + 1 <= unlockedM, b = bestM[i + 1];
     rr(x, y0, cw, ch, 14); fs(open ? 'rgba(255,246,224,0.95)' : 'rgba(74,29,58,0.7)', open ? YEL : INK, 3);
@@ -52,7 +52,7 @@ function drawSelect() {
     txtWrap(m.name, x + cw / 2, y0 + 52, 20, cw - 16, open ? INK : '#c0b0c0', 'center', null, 1.1);
     txtWrap(m.place, x + cw / 2, y0 + 100, 11, cw - 14, open ? '#7a3fb5' : '#a08aa0', 'center', null, 1.1);
     if (open) {
-      ctx.save(); ctx.translate(x + cw / 2, y0 + (NM > 5 ? 184 : 190)); if (NM > 5) ctx.scale(0.8, 0.8); m.icon(); ctx.restore();
+      ctx.save(); ctx.translate(x + cw / 2, y0 + (NM > 5 ? 184 : 190)); if (NM > 5) ctx.scale(NM > 6 ? 0.72 : 0.8, NM > 6 ? 0.72 : 0.8); m.icon(); ctx.restore();
       txt(b ? b.rank : 'not yet attempted', x + cw / 2, y0 + 215, b ? 13 : 12, b ? PINK : '#8a7a8a', 'center', null);
       if (b) txt(`${b.kills} kills · ${Math.round(b.acc * 100)}% · ${Math.round(b.time)}s`, x + cw / 2, y0 + 234, 11, INK, 'center', null);
       buttons.push({ x, y: y0, w: cw, h: ch, fn: () => startBrief(i + 1) });

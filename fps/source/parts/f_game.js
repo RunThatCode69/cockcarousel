@@ -5,9 +5,11 @@
 const MAG = 12, DMG = 35, GLOB_SPEED = 0.3;
 let state = 'title', player = null, ents = [], globs = [], eproj = [], puddles = [], stats = null, stateT = 0;
 let unlockedM = 1, bestM = {}, diff = 'easy', deathQuote = ['', ''], deathTitle = 'YOU DIED', pauseFrom = null, missionIdx = 1;
-try { unlockedM = clamp(+localStorage.getItem('mw_unlocked') || 1, 1, 6);
+try { unlockedM = clamp(+localStorage.getItem('mw_unlocked') || 1, 1, 7);
   // v5: The Bog slots in as mission 4, so anyone who'd already unlocked No Rushin' keeps everything after it
-  if (!localStorage.getItem('mw_v5')) { if (unlockedM >= 4) unlockedM = Math.min(6, unlockedM + 1); const b = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; const nb = {}; for (const k in b) nb[+k >= 4 ? +k + 1 : k] = b[k]; localStorage.setItem('mw_best', JSON.stringify(nb)); localStorage.setItem('mw_unlocked', unlockedM); localStorage.setItem('mw_v5', '1'); } } catch (e) {}
+  if (!localStorage.getItem('mw_v5')) { if (unlockedM >= 4) unlockedM = Math.min(7, unlockedM + 1); const b = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; const nb = {}; for (const k in b) nb[+k >= 4 ? +k + 1 : k] = b[k]; localStorage.setItem('mw_best', JSON.stringify(nb)); localStorage.setItem('mw_unlocked', unlockedM); localStorage.setItem('mw_v5', '1'); }
+  // v5.2: Scorched Girth slots in as mission 6, before GAME OVA
+  if (!localStorage.getItem('mw_v6')) { if (unlockedM >= 6) unlockedM = Math.min(7, unlockedM + 1); const b = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; const nb = {}; for (const k in b) nb[+k >= 6 ? +k + 1 : k] = b[k]; localStorage.setItem('mw_best', JSON.stringify(nb)); localStorage.setItem('mw_unlocked', unlockedM); localStorage.setItem('mw_v6', '1'); } } catch (e) {}
 try { bestM = JSON.parse(localStorage.getItem('mw_best') || '{}') || {}; } catch (e) {}
 try { diff = localStorage.getItem('mw_diff') === 'regular' ? 'regular' : 'easy'; } catch (e) {}
 const save = () => { try { localStorage.setItem('mw_unlocked', unlockedM); localStorage.setItem('mw_best', JSON.stringify(bestM)); localStorage.setItem('mw_diff', diff); } catch (e) {} };
@@ -63,10 +65,10 @@ function bestTarget(cone = 0.27 - 0.08 * (player ? player.ads : 0) + 0.08) {
   const p = player; let best = null, bd = 1e9;
   for (const e of ents) {
     if (!alive(e)) continue;
-    const d = dist(p, e); if (d > 20) continue;
+    const d = dist(p, e); if (d > (M.scope && p.ads > 0.6 ? 48 : 20)) continue;
     const da = Math.abs(wrapA(angleTo(p, e) - p.a));
     { const cy = (e.z || 0) * YS + (H3[e.type] !== undefined ? H3[e.type] : 0.6), elev = Math.atan2(cy - camH * YS, Math.max(0.3, d)); if (Math.abs(elev - pitch * PX2RAD) > 0.45 + 0.6 / Math.max(0.5, d)) continue; }   // you do have to look roughly at it
-    if (da < cone + 0.25 / Math.max(1, d) && losShot(p.x, p.y, e.x, e.y) && d < bd) { best = e; bd = d; }
+    if (da < cone + 0.25 / Math.max(1, d) && ((e.z || 0) < -1 || losShot(p.x, p.y, e.x, e.y)) && d < bd) { best = e; bd = d; }
   }
   return best;
 }
@@ -87,7 +89,8 @@ function fire() {
   // the glob leaves the muzzle (a bit below eye level) and arcs toward the target's body, or along your aim if there's no target
   const y0 = camH * YS - 0.12, dd = tgt ? Math.max(0.5, dist(p, tgt)) : 12;
   const y1 = tgt ? (tgt.z || 0) * YS + (H3[tgt.type] !== undefined ? H3[tgt.type] : 0.6) : y0 + Math.tan(pitch * PX2RAD) * dd;
-  globs.push({ x: p.x + Math.cos(p.a) * 0.3, y: p.y + Math.sin(p.a) * 0.3, vx: Math.cos(a) * GLOB_SPEED, vy: Math.sin(a) * GLOB_SPEED, life: 90, spr: 'glob', z: 0.35, y3: y0, vy3: (y1 - y0) / (dd / GLOB_SPEED), h: 0.35, w: 0.35, seed: 0, near: 0.7, tgt });
+  const gsp = M.scope && p.ads > 0.6 ? 0.75 : GLOB_SPEED;   // scoped: a fast, long glob (the DICK-50 CAL)
+  globs.push({ x: p.x + Math.cos(p.a) * 0.3, y: p.y + Math.sin(p.a) * 0.3, vx: Math.cos(a) * gsp, vy: Math.sin(a) * gsp, life: gsp > GLOB_SPEED ? 80 : 90, spr: 'glob', z: 0.35, y3: y0, vy3: (y1 - y0) / (dd / gsp), h: 0.35, w: 0.35, seed: 0, near: 0.7, tgt });
   sfx('shoot');
   if (p.ammo === 0 && M.state !== 'showdown') setTimeout(() => { if (state === 'game' && player === p && p.ammo === 0) reload(); }, 250);
 }
@@ -218,7 +221,7 @@ function updatePlayer() {
   if (M.state === 'cut') { turn = 0; look.dp = 0; }
   // vertical look (y-shearing, like Duke3D): the whole world slides, the gun follows
   if (M.state === 'play' || M.state === 'rails' || M.state === 'showdown') {
-    p.lookP = clamp(p.lookP + look.dp, -190, 170); look.dp = 0;
+    p.lookP = clamp(p.lookP + look.dp, M.lookDown || -190, 170); look.dp = 0;
     p.kick = lerp(p.kick, 0, 0.12);
     pitch = p.lookP + p.kick;
   } else look.dp = 0;
@@ -284,8 +287,9 @@ function updatePlayer() {
 function updateGlobs() {
   for (const g of globs) {
     const nx = g.x + g.vx * ts, ny = g.y + g.vy * ts;
-    if (solid(nx, ny) && g.y3 < wallH(cell(nx | 0, ny | 0)) * YS) { g.life = 0; sfx('splat'); wallSplat(g); continue; }
-    if (g.y3 < 0) { g.life = 0; sfx('splat'); spawnDeco('splat', g.x, g.y, 0.35, 0.35, { z: 0, fade: 500 }); continue; }
+    const down = g.tgt && (g.tgt.z || 0) < -1;   // a shot at the street below: it goes over the parapet and doesn't splat on the roof
+    if (solid(nx, ny) && g.y3 < wallH(cell(nx | 0, ny | 0)) * YS && !(down && cell(nx | 0, ny | 0) === 'X')) { g.life = 0; sfx('splat'); wallSplat(g); continue; }
+    if (g.y3 < 0 && !((down || cell(g.x | 0, g.y | 0) === '_') && g.y3 > -30)) { g.life = 0; sfx('splat'); spawnDeco('splat', g.x, g.y, 0.35, 0.35, { z: 0, fade: 500 }); continue; }
     g.x = nx; g.y = ny; g.life -= ts; g.y3 += g.vy3 * ts; g.z = g.y3 / YS;
     for (const e of ents) {
       if (!alive(e)) continue;
@@ -317,7 +321,7 @@ function updateEnemies() {
     }
     if (e.fade !== undefined) { e.fade -= ts; if (e.fade < 60) e.alpha = clamp(e.fade / 60, 0, 1); if (e.fade <= 0) e.gone = true; continue; }
     if (e.kind !== 'enemy' || e.dead) continue;
-    const d = ENEMY[e.type];
+    const d0 = ENEMY[e.type], d = e.rangeMul ? Object.assign({}, d0, { range: d0.range * e.rangeMul }) : d0;
     e.hurtT -= ts; e.attackT -= ts; e.cd -= ts; if (M.squad && e.faceA !== undefined && e.attackT <= 0) e.faceA = undefined;
     if (e.frozen) continue;
     const dd = dist(e, p);
@@ -357,9 +361,9 @@ function updateEnemies() {
     for (const o of ents) { if (o === e || o.kind !== 'enemy' || o.dead) continue; const od = dist(e, o); if (od < 0.7 && od > 0.001) { const ax = (e.x - o.x) / od * 0.01, ay = (e.y - o.y) / od * 0.01; moveBody(e, ax, ay, e.r); } }
     if (d.aura && dd < d.aura) p.shrink = 3;
     // attack
-    if (e.cd <= 0 && d.atk === 'ranged' && M.squad && Math.random() < 0.45) {   // v5: with a squad around, they shoot at them too
+    if (e.cd <= 0 && d.atk === 'ranged' && M.squad && Math.random() < 0.25) {   // v5: with a squad around, they shoot at them too
       let tg = null, td = d.range * 1.3; for (const s of M.squad) { const sd = dist(e, s); if (sd < td && losShot(e.x, e.y, s.x, s.y)) { td = sd; tg = s; } }
-      if (tg && td < dd) { const ta = angleTo(e, tg), v = d.proj === 'condomshot' ? 0.065 : 0.11; e.cd = d.cd; e.attackT = 22; e.faceA = Math.atan2(tg.x - e.x, tg.y - e.y); eproj.push({ x: e.x, y: e.y, vx: Math.cos(ta) * v, vy: Math.sin(ta) * v, life: Math.min(160, td / v + 4), dmg: d.dmg, spr: d.proj, z: 0.5, h: 0.25, w: 0.35, seed: 0, atAlly: tg }); sfx(d.proj === 'condomshot' ? 'fwip' : 'sting'); continue; }
+      if (tg && td < dd) { const ta = angleTo(e, tg), v = d.proj === 'condomshot' ? 0.065 : 0.11; e.cd = d.cd; e.attackT = 22; e.faceA = Math.atan2(tg.x - e.x, tg.y - e.y); eproj.push({ x: e.x, y: e.y, vx: Math.cos(ta) * v, vy: Math.sin(ta) * v, life: Math.min(160, td / v + 4), dmg: d.dmg, spr: d.proj, z: 0.5, h: 0.25, w: 0.35, seed: 0, atAlly: tg }); if (dd < 8) sfx(d.proj === 'condomshot' ? 'fwip' : 'sting'); continue; }
     }
     if (e.cd <= 0 && dd < d.range && (d.atk === 'ranged' ? clearShot : los(e.x, e.y, p.x, p.y))) { e.faceA = undefined;
       e.cd = d.cd * (diff === 'regular' ? 0.85 : 1); e.attackT = 22;
@@ -377,6 +381,7 @@ function updateEnemies() {
 // ---------- the nut-nade: CoD's frag, but it's one ball ----------
 let nades = [];
 function jump() {
+  if (M && M.dig !== undefined && state === 'game') { M.dig++; shake = Math.max(shake, 3); sfx('step'); return; }   // v5.2: mash to dig yourself out
   const p = player; if (!p || state !== 'game' || M.state !== 'play' || !p.canMove || p.jz > 0 || p.jv > 0) return;
   if (p.crouch) { p.crouch = false; return; }   // like CoD: jump stands you up first
   p.jv = 0.07; p.jz = 0.001; sfx('bounce');

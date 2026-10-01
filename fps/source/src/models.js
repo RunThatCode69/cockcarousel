@@ -473,8 +473,8 @@ export const PROP3D = {
       const d = makeDick({ scale: 0.55 }); d.position.set(Math.cos(a) * 1.8, 1.0 + (i % 2) * 0.3, Math.sin(a) * 1.8); d.rotation.y = -a; spin.add(d); }
     g.userData.spin = spin; return g; },
   // v5 — WAR PECKER: an Abrams-ish tank whose main gun is exactly what you think. Nose +x. userData.turret spins, userData.barrel recoils.
-  tank: () => { const g = new THREE.Group(), sand = toon('#8c8460'), dk = toon('#5e5a44'), trk = toon('#26262a');
-    const side = canvasMat(256, 64, () => { ctx.fillStyle = '#8c8460'; ctx.fillRect(0, 0, 256, 64); txt('WAR PECKER', 128, 34, 30, '#1e1e24', 'center', null); });
+  tank: (o = {}) => { const g = new THREE.Group(), sand = toon(o.hull || '#8c8460'), dk = toon(o.dark || '#5e5a44'), trk = toon('#26262a');
+    const side = canvasMat(256, 64, () => { ctx.fillStyle = o.hull || '#8c8460'; ctx.fillRect(0, 0, 256, 64); txt(o.name || 'WAR PECKER', 128, 34, 30, o.nameC || '#1e1e24', 'center', null); });
     g.add(at(ink(G.box(3.5, 0.55, 1.9), sand, 0.03), 0, 0.72, 0));
     const hs = ink(G.box(3.1, 0.3, 1.92), side, 0.02); hs.position.set(-0.1, 0.66, 0); g.add(hs);
     g.add(at(ink(G.box(0.7, 0.35, 1.8), dk, 0.03), 1.65, 0.62, 0)); g.children[g.children.length - 1].rotation.z = -0.5;
@@ -484,11 +484,16 @@ export const PROP3D = {
     turret.add(at(ink(G.cyl(0.04, 0.04, 0.8, 6), toon('#2a2a2e')), -0.4, 0.95, -0.35));   // antenna
     const barrel = new THREE.Group(); barrel.position.set(0.8, 0.3, 0); turret.add(barrel);
     barrel.add(sphere(0.2, SKIN2, 0.02, -0.02, -0.17)); barrel.add(sphere(0.2, SKIN2, 0.02, -0.02, 0.17));   // the, uh, mantlet
-    const sh = ink(G.cap(0.13, 1.7), toon(SKIN), 0.02); sh.rotation.z = -Math.PI / 2; sh.position.set(1.05, 0.02, 0); barrel.add(sh);
-    const tip = sphere(0.17, HEAD, 2.0, 0.02, 0, 1.2, 0.95, 0.95); barrel.add(tip);
+    const sh = ink(G.cap(0.13, 1.7), toon(o.shaft || SKIN), 0.02); sh.rotation.z = -Math.PI / 2; sh.position.set(1.05, 0.02, 0); barrel.add(sh);
+    const tip = sphere(0.17, o.tip || HEAD, 2.0, 0.02, 0, 1.2, 0.95, 0.95); barrel.add(tip);
     for (const [y, z] of [[0.13, 0.03], [-0.02, 0.12], [0.06, -0.12]]) { const v = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1.2, 6), toon('#c86a86')); v.rotation.z = Math.PI / 2; v.position.set(0.95, y, z); barrel.add(v); }
     turret.add(at(new THREE.Mesh(G.sph, new THREE.MeshBasicMaterial({ color: '#fff6c8' })), 0.7, 0.35, 0.55, 0.08, 0.08, 0.08));   // searchlight
+    const hl = new THREE.MeshBasicMaterial({ color: o.lightC || '#fff2c8', fog: false });
+    for (const z of [-0.6, 0.6]) g.add(at(new THREE.Mesh(G.box(0.06, 0.12, 0.22), hl), 1.78, 0.86, z));   // headlights: you can find it at night
+    if (o.marker) turret.add(at(new THREE.Mesh(G.sph, new THREE.MeshBasicMaterial({ color: o.marker, fog: false })), -0.9, 0.62, 0, 0.07, 0.07, 0.07));
     g.userData.turret = turret; g.userData.barrel = barrel; return g; },
+  // v5.1 — the enemy's T-69: same idea, but green-grey, and its gun is wearing a condom (of course it is)
+  etank: () => { const g = PROP3D.tank({ hull: '#8e9a7c', dark: '#5e6a52', marker: '#ff3040', lightC: '#ffd890', name: 'T-69', nameC: '#e84a3a', shaft: '#bfe6ff', tip: '#9fd4f4' }); return g; },
   // v5 — the Z-PUBE: quad anti-air gun on a little trailer, with a lot of hair on it
   zpu: () => { const g = new THREE.Group(), olive = toon('#5a5e46'); g.add(at(ink(G.box(1.4, 0.18, 1.0), olive), 0, 0.42, 0));
     for (const z of [-0.5, 0.5]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.14, 14), toon('#26262a')); w.rotation.x = Math.PI / 2; w.position.set(0, 0.3, z); g.add(w); }

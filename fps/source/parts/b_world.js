@@ -2,7 +2,7 @@
 // ================================================================
 //  WORLD — grid collision (same as v2), three.js scene, level builder, sky, lights, nav line, entity sync
 // ================================================================
-const WALLS = '#ABCGPXVj', NOWALK = '~';   // j = a hurdle (a low wall you can jump), w = barbed wire (crawl under), t = tires
+const WALLS = '#ABCGPXVj', NOWALK = '~_';   // _ = a drop (nothing there: the street is way down below)   // j = a hurdle (a low wall you can jump), w = barbed wire (crawl under), t = tires
 const YS = 1.6;                    // one old "wall unit" of height in metres-ish: eye height = camH * YS
 const PX2RAD = 0.004;              // v2 pitch was in screen pixels; this turns it into radians
 let M = null, map = [], MW = 0, MH = 0, mini = null, blocked = null;
@@ -234,8 +234,19 @@ function rebuildWalls() {
 }
 function floorMesh() {
   const g = new THREE.Group();
-  const main = new THREE.Mesh(new THREE.PlaneGeometry(MW, MH), new THREE.MeshStandardMaterial({ map: texOf(M.floor, [MW / 1.5, MH / 1.5]), roughness: 0.95 }));
-  main.rotation.x = -Math.PI / 2; main.position.set(MW / 2, 0, MH / 2); main.receiveShadow = true; g.add(main);
+  const hasVoid = map.some(r => r.includes('_'));
+  if (!hasVoid) {
+    const main = new THREE.Mesh(new THREE.PlaneGeometry(MW, MH), new THREE.MeshStandardMaterial({ map: texOf(M.floor, [MW / 1.5, MH / 1.5]), roughness: 0.95 }));
+    main.rotation.x = -Math.PI / 2; main.position.set(MW / 2, 0, MH / 2); main.receiveShadow = true; g.add(main);
+  } else {   // v5.2: rooftops. Floor only where there's something to stand on; '_' cells are a drop to the street
+    const geos = []; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (map[y][x] === '_') continue; const p = new THREE.PlaneGeometry(1, 1); p.rotateX(-Math.PI / 2); p.translate(x + 0.5, 0, y + 0.5);
+      const uv = p.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (x + uv.getX(i)) / 1.5, (MH - y - 1 + uv.getY(i)) / 1.5); geos.push(p); }
+    const tx = texOf(M.floor, [1, 1]);
+    const main = new THREE.Mesh(mergeGeometries(geos), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.95 })); main.receiveShadow = true; g.add(main);
+    // the roof edge: a slab under the floor so the drop has a side to it
+    const slabs = []; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (map[y][x] === '_') continue; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (cell(x + dx, y + dy) === '_') { const b = new THREE.BoxGeometry(1, 3, 1); b.translate(x + 0.5, -1.5, y + 0.5); slabs.push(b); break; } }
+    if (slabs.length) { const sm = new THREE.Mesh(mergeGeometries(slabs), new THREE.MeshStandardMaterial({ map: texOf('concrete', [1, 2]), roughness: 1 })); g.add(sm); }
+  }
   // special floor cells: grass, water, steps, walkway, per-level overrides
   const by = new Map();
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
@@ -384,7 +395,7 @@ function buildOuter(o) {
     g.add(instanced(leaves, MD.toon('#24402a'), pts, r => 1.1 + r * 0.9));
     ringPositions(9, 30, 55, 21).forEach(([x, y, r]) => g.add(makeBlock(x, y, 8 + r * 10, 6, false)));
   }
-  if (o.ring === 'city') ringPositions(34, 16, 70, 31).forEach(([x, y, r]) => g.add(makeBlock(x, y, 10 + r * 30, 5 + r * 4, true)));
+  if (o.ring === 'city') ringPositions(o.count || 34, o.near || 16, 70, 31).forEach(([x, y, r]) => { const b = makeBlock(x, y, 10 + r * 30, 5 + r * 4, true); b.position.y += o.groundY || 0; g.add(b); });
   if (o.ring === 'base' || o.ring === 'mountains') {
     const trunk = new THREE.CylinderGeometry(0.12, 0.18, 1.6, 6); trunk.translate(0, 0.8, 0);
     const leaves = mergeGeometries([new THREE.ConeGeometry(1.1, 1.8, 7).translate(0, 2.0, 0), new THREE.ConeGeometry(0.85, 1.5, 7).translate(0, 2.8, 0), new THREE.ConeGeometry(0.55, 1.2, 7).translate(0, 3.5, 0)]);

@@ -21,6 +21,12 @@ CAST = {
   'DOOLEY':   ('am_liam', 1.1, 'en-us', True),
   'RAMIREZ':  ('am_eric', 1.08, 'en-us', True),
   'PECKER':   ('am_santa', 1.0, 'en-us', True),
+  'SACKMAN':  ('am_onyx', 0.95, 'en-us', True),
+  'CHUCK':    ('am_echo', 1.0, 'en-us', True),
+  'GRINDER':  ('am_puck', 1.1, 'en-us', True),
+  'OVERLORD': ('am_michael', 1.0, 'en-us', True),
+  'GRANOLA':  ('am_liam', 1.08, 'en-us', True),
+  'HOG':      ('am_eric', 1.1, 'en-us', True),
 }
 lines = json.load(open(os.path.join(os.path.dirname(__file__), 'lines.json')))
 for i, l in enumerate(lines):
@@ -30,7 +36,7 @@ for i, l in enumerate(lines):
     text = l['text'].replace('...', ', ').replace('—', ', ')
     if not any(c.isalpha() for c in text): text = 'Hmm.'
     samples, sr = k.create(text, voice=v, speed=sp, lang=lang)
-    tmp = dst + '.wav'; sf.write(tmp, samples, sr)
+    tmp = os.path.join(os.environ.get('VOICE_TMP', '/tmp'), os.path.basename(dst) + '.wav'); sf.write(tmp, samples, sr)
     af = 'highpass=f=280,lowpass=f=3600,acompressor=threshold=-18dB:ratio=4,volume=1.6' if radio else 'highpass=f=80,acompressor=threshold=-20dB:ratio=3'
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmp, '-af', af, '-ac', '1', '-ar', '24000', '-b:a', '40k', dst], check=True)
     os.remove(tmp); print(i, l['who'], l['text'][:40], flush=True)

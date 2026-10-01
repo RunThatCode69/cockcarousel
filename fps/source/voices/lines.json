@@ -1898,5 +1898,810 @@
 "id": "a96ccd5a",
 "who": "VAS",
 "text": "Got the last one from over here. Move on, son."
+},
+{
+"id": "6e6a7076",
+"who": "VAS",
+"text": "Tank down! Good kill, Jerkson!"
+},
+{
+"id": "6a34a16d",
+"who": "VAS",
+"text": "T-69 is toast!"
+},
+{
+"id": "481ea81c",
+"who": "VAS",
+"text": "Direct hit! He's done!"
+},
+{
+"id": "d00a2bd4",
+"who": "JIGGLES",
+"text": "Tank's firing! Get behind the barriers!"
+},
+{
+"id": "f6e2b459",
+"who": "DOOLEY",
+"text": "Tank's firing! Get behind the barriers!"
+},
+{
+"id": "9828a16a",
+"who": "DOOLEY",
+"text": "Armour! T-69s, coming across the bridge!"
+},
+{
+"id": "102c2821",
+"who": "VAS",
+"text": "Jerkson! JAVELUBE, in the crate! Get it on those tanks!"
+},
+{
+"id": "4f8b8e8e",
+"who": "VAS",
+"text": "More rockets in the crate! South side!"
+},
+{
+"id": "796789d0",
+"who": "VAS",
+"text": "Bridge is clear! Nice shooting, Marine."
+},
+{
+"id": "2e41acf7",
+"who": "VAS",
+"text": "We go down the back way. Alleys, behind the overpass. Stay tight."
+},
+{
+"id": "48e24d79",
+"who": "JIGGLES",
+"text": "Yard on the right! Watch the windows!"
+},
+{
+"id": "fcddbac3",
+"who": "RAMIREZ",
+"text": "Coming up from the bog!"
+},
+{
+"id": "4b695e57",
+"who": "VAS",
+"text": "Tight corners. Nut the next one before you go round it."
+},
+{
+"id": "727e4fdb",
+"who": "PECKER",
+"text": "Friendlies coming out of the alleys! About time! This is WAR PECKER. We are stuck. We are SO stuck."
+},
+{
+"id": "c85d235d",
+"who": "PECKER",
+"text": "Main gun's gummed up. Big Meaty Pickups inbound from the east. Your JAVELUBE guy, is he any good?"
+},
+{
+"id": "10f2974e",
+"who": "VAS",
+"text": "He's alright. Jerkson, more rockets in the crate by the tank."
+},
+{
+"id": "b9817ee7",
+"who": "SACKMAN",
+"text": "Frosting! FROSTING! Can you hear me?"
+},
+{
+"id": "c766965b",
+"who": "SACKMAN",
+"text": "Grab my hand! Dig, man! DIG! (mash JUMP)"
+},
+{
+"id": "80c9e91d",
+"who": "SACKMAN",
+"text": "Grab my hand! Dig, man! DIG! (mash SPACE)"
+},
+{
+"id": "bc9dc0a4",
+"who": "GRINDER",
+"text": "He's alive! Barely. Ish."
+},
+{
+"id": "2a5dfac6",
+"who": "SACKMAN",
+"text": "Meatal 0-1 to Overlord. We are under a building. ...Again."
+},
+{
+"id": "2c09209f",
+"who": "OVERLORD",
+"text": "Meatal 0-1, Overlord. The eggplant is in the Hotel Gutentag. Bring it home."
+},
+{
+"id": "2aea1c3c",
+"who": "SACKMAN",
+"text": "Copy. Meatal team, two minutes. Lock and load."
+},
+{
+"id": "7de5c325",
+"who": "CHUCK",
+"text": "I lock. I load. I'm a professional."
+},
+{
+"id": "956ae340",
+"who": "GRINDER",
+"text": "Is it true the whole city smells like bratwurst?"
+},
+{
+"id": "27ca13f7",
+"who": "PILOT",
+"text": "Thirty seconds! Rooftop LZ!"
+},
+{
+"id": "e1933bc7",
+"who": "SACKMAN",
+"text": "Feet dry, dicks wet. GO!"
+},
+{
+"id": "0bef4fa0",
+"who": "SACKMAN",
+"text": "Stack up on the door. We take the floor, then the stairs."
+},
+{
+"id": "b5eeab3d",
+"who": "GRINDER",
+"text": "Cubicles. My personal hell."
+},
+{
+"id": "0e2843a2",
+"who": "CHUCK",
+"text": "Somebody's lunch is still in the microwave. ...It's a bratwurst."
+},
+{
+"id": "fa452ce7",
+"who": "SACKMAN",
+"text": "More coming up the stairwell!"
+},
+{
+"id": "540fd0c7",
+"who": "SACKMAN",
+"text": "Floor's clear. Stairwell, south-east corner. Down to thirty-nine."
+},
+{
+"id": "736743ce",
+"who": "GRINDER",
+"text": "Behind the copier!"
+},
+{
+"id": "601945e5",
+"who": "CHUCK",
+"text": "Coming in from the roof door!"
+},
+{
+"id": "ce8669a4",
+"who": "SACKMAN",
+"text": "Roof door. Go!"
+},
+{
+"id": "81ace3c5",
+"who": "SACKMAN",
+"text": "Contacts on the roof! And across the gap!"
+},
+{
+"id": "0a47d1bd",
+"who": "SACKMAN",
+"text": "You're on overwatch, Frosting. Granola team is pushing up the street below. Keep them alive."
+},
+{
+"id": "2fb24bb0",
+"who": "OVERLORD",
+"text": "Granola team is pinned on the boulevard. Thin them out, Meatal."
+},
+{
+"id": "6f3324c1",
+"who": "GRANOLA",
+"text": "Granola here! We could really use some love from above!"
+},
+{
+"id": "118fec87",
+"who": "GRANOLA",
+"text": "Man down! We need that overwatch!"
+},
+{
+"id": "29d23e9c",
+"who": "SACKMAN",
+"text": "Scope in, Frosting! Tap AIM!"
+},
+{
+"id": "f840f1ff",
+"who": "SACKMAN",
+"text": "Scope in, Frosting! Right-click!"
+},
+{
+"id": "1618a91d",
+"who": "GRANOLA",
+"text": "Street's clear! Thanks, Meatal! We owe you a beer. A small one."
+},
+{
+"id": "79b590d5",
+"who": "OVERLORD",
+"text": "Three T-69s on the boulevard. Wart-Hogs are on station. Paint the targets."
+},
+{
+"id": "ddb9b919",
+"who": "HOG",
+"text": "Wart-Hog Two, ready to make it rain. Show me where."
+},
+{
+"id": "747bb9ed",
+"who": "HOG",
+"text": "Target confirmed. Brrrrrrt."
+},
+{
+"id": "874b3f9e",
+"who": "HOG",
+"text": "Rolling in hot."
+},
+{
+"id": "990fb440",
+"who": "HOG",
+"text": "Painted target, I see it. Here comes the rain."
+},
+{
+"id": "8d176458",
+"who": "HOG",
+"text": "Three for three. Wart-Hog Two, going home."
+},
+{
+"id": "3121233f",
+"who": "CHUCK",
+"text": "Uh. That building's leaning."
+},
+{
+"id": "15c555ba",
+"who": "SACKMAN",
+"text": "Buildings don't lean."
+},
+{
+"id": "9cb2b1f2",
+"who": "GRINDER",
+"text": "That one did."
+},
+{
+"id": "465451cc",
+"who": "SACKMAN",
+"text": "Ropes! We're going down to the street! Go, go!"
+},
+{
+"id": "2503a8a1",
+"who": "SACKMAN",
+"text": "WAR PECKER, Meatal 0-1. Nice to see you out of the bog."
+},
+{
+"id": "733b7855",
+"who": "PECKER",
+"text": "We don't. Talk. About the bog."
+},
+{
+"id": "d07245c2",
+"who": "GRINDER",
+"text": "Contacts, up by the cars!"
+},
+{
+"id": "55b538ac",
+"who": "GRINDER",
+"text": "Deutsche Bonk. I've got an account there."
+},
+{
+"id": "d9d9a037",
+"who": "CHUCK",
+"text": "Not anymore."
+},
+{
+"id": "2a7e71c2",
+"who": "SACKMAN",
+"text": "Second floor windows! Light 'em up!"
+},
+{
+"id": "049deb7e",
+"who": "PECKER",
+"text": "More armour-less idiots up ahead. Engaging."
+},
+{
+"id": "b08a6d65",
+"who": "SACKMAN",
+"text": "AMBUSH! Get out of the kill zone! Move, move! Head for the building!"
+},
+{
+"id": "0302c34d",
+"who": "GRINDER",
+"text": "WHICH building?!"
+},
+{
+"id": "b4268e8a",
+"who": "SACKMAN",
+"text": "THE HOTEL! GO!"
+},
+{
+"id": "487d6e2c",
+"who": "CHUCK",
+"text": "Uh, Sackman? The building is doing the thing."
+},
+{
+"id": "6dcfe66a",
+"who": "SACKMAN",
+"text": "What thi\u2014"
+},
+{
+"id": "29cebcc2",
+"who": "SACKMAN",
+"text": "Meatal team, sound off."
+},
+{
+"id": "ad60c569",
+"who": "CHUCK",
+"text": "Chuck. Mostly."
+},
+{
+"id": "4588a6b2",
+"who": "GRINDER",
+"text": "Grinder. Concussed. Happy."
+},
+{
+"id": "7c3485e2",
+"who": "SACKMAN",
+"text": "Flashlights on. We go through the basement."
+},
+{
+"id": "f494d392",
+"who": "GRINDER",
+"text": "Crabs! They're in the walls!"
+},
+{
+"id": "a6ac7b49",
+"who": "GRINDER",
+"text": "Treppe. That's German for stairs. Or stop. One of those."
+},
+{
+"id": "c30ff562",
+"who": "SACKMAN",
+"text": "Door. Frosting, kick it in on my mark. ...Mark."
+},
+{
+"id": "184df602",
+"who": "SACKMAN",
+"text": "Room clear. Daylight, north side. Move."
+},
+{
+"id": "f46a29fd",
+"who": "SACKMAN",
+"text": "Overlord, Meatal 0-1. We're out. We're going after the eggplant."
+},
+{
+"id": "f35d7704",
+"who": "OVERLORD",
+"text": "Copy, Meatal. ...Again?"
+},
+{
+"id": "604012ef",
+"who": "SACKMAN",
+"text": "Again."
+},
+{
+"id": "70417b70",
+"who": "SACKMAN",
+"text": "Got him!"
+},
+{
+"id": "d207d341",
+"who": "SACKMAN",
+"text": "Tango down!"
+},
+{
+"id": "736d76a2",
+"who": "SACKMAN",
+"text": "Rubber down!"
+},
+{
+"id": "ed01e118",
+"who": "SACKMAN",
+"text": "Scratch one!"
+},
+{
+"id": "271df159",
+"who": "SACKMAN",
+"text": "He's done!"
+},
+{
+"id": "93fb0f73",
+"who": "SACKMAN",
+"text": "Target neutralised. Very neutral."
+},
+{
+"id": "b2d2f972",
+"who": "SACKMAN",
+"text": "Popped him!"
+},
+{
+"id": "83baaa86",
+"who": "SACKMAN",
+"text": "That one's deflated!"
+},
+{
+"id": "e141e001",
+"who": "SACKMAN",
+"text": "Contact front!"
+},
+{
+"id": "5fea9a56",
+"who": "SACKMAN",
+"text": "Movement, twelve o'clock!"
+},
+{
+"id": "56214401",
+"who": "SACKMAN",
+"text": "Rooftop! Rooftop!"
+},
+{
+"id": "4fe73e11",
+"who": "SACKMAN",
+"text": "They're in the windows!"
+},
+{
+"id": "40ad520f",
+"who": "SACKMAN",
+"text": "Rubbers, left side!"
+},
+{
+"id": "4310f8ac",
+"who": "SACKMAN",
+"text": "Crabs! Low, low!"
+},
+{
+"id": "f7c04bed",
+"who": "SACKMAN",
+"text": "Watch the alley!"
+},
+{
+"id": "df9a5fd4",
+"who": "SACKMAN",
+"text": "Moving!"
+},
+{
+"id": "89b13e9b",
+"who": "SACKMAN",
+"text": "Pushing up!"
+},
+{
+"id": "765f8ea9",
+"who": "SACKMAN",
+"text": "On me!"
+},
+{
+"id": "fd30a7ac",
+"who": "SACKMAN",
+"text": "Go, go!"
+},
+{
+"id": "e38ae8ed",
+"who": "SACKMAN",
+"text": "Covering!"
+},
+{
+"id": "922417fe",
+"who": "CHUCK",
+"text": "Got him!"
+},
+{
+"id": "95ddf98f",
+"who": "CHUCK",
+"text": "Tango down!"
+},
+{
+"id": "d6999c2c",
+"who": "CHUCK",
+"text": "Rubber down!"
+},
+{
+"id": "41890196",
+"who": "CHUCK",
+"text": "Scratch one!"
+},
+{
+"id": "828e9257",
+"who": "CHUCK",
+"text": "He's done!"
+},
+{
+"id": "4ef1a2bd",
+"who": "CHUCK",
+"text": "Target neutralised. Very neutral."
+},
+{
+"id": "171c973c",
+"who": "CHUCK",
+"text": "Popped him!"
+},
+{
+"id": "94896408",
+"who": "CHUCK",
+"text": "That one's deflated!"
+},
+{
+"id": "7f5fad0f",
+"who": "CHUCK",
+"text": "Contact front!"
+},
+{
+"id": "7d9fb298",
+"who": "CHUCK",
+"text": "Movement, twelve o'clock!"
+},
+{
+"id": "c26f9dcf",
+"who": "CHUCK",
+"text": "Rooftop! Rooftop!"
+},
+{
+"id": "d7ffb85f",
+"who": "CHUCK",
+"text": "They're in the windows!"
+},
+{
+"id": "a5838ac1",
+"who": "CHUCK",
+"text": "Rubbers, left side!"
+},
+{
+"id": "77a4ffa2",
+"who": "CHUCK",
+"text": "Crabs! Low, low!"
+},
+{
+"id": "6d4d2063",
+"who": "CHUCK",
+"text": "Watch the alley!"
+},
+{
+"id": "cab1059a",
+"who": "CHUCK",
+"text": "Moving!"
+},
+{
+"id": "ab629ed5",
+"who": "CHUCK",
+"text": "Pushing up!"
+},
+{
+"id": "4e3a14a7",
+"who": "CHUCK",
+"text": "On me!"
+},
+{
+"id": "55f43de2",
+"who": "CHUCK",
+"text": "Go, go!"
+},
+{
+"id": "97b3efa3",
+"who": "CHUCK",
+"text": "Covering!"
+},
+{
+"id": "f4a7f149",
+"who": "GRINDER",
+"text": "Got him!"
+},
+{
+"id": "259d8dd8",
+"who": "GRINDER",
+"text": "Tango down!"
+},
+{
+"id": "f208bb9b",
+"who": "GRINDER",
+"text": "Rubber down!"
+},
+{
+"id": "72c872a1",
+"who": "GRINDER",
+"text": "Scratch one!"
+},
+{
+"id": "77c9a4e0",
+"who": "GRINDER",
+"text": "He's done!"
+},
+{
+"id": "f7296eea",
+"who": "GRINDER",
+"text": "Target neutralised. Very neutral."
+},
+{
+"id": "5df5192b",
+"who": "GRINDER",
+"text": "Popped him!"
+},
+{
+"id": "b1b918bf",
+"who": "GRINDER",
+"text": "That one's deflated!"
+},
+{
+"id": "9d739338",
+"who": "GRINDER",
+"text": "Contact front!"
+},
+{
+"id": "3cada94f",
+"who": "GRINDER",
+"text": "Movement, twelve o'clock!"
+},
+{
+"id": "296e6f98",
+"who": "GRINDER",
+"text": "Rooftop! Rooftop!"
+},
+{
+"id": "500a8588",
+"who": "GRINDER",
+"text": "They're in the windows!"
+},
+{
+"id": "11622216",
+"who": "GRINDER",
+"text": "Rubbers, left side!"
+},
+{
+"id": "5a7fbf15",
+"who": "GRINDER",
+"text": "Crabs! Low, low!"
+},
+{
+"id": "b9141c54",
+"who": "GRINDER",
+"text": "Watch the alley!"
+},
+{
+"id": "a4666a4d",
+"who": "GRINDER",
+"text": "Moving!"
+},
+{
+"id": "873ae482",
+"who": "GRINDER",
+"text": "Pushing up!"
+},
+{
+"id": "463e6090",
+"who": "GRINDER",
+"text": "On me!"
+},
+{
+"id": "4a6981f5",
+"who": "GRINDER",
+"text": "Go, go!"
+},
+{
+"id": "f18c7db4",
+"who": "GRINDER",
+"text": "Covering!"
+},
+{
+"id": "1e1112b0",
+"who": "SACKMAN",
+"text": "nice shot, son."
+},
+{
+"id": "680c7452",
+"who": "SACKMAN",
+"text": "that one felt good, huh?"
+},
+{
+"id": "d36a9b4d",
+"who": "SACKMAN",
+"text": "wow. you're a natural."
+},
+{
+"id": "9d673ec0",
+"who": "SACKMAN",
+"text": "she said don't stop."
+},
+{
+"id": "aaeb0a1f",
+"who": "SACKMAN",
+"text": "veiny AND accurate."
+},
+{
+"id": "65c06bfe",
+"who": "SACKMAN",
+"text": "keep stroking, champ."
+},
+{
+"id": "e356fb9a",
+"who": "SACKMAN",
+"text": "so hard right now."
+},
+{
+"id": "bac56df0",
+"who": "SACKMAN",
+"text": "mmm. that's the spot."
+},
+{
+"id": "12177817",
+"who": "SACKMAN",
+"text": "moan for me, soldier."
+},
+{
+"id": "27212d97",
+"who": "SACKMAN",
+"text": "harder, daddy."
+},
+{
+"id": "e57b5429",
+"who": "GRINDER",
+"text": "nice shot, son."
+},
+{
+"id": "32610e2b",
+"who": "GRINDER",
+"text": "that one felt good, huh?"
+},
+{
+"id": "e3fbbb34",
+"who": "GRINDER",
+"text": "wow. you're a natural."
+},
+{
+"id": "b48b9f39",
+"who": "GRINDER",
+"text": "she said don't stop."
+},
+{
+"id": "23044846",
+"who": "GRINDER",
+"text": "veiny AND accurate."
+},
+{
+"id": "8d030f67",
+"who": "GRINDER",
+"text": "keep stroking, champ."
+},
+{
+"id": "7ee2d4e3",
+"who": "GRINDER",
+"text": "so hard right now."
+},
+{
+"id": "970f4369",
+"who": "GRINDER",
+"text": "mmm. that's the spot."
+},
+{
+"id": "2daf964e",
+"who": "GRINDER",
+"text": "moan for me, soldier."
+},
+{
+"id": "bf4e25ee",
+"who": "GRINDER",
+"text": "harder, daddy."
+},
+{
+"id": "3dc194ee",
+"who": "SACKMAN",
+"text": "It's getting smaller, son. Every shot costs you. Find lotion."
+},
+{
+"id": "b726ef96",
+"who": "SACKMAN",
+"text": "LOTION DROP INBOUND. Somebody lube this man up!"
+},
+{
+"id": "3fb1a28d",
+"who": "SACKMAN",
+"text": "That's a condom, son. Get fully wrapped and you're out of the fight. Keep moving."
+},
+{
+"id": "cf51cffb",
+"who": "SACKMAN",
+"text": "One left. He's red on your minimap."
+},
+{
+"id": "b8d31ec6",
+"who": "SACKMAN",
+"text": "Got the last one from over here. Move on, son."
 }
 ]

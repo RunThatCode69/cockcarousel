@@ -16,6 +16,7 @@ const MISSION_META = [
   { name: 'Crew Expandable', place: 'Cargo ship "MV Blue Balls", Bering Sea', date: 'DAY 3 · 01:00', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.7, 0.7); crabArt(0, 0, { f: 0 }); ctx.restore(); } },
   { name: 'The Bog', place: 'The Bog. Somewhere very moist.', date: 'DAY 5 · 23:40', icon: () => { ctx.save(); ctx.translate(0, -6); ctx.scale(1.2, 1.2); ctx.fillStyle = '#8c8460'; ctx.strokeStyle = INK; ctx.lineWidth = 3; rr(-40, -14, 80, 22, 5); ctx.fill(); ctx.stroke(); rr(-20, -30, 38, 18, 5); ctx.fill(); ctx.stroke(); rr(14, -26, 34, 9, 4); fs(SKIN, INK, 2.5); E(50, -21.5, 7, 6); fs(HEAD, INK, 2.5); rr(-44, 6, 88, 12, 6); fs('#26262a', INK, 2.5); ctx.restore(); } },
   { name: "No Rushin'", place: 'Terminal 69, Pubyat International', date: 'DAY 4 · 10:30', icon: () => { ctx.save(); ctx.translate(0, 10); ctx.scale(0.65, 0.65); condomArt(0, 0, { f: 0 }); ctx.restore(); } },
+  { name: 'Scorched Girth', place: 'Boinlin, Germany', date: 'DAY 9 · 15:20', icon: () => { ctx.save(); ctx.translate(0, -8); ctx.fillStyle = '#6a6070'; ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.save(); ctx.rotate(0.35); rr(-14, -40, 28, 70, 3); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#ffe9a8'; for (let i = 0; i < 6; i++) ctx.fillRect(-8 + (i % 2) * 10, -32 + ((i / 2) | 0) * 18, 6, 8); ctx.restore(); ctx.fillStyle = 'rgba(200,190,170,0.8)'; for (let i = 0; i < 7; i++) { E(-30 + i * 10, 34 + (i % 2) * 4, 9, 7); ctx.fill(); } ctx.restore(); } },
   { name: 'GAME OVA', place: 'Bridge over the Tubes', date: 'DAY 6 · 11:11', icon: () => iconDick({ coat: true, onearm: true, angry: true, frown: true, scar: true, skin: '#e9b39d', skin2: '#d8927c' }) },
 ];
 const PAL = {   // v4.3: CoD-ish palettes — overcast UK, grey pre-dawn Pubyat, storm at sea, fluorescent clinic, smoky sunset bridge
@@ -486,7 +487,7 @@ const M3 = () => {
 
 // ---------- 4. THE BOG (v5: the long one with the squad) ----------
 // night street push with the squad → the dark apartments (night vision) → the Z-PUBE on the overpass (Cum-4)
-// → down into the bog to WAR PECKER → JAVELUBE vs the Big Meaty Pickups → hold while the tank unsticks → escort it out
+// → T-69s on the bridge (JAVELUBE) → the back alleys → down into the bog to WAR PECKER → JAVELUBE vs the Big Meaty Pickups → hold while the tank unsticks → escort it out
 const MB = () => {
   const g = grid(80, 40);
   // A: the street
@@ -502,7 +503,14 @@ const MB = () => {
   // C: the overpass and the Z-PUBE
   carve(g, 45, 3, 58, 13);
   for (const [x, y] of [[48, 6], [48, 7], [51, 10], [52, 10], [56, 9], [50, 4]]) put(g, x, y, 'A');
-  carve(g, 55, 14, 58, 18);                                                             //   the ramp down
+  // C2: the bridge east (enemy armour comes across it) and D0: the back alleys down to the bog
+  carve(g, 59, 4, 78, 9);
+  for (const [x, y] of [[62, 4], [66, 9], [70, 4], [74, 9]]) put(g, x, y, 'A');
+  carve(g, 57, 11, 73, 12);                                                              //   alley: along the back of the overpass
+  carve(g, 72, 11, 73, 17); carve(g, 72, 16, 78, 17); carve(g, 76, 17, 77, 18);           //   down, east, and out into the bog
+  carve(g, 62, 14, 68, 17); put(g, 65, 13, '.'); carve(g, 69, 16, 71, 16);                //   a little yard (a loop)
+  carve(g, 74, 13, 77, 14); put(g, 74, 13, '.');                                         //   dead-end yard with somebody in it
+  for (const [x, y] of [[66, 12], [70, 11], [73, 14], [64, 16]]) put(g, x, y, 'V');     //   chain-link
   // D: the bog
   carve(g, 44, 19, 78, 38);
   carve(g, 47, 22, 49, 23); carve(g, 68, 20, 70, 21); carve(g, 71, 31, 73, 33); carve(g, 50, 33, 52, 34);    // ruins
@@ -521,9 +529,12 @@ const MB = () => {
   const tankBlock = (on) => { if (!tank) return; for (let y = (tank.y - 1) | 0; y <= ((tank.y + 0.9) | 0); y++) for (let x = (tank.x - 1.8) | 0; x <= ((tank.x + 1.8) | 0); x++) blocked[y * MW + x] = on ? 1 : 0; };
   const placeTank = (x) => { tankBlock(false); tank.x = x; tankBlock(true); };
   const killZpu = () => { if (!zpu || zpu.dead) return; zpu.dead = true; zpu.firing = false; zpu.turretA = 0.4; spawnProp('fire', 54.5, 5.2, { passable: true, z: 0.3 }); spawnProp('smoke', 54.5, 5.3, { passable: true, z: 0.9 }); };
-  const spawnBmp = (x0, y0, x1, y1, delay = 0) => {
-    const b = spawnDeco('bmp', x0, y0, 1.4, 3, { shootable: true, armor: true, hp: 460, maxhp: 460, r: 1.25, far: 80, reveal: true, faceA: -Math.atan2(y1 - y0, x1 - x0), turretA: Math.atan2(y1 - y0, x1 - x0), to: [x1, y1], delay, fireT: 120,
-      onDeath: e => { e.shootable = false; e.reveal = false; explodeAt(e.x, e.y, 3, 150); spawnProp('fire', e.x, e.y, { passable: true, z: 0.5 }); spawnProp('smoke', e.x, e.y, { passable: true, z: 1.2 }); stats.kills++; xpPop(250); announce('BIG MEATY PICKUP DESTROYED', pickOne(['tenderised.', 'well done. not medium.', 'that one\'s pulled pork now.']), 34); if (bmps.every(q => q.dead)) return; say('VAS', pickOne(['Scratch one Pickup!', 'Pickup down! Good hit, Jerkson!', 'That\'s a direct hit!']), 150); } });
+  const spawnBmp = (x0, y0, x1, y1, delay = 0, o = {}) => {
+    const T69 = o.tank, hp = T69 ? 470 : 460;
+    const b = spawnDeco(T69 ? 'etank' : 'bmp', x0, y0, 1.4, 3, { scale: T69 ? 1.35 : 1.1, shootable: true, armor: true, hp, maxhp: hp, r: T69 ? 1.8 : 1.35, far: 80, reveal: true, faceA: -Math.atan2(y1 - y0, x1 - x0), turretA: Math.atan2(y1 - y0, x1 - x0), to: [x1, y1], delay, fireT: T69 ? 200 : 120, isTank: T69,
+      onDeath: e => { e.shootable = false; e.reveal = false; explodeAt(e.x, e.y, 3, 150); spawnProp('fire', e.x, e.y, { passable: true, z: 0.5 }); spawnProp('smoke', e.x, e.y, { passable: true, z: 1.2 }); stats.kills++; xpPop(T69 ? 400 : 250);
+        if (T69) { announce('T-69 DESTROYED', pickOne(['it went limp.', 'that one won\'t be getting up again.', 'rubber and all.']), 34); if (bmps.every(q => q.dead)) return; say('VAS', pickOne(['Tank down! Good kill, Jerkson!', 'T-69 is toast!', 'Direct hit! He\'s done!']), 150); return; }
+        announce('BIG MEATY PICKUP DESTROYED', pickOne(['tenderised.', 'well done. not medium.', 'that one\'s pulled pork now.']), 34); if (bmps.every(q => q.dead)) return; say('VAS', pickOne(['Scratch one Pickup!', 'Pickup down! Good hit, Jerkson!', 'That\'s a direct hit!']), 150); } });
     bmps.push(b); return b;
   };
   const bmpTick = () => {
@@ -535,9 +546,16 @@ const MB = () => {
       const aim = angleTo(b, player); b.turretA = lerpA(b.turretA, aim, 0.04);
       b.fireT -= ts;
       if (b.fireT <= 0 && dist(b, player) < 20 && los(b.x, b.y, player.x, player.y) && M.state === 'play') {
+        if (b.isTank) {   // the main gun: one big slow shell. Get behind something.
+          b.fireT = diff === 'regular' ? 170 : 230; b.recoil = 1;
+          eproj.push({ x: b.x + Math.cos(aim) * 2, y: b.y + Math.sin(aim) * 2, vx: Math.cos(aim) * 0.17, vy: Math.sin(aim) * 0.17, life: 200, dmg: 22, spr: 'stinger', z: 0.9, h: 0.25, w: 0.35, seed: 0 });
+          sfx('thud'); sfx('boom'); shake = Math.max(shake, 5); burst3d(b.x + Math.cos(aim) * 2.2, b.y + Math.sin(aim) * 2.2, 1.1, 14, 'puff', 0.1);
+          if (t - (M.flags.tankWarn || -999) > 600) { M.flags.tankWarn = t; say(pickOne(['JIGGLES', 'DOOLEY']), 'Tank\'s firing! Get behind the barriers!', 140); }
+          continue;
+        }
         b.fireT = diff === 'regular' ? 90 : 130;
         for (let i = -1; i <= 1; i++) { const a = aim + i * 0.08; eproj.push({ x: b.x + Math.cos(a) * 1.2, y: b.y + Math.sin(a) * 1.2, vx: Math.cos(a) * 0.15, vy: Math.sin(a) * 0.15, life: 150, dmg: 5, spr: 'stinger', z: 0.8, h: 0.25, w: 0.35, seed: 0 }); }
-        sfx('shoot'); burst3d(b.x + Math.cos(aim) * 1.3, b.y + Math.sin(aim) * 1.3, 1.1, 5, 'spark', 0.08);
+        sfx('ashot'); burst3d(b.x + Math.cos(aim) * 1.3, b.y + Math.sin(aim) * 1.3, 1.1, 5, 'spark', 0.08);
       }
     }
   };
@@ -553,8 +571,8 @@ const MB = () => {
     flares = flares.filter(f => !f.dead);
   };
   return {
-    map: g, heights: { '#': 2.4, A: 0.8, C: 2.2, G: 2.0 }, tex: { '#': 'concrete', A: 'sand', C: 'panelblock', G: 'door' }, variants: { '#': ['panelblock', 5], A: ['crate', 6] },
-    floor: 'rubble', floorOf: (x, y) => inLube(x, y) ? 'lube' : inApt(x, y) ? 'lino' : (y >= 15 && y <= 20 && x < 25) || (x >= 45 && y <= 18) ? 'asphalt' : x >= 44 ? 'dirt' : null,
+    map: g, heights: { '#': 2.4, A: 0.8, C: 2.2, G: 2.0, V: 1.25 }, tex: { '#': 'concrete', A: 'sand', C: 'panelblock', G: 'door', V: 'fence' }, variants: { '#': ['panelblock', 5], A: ['crate', 6] },
+    floor: 'rubble', floorOf: (x, y) => inLube(x, y) ? 'lube' : inApt(x, y) ? 'lino' : (y >= 15 && y <= 20 && x < 25) || (x >= 45 && y <= 9) ? 'asphalt' : (x >= 57 && y <= 18) ? 'gravel' : x >= 44 ? 'dirt' : null,
     roofs: [[25, 8, 45, 27, 'concrete', 2.2, '#3a3a30']], indoor: (x, y) => inApt(x, y),
     areaGrade: (x, y) => inApt(x, y) ? { shadow: [0.28, 0.3, 0.38], high: [0.5, 0.52, 0.62], sat: 0.4, vig: 0.8 } : null,
     outer: { ground: 'dirt', ring: 'city' }, pal: PAL.bog, start: [3, 17.5, 0], par: 600, music: 'tense', amb: 'wind', scope: false, killWho: ['VAS', 'JIGGLES'], leadWho: 'VAS',
@@ -616,10 +634,10 @@ const MB = () => {
         tick() {
           const x = player.x;
           if (x > 8 && !M.flags.s1a) { M.flags.s1a = true; wave([['condom', 15, 12.5], ['condom', 17, 13.5], ['chili', 16.5, 22], ['crab', 19, 22.5]]); chatter('RAMIREZ', 'Windows! Second shop, both sides!', 140); }
-          if (x > 14 && !M.flags.s1b) { M.flags.s1b = true; wave([['condom', 21.5, 13], ['condom', 23, 13.5], ['bee', 22, 17], ['crab', 23.5, 19]]); say('VAS', 'They\'re dug in at the end of the street! Push, push!', 180); }
+          if (x > 14 && !M.flags.s1b) { M.flags.s1b = true; wave([['condom', 21.5, 13], ['condom', 23, 13.5], ['bee', 22, 17], ['crab', 21, 18.5]]); say('VAS', 'They\'re dug in at the end of the street! Push, push!', 180); }
           if (x > 18 && !M.flags.s1c) { M.flags.s1c = true; wave([['condom', 23.5, 16], ['chili', 23, 18.5]]); }
           // the end of the street: once it's quiet, a second lot comes out of the apartments
-          if (M.flags.s1c && !M.flags.s1d && zoneLeft().length === 0) { M.flags.s1d = true; M.flags.s1dT = t; wave([['condom', 27, 16.5], ['condom', 27.5, 18], ['crab', 26, 17], ['bee', 24, 13.5], ['chili', 22, 22.5]], { sightMul: 4 }); say('JIGGLES', 'Door! They\'re coming out of the apartments!', 160); say('VAS', 'Hold here! Let them come to us!', 150); }
+          if (M.flags.s1c && !M.flags.s1d && zoneLeft().length === 0) { M.flags.s1d = true; M.flags.s1dT = t; wave([['condom', 27, 16.5], ['condom', 27.5, 18], ['crab', 26, 17], ['bee', 22, 13.5], ['chili', 17, 22.5]], { sightMul: 4 }); say('JIGGLES', 'Door! They\'re coming out of the apartments!', 160); say('VAS', 'Hold here! Let them come to us!', 150); }
           if (M.flags.s1d && !M.flags.s1e && t - M.flags.s1dT > 420) { M.flags.s1e = true; wave([['condom', 26.5, 16.5], ['crab', 26.5, 18], ['condom', 21.5, 13]], { sightMul: 4 }); chatter('DOOLEY', 'More of them! Same door!', 130); }
         },
         done: () => M.flags.s1e && zoneLeft().length === 0 && player.x > 17,
@@ -630,7 +648,7 @@ const MB = () => {
         pre() { squadWarp([[19, 16.5], [19, 18.5], [17, 16.5], [17, 18.5]]); },
         start() {
           zone = []; M.nvgOK = true; M.goal = { x: 42, y: 11.5 };
-          idle([['condom', 42, 12.5], ['condom', 40, 10], ['crab', 29, 22.5], ['condom', 27.5, 24.5], ['condom', 36, 13.5], ['crab', 30, 9.5]]);
+          idle([['condom', 42, 12.5], ['condom', 40, 10], ['crab', 29, 22.5], ['condom', 28.5, 23.5], ['condom', 36, 13.5], ['crab', 30, 9.5]]);
           announce(isTouch ? 'TAP NVG' : 'PRESS N', 'night vision', 36);
         },
         tick() {
@@ -661,39 +679,74 @@ const MB = () => {
         },
         done: () => M.flags.zpuDead && t - M.flags.plantT > 330,
         end() { M.meter = null; M.goal = null; announce('Z-PUBE DESTROYED', 'the sky is open for business', 40); say('VAS', 'Triple-A is down! Tell the jets they can come play.', 200); say('PILOT', 'Hog Two-Six, cleared hot. Bringing the rain.', 200); M.flags.jetT = t; } },
-      // 4 — the jets, then down into the bog
-      { obj: 'Follow the squad down the ramp into the bog. Get to WAR PECKER.', at: [49, 9, Math.PI / 2],
-        count: () => `Distance to WAR PECKER: ${Math.max(0, Math.round((dist(player, tank) - 3) * 3))} m`, hint: 'Down the ramp at the south-east corner of the overpass. Go around the shiny lube puddles, they slow you right down.',
-        pre() { killZpu(); M.nvgOK = true; squadWarp([[50, 8], [51, 11], [48, 11], [47, 8]]); if (!M.flags.jetT) M.flags.jetT = t - 400; },
+      // 4 — the bridge: T-69s coming across, and the JAVELUBE
+      { obj: 'Enemy armour on the bridge! Grab the JAVELUBE from the crate on the overpass and knock out the T-69 tanks', at: [49, 9, 0],
+        count: () => `T-69 tanks: ${bmps.filter(b => !b.dead).length} left · DILDO-7 rockets: ${player.rockets}`, hint: isTouch ? 'Crate is at the south edge of the overpass. Tap SWAP for the DILDO-7, aim at the tanks (red arrows). Duck behind the sandbags when they fire.' : 'Crate is at the south edge of the overpass. Press 2 for the DILDO-7, aim at the tanks (red arrows). Duck behind the sandbags when they fire.', hintAfter: 900,
+        pre() { killZpu(); M.nvgOK = true; squadWarp([[55, 5], [56.5, 8.5], [53, 10.5], [51, 6]]); if (!M.flags.jetT) M.flags.jetT = t - 400; },
         start() {
-          zone = []; M.goal = { x: 59.5, y: 25.5 }; M.nvg = false;
+          zone = []; bmps = []; M.nvg = false; M.squadAt = [[57.4, 5.2], [57.6, 8.6], [55.5, 11.5], [53.2, 6.5]];
           for (const e of ents) if (e.kind === 'enemy' && !e.dead && e.y < 14) killEnt(e, false, 'HOG 2-6');
-          idle([['condom', 50, 26], ['crab', 53, 23], ['condom', 66, 22.5], ['chili', 57, 31], ['condom', 47, 31]]);
+          crate = spawnPickup('crate', 51.5, 12.3); crate.onGet = () => { M.flags.gotJav = true; player.rockets = Math.max(player.rockets, 8); setWeapon('rocket'); announce('JAVELUBE', 'DILDO-7 · 8 rockets · aim at the armour', 36); };
+          M.goal = { x: 51.5, y: 12.3 };
+          say('DOOLEY', 'Armour! T-69s, coming across the bridge!', 170);
+          say('VAS', 'Jerkson! JAVELUBE, in the crate! Get it on those tanks!', 190);
+          spawnBmp(86, 6.5, 74.5, 6.5, 60, { tank: true }); spawnBmp(90, 5.2, 70, 5.2, 700, { tank: true }); spawnBmp(92, 8.2, 76.5, 8.2, 1300, { tank: true });
         },
         tick() {
           const f = t - M.flags.jetT;
-          if (f > 0 && f < 200 && f % 40 === 0) { const x = 50 + rand(-4, 20), y = rand(20, 37); explodeAt(x, y, 2.6, 300, 'HOG 2-6'); if (f === 40) { sfx('streak'); announce('AIR STRIKE', 'danger close. dangerously close.', 30); } }
-          if (player.y > 18 && !M.flags.s4a) { M.flags.s4a = true; say('PECKER', 'Friendlies on the ramp! About time! This is WAR PECKER. We are stuck. We are SO stuck.', 260); wave([['condom', 70, 22.5], ['crab', 67, 26], ['bee', 64, 22]]); }
+          if (f > 0 && f < 200 && f % 40 === 0) { explodeAt(rand(65, 78), rand(4.5, 8.5), 2.6, 300, 'HOG 2-6'); if (f === 40) { sfx('streak'); announce('AIR STRIKE', 'the jets are here. they missed the tanks.', 30); } }
+          if (M.flags.gotJav) M.goal = null;
+          if (M.stageT === 400 || M.stageT === 1100) wave([['condom', 78, 5.5], ['condom', 78, 8.5], ['chili', 77, 7]], { sightMul: 4 });
+          if (player.rockets <= 0 && (!crate || crate.got) && !M.flags.refillT) M.flags.refillT = t;
+          if (M.flags.refillT && t - M.flags.refillT > 90) { M.flags.refillT = 0; crate = spawnPickup('crate', 51.5, 12.3); crate.onGet = () => { player.rockets = 8; setWeapon('rocket'); announce('MORE JAVELUBE', '8 rockets', 26); }; say('VAS', 'More rockets in the crate! South side!', 160); }
+        },
+        done: () => bmps.length === 3 && bmps.every(b => b.dead),
+        end() { say('VAS', 'Bridge is clear! Nice shooting, Marine.', 170); say('VAS', 'We go down the back way. Alleys, behind the overpass. Stay tight.', 220); } },
+      // 5 — the back alleys
+      { obj: 'Follow the squad down through the back alleys to the bog', at: [55, 9, 0],
+        count: () => `Hostiles in the alleys: ${zoneLeft().length}`, hint: 'The alleys start at the south-east corner of the overpass. Watch the yards on the side, and the chain-link.', hintAfter: 1200,
+        pre() { killZpu(); M.nvgOK = true; squadWarp([[56, 11.5], [57, 12], [55, 10.5], [54, 11.5]]); for (const b of bmps) b.gone = true; },
+        start() {
+          zone = []; M.squadAt = null; M.goal = { x: 76.5, y: 18.5 };
+          idle([['condom', 67, 11.5], ['crab', 63, 15], ['condom', 67.5, 16.8], ['condom', 72.5, 15], ['chili', 76, 13.5], ['crab', 77, 16.5]]);
+        },
+        tick() {
+          if (player.x > 61 && !M.flags.al1) { M.flags.al1 = true; say('JIGGLES', 'Yard on the right! Watch the windows!', 140); wave([['condom', 66, 14.2], ['crab', 68, 15]]); }
+          if (player.x > 71 && !M.flags.al2) { M.flags.al2 = true; wave([['condom', 77, 17], ['crab', 75, 16.5], ['bee', 77, 13.5]], { sightMul: 4 }); say('RAMIREZ', 'Coming up from the bog!', 130); }
+          if (player.y > 15 && player.x > 71 && !M.flags.al3) { M.flags.al3 = true; say('VAS', 'Tight corners. Nut the next one before you go round it.', 190); }
+        },
+        done: () => near(76.5, 18.5, 1.8) && zoneLeft().filter(e => e.y < 19).length === 0,
+        end() { M.goal = null; } },
+      // 6 — out of the alleys and across the bog to WAR PECKER
+      { obj: 'Into the bog. Get to WAR PECKER.', at: [76.5, 18.5, Math.PI / 2],
+        count: () => `Distance to WAR PECKER: ${Math.max(0, Math.round((dist(player, tank) - 3) * 3))} m`, hint: 'The tank is in the middle of the bog, south-west of you. Go around the shiny lube puddles, they slow you right down.',
+        pre() { killZpu(); M.nvgOK = true; squadWarp([[75.5, 17], [77, 17], [73, 16.5], [72.5, 17]]); for (const b of bmps) b.gone = true; },
+        start() {
+          zone = []; M.goal = { x: 64.5, y: 25.8 }; M.nvg = false;
+          idle([['condom', 70, 22.5], ['crab', 65, 23], ['condom', 57, 22], ['chili', 71, 30], ['condom', 50, 26]]);
+          say('PECKER', 'Friendlies coming out of the alleys! About time! This is WAR PECKER. We are stuck. We are SO stuck.', 260);
+        },
+        tick() {
           if (player.y > 22 && !M.flags.s4b) { M.flags.s4b = true; wave([['condom', 48, 35], ['crab', 52, 31.5], ['chili', 70, 33.5], ['condom', 75, 29]]); say('DOOLEY', 'They\'re in the swamp! Left and right!', 150); }
         },
         done: () => dist(player, tank) < 4.4 && zoneLeft().filter(e => dist(e, tank) < 12).length < 3,
-        end() { M.goal = null; say('VAS', 'Pecker, Vas. What do you need?', 150); say('PECKER', 'Main gun\'s gummed up. Big Meaty Pickups inbound from the east. We need somebody on the JAVELUBE.', 280); say('VAS', 'Jerkson. Crate by the tank. Go.', 150); } },
-      // 5 — JAVELUBE vs the Big Meaty Pickups
-      { obj: 'Grab the JAVELUBE from the crate by the tank, then destroy the 3 Big Meaty Pickups (armour)', at: [59, 26, 0],
+        end() { M.goal = null; say('VAS', 'Pecker, Vas. What do you need?', 150); say('PECKER', 'Main gun\'s gummed up. Big Meaty Pickups inbound from the east. Your JAVELUBE guy, is he any good?', 280); say('VAS', 'He\'s alright. Jerkson, more rockets in the crate by the tank.', 180); } },
+      // 7 — JAVELUBE vs the Big Meaty Pickups
+      { obj: 'Restock the JAVELUBE at the crate by the tank, then destroy the 3 Big Meaty Pickups (armour)', at: [59, 26, 0],
         count: () => `Big Meaty Pickups: ${bmps.filter(b => !b.dead).length} left · DILDO-7 rockets: ${player.rockets}`, hint: isTouch ? 'Tap SWAP for the DILDO-7 and aim at the armoured trucks (red arrows). Globs bounce off them. Refill at the crate.' : 'Press 2 for the DILDO-7 and aim at the armoured trucks (red arrows). Globs bounce off them. Refill at the crate by the tank.', hintAfter: 900,
         pre() { killZpu(); M.nvgOK = true; squadWarp(SQ_TANK); M.squadAt = SQ_TANK; },
         start() {
           zone = []; bmps = []; M.squadAt = SQ_TANK;
-          crate = spawnPickup('crate', 58.6, 26.2); crate.onGet = () => { M.flags.gotJav = true; player.rockets = Math.max(player.rockets, 8); setWeapon('rocket'); announce('JAVELUBE', 'DILDO-7 · 8 rockets · aim at the armour', 36); say('VAS', 'Got it? Good. Light \'em up.', 140); };
+          crate = spawnPickup('crate', 58.6, 26.2); crate.onGet = () => { M.flags.gotJav2 = true; player.rockets = Math.max(player.rockets, 8); setWeapon('rocket'); announce('JAVELUBE', 'DILDO-7 · 8 rockets · aim at the armour', 36); say('VAS', 'Got it? Good. Light \'em up.', 140); };
           M.goal = { x: 58.6, y: 26.2 };
         },
         tick() {
-          if (M.flags.gotJav && !M.flags.bmpIn) { M.flags.bmpIn = true; M.goal = null;
+          if ((M.flags.gotJav2 || M.stageT > 420) && !M.flags.bmpIn) { M.flags.bmpIn = true; M.goal = null;
             spawnBmp(82, 25, 71.5, 25); spawnBmp(66, 42, 66, 35.5, 500); spawnBmp(83, 35, 75.5, 35.2, 1000);
             say('PECKER', 'Big Meaty Pickup, east side! Coming down the road!', 180);
             wave([['condom', 76, 22], ['condom', 77, 29], ['chili', 75, 24]]); }
           if (M.flags.bmpIn) {
-            if (M.stageT % 720 === 360 && zoneLeft().length < 5) wave([[pickOne(['condom', 'chili']), 77, rand(21, 37)], [pickOne(['crab', 'condom']), rand(48, 76), 37.5]]);
+            if (M.stageT % 720 === 360 && zoneLeft().length < 5) wave([[pickOne(['condom', 'chili']), 77, rand(21, 37)], [pickOne(['crab', 'condom']), rand(48, 76), 36.5]]);
             const nb = bmps.filter(b => !b.dead && b.delay <= 0); if (nb.length && t % 90 === 0) { const b2 = nb[0]; if (!b2.called) { b2.called = true; say(pickOne(['JIGGLES', 'RAMIREZ', 'DOOLEY']), b2.y > 33 ? (b2.x < 70 ? 'Pickup! South side, by the palm!' : 'Another Pickup, south-east!') : 'Pickup on the road, east!', 150); } }
             // out of rockets: the crate refills
             if (player.rockets <= 0 && (!crate || crate.got) && !M.flags.refillT) { M.flags.refillT = t; }
@@ -702,13 +755,13 @@ const MB = () => {
         },
         done: () => M.flags.bmpIn && bmps.length === 3 && bmps.every(b => b.dead),
         end() { say('PECKER', 'That\'s all three! Beautiful! Main gun\'s unjammed. We\'re gonna try and rock her loose.', 240); say('VAS', 'Everybody around the tank! Nobody touches the Pecker!', 200); } },
-      // 6 — hold while WAR PECKER unsticks
+      // 8 — hold while WAR PECKER unsticks
       { obj: 'Defend WAR PECKER while it rocks itself loose. Stay close to the tank.', at: [61, 25.4, -Math.PI / 2],
-        count: () => `Unsticking: ${Math.round(100 * (1 - M.timer / (60 * 120)))}% · Hostiles: ${aliveEnemies().filter(e => dist(e, tank) < 22).length}`, hint: 'They come from the north ruins, the east road and the south. WAR PECKER shoots the big groups. Grab lotion when you shrink.',
+        count: () => `Unsticking: ${Math.round(100 * (1 - M.timer / (60 * 100)))}% · Hostiles: ${aliveEnemies().filter(e => dist(e, tank) < 22).length}`, hint: 'They come from the north ruins, the east road and the south. WAR PECKER shoots the big groups. Grab lotion when you shrink.',
         pre() { killZpu(); M.nvgOK = true; squadWarp(SQ_TANK); M.squadAt = SQ_TANK; for (const b of bmps) b.gone = true; },
         start() {
           zone = []; M.squadAt = SQ_TANK; tank.guns = true; tank.rof = 280;
-          M.timer = 60 * 120; M.timerLabel = 'UNSTICK'; M.onTimeout = () => { M.flags.free = true; }; M.flags.fw = t - 300; M.flags.wv = 0; player.nades = Math.max(player.nades, 3); player.rockets = Math.max(player.rockets, 3);
+          M.timer = 60 * 100; M.timerLabel = 'UNSTICK'; M.onTimeout = () => { M.flags.free = true; }; M.flags.fw = t - 300; M.flags.wv = 0; player.nades = Math.max(player.nades, 3); player.rockets = Math.max(player.rockets, 3);
           say('PECKER', 'Driver, rock it! Forward... back... forward... back...', 200);
         },
         tick() {
@@ -731,7 +784,7 @@ const MB = () => {
         },
         done: () => M.flags.free,
         end() { M.timer = null; tank.rock = 0; shake = 14; sfx('boom'); burst3d(tank.x, tank.y, 0.3, 30, 'drop', 0.12); announce('THE PECKER IS OUT', 'with a very loud noise', 44); say('PECKER', 'WE\'RE FREE! WAR PECKER IS OUT OF THE BOG!', 200); say('VAS', 'Escort it east! Stay on the tank!', 170); } },
-      // 7 — escort it out
+      // 9 — escort it out
       { obj: 'Escort WAR PECKER east out of the bog. It only moves while you\'re close.', at: [60, 25.6, 0],
         count: () => `WAR PECKER: ${Math.round(100 * clamp((tank.x - TANK0[0]) / (TANK_END - TANK0[0]), 0, 1))}% out · ${dist(player, tank) < 8 ? 'moving' : 'WAITING FOR YOU'}`, hint: 'Walk alongside the tank. If you wander off it stops and waits.',
         pre() { killZpu(); M.nvgOK = true; tank.guns = true; for (const b of bmps) b.gone = true; },
@@ -745,7 +798,7 @@ const MB = () => {
         },
         done: () => tank.x >= TANK_END - 0.01 && aliveEnemies().filter(e => dist(e, tank) < 14).length === 0,
         end() { M.goal = null; } },
-      // 8 — out
+      // 10 — out
       { obj: '', checkpoint: false,
         start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.outT = t; tank.guns = false; M.squadAt = [[72, 24.6], [73.5, 30.8], [70.5, 25], [70.8, 31.2]]; M.squadCut = true; for (const e of ents) if (e.kind === 'enemy') e.gone = true; },
         tick() {
@@ -858,6 +911,340 @@ const M4 = () => {
   };
 };
 
+// ---------- 6. SCORCHED GIRTH (v5.2) ----------
+// cold open under a building → 20 MINUTES EARLIER → Black Hawks over Boinlin → rooftop → two office floors → the roof yard
+// → DICK-50 overwatch on the street below → paint T-69s for the Wart-Hogs → the tower across falls over → ropes down
+// → the boulevard with WAR PECKER → the kill zone → "head for the building!" → it falls on you → the basement → out
+const MS = () => {
+  const box = (g, x0, y0, x1, y1, ch) => carve(g, x0, y0, x1, y1, ch);
+  const STREET_Z = -10;   // the street below the rooftops, in wall units (x YS = metres)
+  // ---- ROOF: helipad, the office tower (two floors joined by a stairwell), the roof yard, and the drop to the street ----
+  const R = Array.from({ length: 30 }, () => '_'.repeat(100));
+  box(R, 1, 9, 14, 21, 'X'); box(R, 2, 10, 13, 20, '.');                                   // helipad roof
+  box(R, 14, 6, 47, 24, 'C'); box(R, 15, 7, 29, 23, '.'); box(R, 32, 7, 46, 23, '.');       // floor 40 (A) and floor 39 (B)
+  box(R, 30, 18, 31, 23, '.');                                                               //   the stairwell between them
+  put(R, 14, 15, '.'); put(R, 14, 16, '.');                                                  //   in from the helipad
+  for (const x of [17, 21, 25]) for (const y of [9, 13, 17]) box(R, x, y, x + 2, y, 'A');    //   cubicles, floor 40
+  for (const x of [34, 38, 42]) for (const y of [10, 15, 20]) box(R, x, y, x + 1, y, 'A');   //   cubicles, floor 39
+  box(R, 29, 9, 29, 12, 'C'); box(R, 32, 13, 33, 13, 'C');
+  box(R, 48, 3, 64, 27, 'X'); box(R, 49, 4, 63, 26, '.');                                    // roof yard
+  for (const y of [10, 11]) { put(R, 47, y, '.'); put(R, 48, y, '.'); }                       //   out to the roof yard
+  box(R, 52, 6, 52, 9, 'V'); box(R, 52, 13, 52, 17, 'V'); box(R, 56, 20, 60, 20, 'V'); box(R, 56, 5, 58, 5, 'V');
+  for (const [x, y] of [[61, 8], [61, 9], [62, 15], [62, 16], [60, 22], [61, 22], [55, 12], [57, 25]]) put(R, x, y, 'A');
+  box(R, 82, 3, 92, 9, 'X'); box(R, 83, 4, 91, 8, '.');                                      // the roof across the street
+  box(R, 70, 23, 78, 28, 'X'); box(R, 71, 24, 77, 27, '.');                                  // another one
+  // ---- STREET: the boulevard. WAR PECKER, the bank, the kill zone, and the hotel ----
+  const S = grid(92, 26);
+  box(S, 1, 8, 88, 17);
+  for (const [a, b, y0, y1] of [[10, 15, 5, 7], [30, 36, 18, 20], [46, 52, 5, 7], [62, 66, 18, 20], [70, 74, 5, 7]]) box(S, a, y0, b, y1);
+  box(S, 78, 3, 83, 7);                                                                      //   the hotel lobby
+  for (const [x, y] of [[20, 10], [21, 10], [27, 15], [28, 15], [39, 11], [40, 11], [55, 14], [56, 14], [63, 10], [69, 15], [70, 15], [76, 11]]) put(S, x, y, 'A');
+  // ---- RUBBLE: under the hotel. Dark, crooked, full of crabs ----
+  const U = grid(46, 22);
+  box(U, 2, 9, 7, 13);                                    // where you wake up
+  box(U, 8, 11, 13, 12); box(U, 12, 6, 13, 12); box(U, 13, 5, 22, 9);    // squeeze out into the collapsed shop
+  box(U, 18, 10, 19, 15); box(U, 14, 14, 23, 16);         // down through the back
+  box(U, 24, 12, 25, 18, '.');                            // TREPPE
+  box(U, 26, 17, 41, 18);                                 // the hallway
+  box(U, 34, 9, 41, 14); put(U, 37, 15, 'G'); put(U, 37, 16, 'G');   // the room behind the door (breach)
+  box(U, 36, 2, 43, 7); put(U, 39, 8, '.');               // out: daylight
+  for (const [x, y] of [[4, 10], [6, 12], [15, 7], [20, 6], [16, 15], [21, 14], [29, 18], [33, 17], [36, 11], [40, 13]]) put(U, x, y, 'B');
+  const PAL_ROOF = Object.assign({}, PAL.bridge, { fog: '#8a8a88', fogDist: 26, fogNear: 14, ceil: ['#4a4c52', '#a8a49a'], sun: false, clouds: true, cloudC: 'rgba(80,80,84,0.95)', plumes: 8, weather: 'embers', exposure: 1.45,
+    hemiSky: '#d0d0d4', hemiGround: '#5a5650', hemiI: 1.6, sunC: '#f0e8dc', sunI: 1.4, cod: { sat: 0.55, con: 1.2, shadow: [0.92, 0.96, 1.04], high: [1.06, 1.0, 0.94], vig: 0.45, grain: 0.04, bloom: 0.35 } });
+  const PAL_STREET = Object.assign({}, PAL_ROOF, { fogDist: 16, fogNear: 8, fog: '#7a7672' });
+  const PAL_DARK = Object.assign({}, PAL.finale, { fog: '#0c0b0a', fogDist: 8, fogNear: 3, exposure: 1.3, hemiI: 0.55, sunI: 0.2, weather: null, cod: { sat: 0.45, con: 1.25, shadow: [0.9, 0.92, 1.0], high: [1.1, 1.02, 0.9], vig: 0.75, grain: 0.06, bloom: 0.5 } });
+  const MAPS = {
+    roof: { map: R, heights: { '#': 2.6, C: 2.2, A: 0.85, X: 0.32, V: 1.4 }, tex: { '#': 'concrete', C: 'panelblock', A: 'plywood', X: 'concrete', V: 'fence' }, variants: { C: ['concrete', 6] }, floor: 'gravel',
+      floorOf: (x, y) => x >= 30 && x <= 31 && y >= 18 ? 'steps' : x >= 15 && x <= 46 && y >= 7 && y <= 23 ? 'carpet' : null, roofs: [[14, 6, 48, 25, 'concrete', 2.2, '#e8eef0']], indoor: (x, y) => x >= 14.5 && x <= 47.5 && y >= 6.5 && y <= 24.5,
+      areaGrade: null, outer: { ground: 'asphalt', ring: 'city', groundY: STREET_Z * YS, near: 8, count: 40 }, pal: PAL_ROOF,
+      props: [['ammobox', 3, 11, { passable: true }], ['barrel', 3, 19.5], ['barrel', 12.5, 10.5], ['cone', 7.5, 15, { passable: true }], ['desk', 16.5, 7.6], ['desk', 28, 22.4], ['cooler', 15.6, 22.4], ['plant', 28.4, 7.6], ['magrack', 22, 22.5], ['chair', 18, 11], ['chair', 26, 15], ['chair', 22, 19],
+        ['desk', 33, 7.6], ['plant', 45.4, 22.4], ['cooler', 45.4, 7.6], ['chair', 35, 12], ['chair', 43, 17], ['sandbags', 59, 13], ['sandbags', 58, 18], ['cratestack', 49, 25], ['barrel', 50, 4.6], ['tent', 54, 23], ['flag', 62.5, 4.5, { passable: true }]] },
+    street: { map: S, heights: { '#': 3.4, A: 0.8 }, tex: { '#': 'panelblock', A: 'sand' }, variants: { '#': ['concrete', 4] }, floor: 'asphalt', floorOf: (x, y) => (y === 8 || y === 17 || y < 8 || y > 17) ? 'rubble' : null,
+      roofs: null, indoor: null, areaGrade: null, outer: { ground: 'rubble', ring: 'city', near: 5, count: 44 }, pal: PAL_STREET,
+      props: [['wreck', 8, 10], ['wreck', 17, 15.6], ['car', 33, 9.4], ['wreck', 44, 15.8], ['car', 58, 9.6], ['wreck', 67, 12.5], ['barrier', 24, 12.5], ['barrier', 50, 12], ['lampost', 6, 8.4], ['lampost', 26, 16.6], ['lampost', 46, 8.4], ['lampost', 66, 16.6], ['fire', 44, 15.4, { passable: true }], ['smoke', 44, 15.3, { passable: true, z: 0.9 }], ['fire', 67, 12.2, { passable: true }], ['smoke', 67, 12, { passable: true, z: 0.9 }],
+        ['sign', 49, 8.2, { spr: 'sign_bank' }], ['sign', 80.5, 7.8, { spr: 'sign_hotel' }], ['flag', 12.5, 5.4, { passable: true }], ['flag', 72.5, 5.4, { passable: true }], ['tires', 36, 19.5], ['cratestack', 64, 19.4], ['barrel', 11, 6.5]] },
+    rubble: { map: U, heights: { '#': 1.6, B: 1.0, G: 1.5 }, tex: { '#': 'rock', B: 'rust', G: 'door' }, variants: { '#': ['concrete', 3] }, floor: 'rubble', floorOf: (x, y) => x >= 24 && x <= 25 && y >= 12 && y <= 18 ? 'steps' : x >= 26 && y >= 9 && y <= 18 ? 'lino' : null,
+      roofs: [[0, 0, 36, 22, 'concrete', 1.6, '#3a3a36'], [36, 8.5, 46, 22, 'concrete', 1.6, '#3a3a36']], indoor: (x, y) => !(x >= 36 && y <= 8),
+      areaGrade: (x, y) => x >= 36 && y <= 8 ? { shadow: [1.05, 1.02, 0.98], high: [1.2, 1.15, 1.05], sat: 0.6, vig: 0.4 } : null, outer: { ground: 'rubble', ring: 'city', near: 4, count: 20 }, pal: PAL_DARK,
+      props: [['fire', 7, 9.4, { passable: true }], ['smoke', 7, 9.4, { passable: true, z: 0.6 }], ['cratestack', 21.5, 5.6], ['desk', 15, 8.4], ['barrel', 23, 15.4], ['magrack', 40.4, 9.6], ['desk', 35, 13.4], ['sign', 26, 18.6, { spr: 'sign_treppe' }], ['fire', 42, 3, { passable: true }], ['wreck', 38, 3.2]] },
+  };
+  let squad = null, heli = null, birds = [], tanks = [], tower = null, hotel = null, pecker = null, zone = [], granola = [], paint = null;
+  const zoneLeft = () => zone.filter(e => !e.dead);
+  const wave = (list, o = {}) => { const out = spawnWave(list); for (const e of out) { e.ai = 'chase'; e.sightMul = 3; Object.assign(e, o); } zone.push(...out); return out; };
+  const idle = (list, o = {}) => { const out = spawnWave(list); for (const e of out) { e.sightMul = 1.4; Object.assign(e, o); } zone.push(...out); return out; };
+  const team = (pts) => spawnSquad([['vas', 'SACKMAN', ...pts[0], 3.2, -1.4], ['gas', 'CHUCK', ...pts[1], 2.6, 1.6], ['gropes', 'GRINDER', ...pts[2], -1.4, 1.4]]);
+  const mapInit = {
+    roof() {
+      // the street below: Granola team, the wreckage, and the tower that's about to have a very bad day
+      for (const [ty, x, y] of [['wreck', 70, 14], ['car', 76, 18.5], ['wreck', 84, 13], ['car', 92, 16], ['fire', 84, 13.2], ['smoke', 84, 13.1], ['wreck', 96, 19]]) spawnProp(ty, x, y, { passable: true, z: STREET_Z, far: 120 });
+      tower = makeTowerBlock(95, 24, 8, 8, 44, STREET_Z * YS);
+      for (const [x, y, h, w] of [[78, 1, 30, 7], [97, 6, 36, 5], [68, 1, 22, 5], [88, 28, 26, 8]]) makeTowerBlock(x, y, w, w, h, STREET_Z * YS);
+    },
+    street() {
+      bakeSign('sign_bank', 'DEUTSCHE BONK', 'we never close. we also never open.', '#e8eef4', '#2a3a8a'); bakeSign('sign_hotel', 'HOTEL GUTENTAG', '★★★★ · now with 100% more eggplant', '#fff6e0', INK);
+      hotel = makeTowerBlock(80.5, -4, 10, 8, 40, 0);
+    },
+    rubble() { bakeSign('sign_treppe', 'TREPPE ↑', 'stairs. or "stop". one of those.', '#2a6a3a', '#ffffff'); },
+  };
+  const go = (name, start) => {
+    if (M.curMap !== name) { swapMap(Object.assign({ start }, MAPS[name])); M.curMap = name; mapInit[name](); }
+    else if (start) { player.x = start[0]; player.y = start[1]; if (start[2] !== undefined) player.a = start[2]; }
+    flashlight(name === 'rubble'); M.scope = false;
+  };
+  return {
+    map: U, heights: MAPS.rubble.heights, tex: MAPS.rubble.tex, variants: MAPS.rubble.variants, floor: 'rubble', floorOf: MAPS.rubble.floorOf, roofs: MAPS.rubble.roofs, indoor: MAPS.rubble.indoor, areaGrade: MAPS.rubble.areaGrade,
+    outer: MAPS.rubble.outer, pal: PAL_DARK, start: [4, 11, 0], par: 720, lookDown: -290, music: 'tense', amb: 'wind', killWho: ['SACKMAN', 'GRINDER'], leadWho: 'SACKMAN',
+    card: ['Day 9 – 15:20:04', "Sgt. Derek 'Frosting' Westbrook", 'Delta Forcefully', 'Boinlin, Germany'],
+    props: MAPS.rubble.props,
+    brief: ['> BOINLIN, GERMANY. 15:20. THE CITY IS ON FIRE. AGAIN.', 'The Prime Minister\'s prize eggplant, Sir Aubergine, is being held in the Hotel Gutentag.', 'Delta Forcefully goes in: Sackman (call sign Meatal 0-1), Chuck, Grinder, and you. You are Frosting. Nobody chose that.',
+      'Black Hawks to a rooftop. Through the offices. Overwatch on the street with the DICK-50 cal while Granola team pushes up. Paint the tanks for the Wart-Hogs.', 'Then down to the street, across the boulevard, into the hotel.', '> OBJECTIVE: get the eggplant. Don\'t get buried. (You get buried.)'],
+    init() { M.curMap = 'rubble'; mapInit.rubble(); M.always = () => { flashlightTick(); if (tanks.length) for (const tk of tanks) if (!tk.dead && tk.to) { const d = tk.to[0] - tk.x; if (Math.abs(d) > 0.05) tk.x += Math.sign(d) * 0.012 * ts; } if (pecker && pecker.guns) tankTick(pecker); }; },
+    stages: [
+      // 0 — cold open: under the hotel
+      { obj: '', checkpoint: false,
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.coT = t; M.blackOut = 1; camH = 0.16; pitch = 40; player.a = -0.4; M.dig = 0; flashlight(false);
+          squad = team([[5.2, 10.4], [6.4, 12.2], [3, 12.6]]); squad.forEach(s => { s.hold = true; }); },
+        tick() {
+          const f = t - M.flags.coT, sk = squad[0];
+          M.blackOut = f < 120 ? 1 : Math.max(0, 1 - (f - 120) / 90) * (0.6 + 0.4 * Math.random() * (f < 300 ? 1 : 0));
+          if (f % 40 === 0 && f < 300) sfx('tick');
+          if (f === 140) say('SACKMAN', 'Frosting! FROSTING! Can you hear me?', 200);
+          if (f === 300) { say('SACKMAN', isTouch ? 'Grab my hand! Dig, man! DIG! (mash JUMP)' : 'Grab my hand! Dig, man! DIG! (mash SPACE)', 240); announce(isTouch ? 'MASH JUMP' : 'MASH SPACE', 'dig yourself out', 60); }
+          if (f > 300) { M.meter = { label: 'DIGGING OUT', k: Math.min(1, M.dig / 14), color: '#d8d0c0' }; sk.faceA = Math.atan2(player.x - sk.x, player.y - sk.y); sk.attackT = 5; }
+          player.a = lerpA(player.a, angleTo(player, sk), 0.03); pitch = lerp(pitch, f > 300 ? 25 : 40, 0.02);
+          if (M.dig >= 14 && !M.flags.out) { M.flags.out = t; M.meter = null; sfx('slide'); shake = 10; say('GRINDER', 'He\'s alive! Barely. Ish.', 150); }
+          if (M.flags.out) { const k = Math.min(1, (t - M.flags.out) / 90); camH = lerp(0.16, 0.5, k); pitch = lerp(25, 0, k); }
+          if (M.flags.out && t - M.flags.out === 150) say('SACKMAN', 'Meatal 0-1 to Overlord. We are under a building. ...Again.', 220);
+          if (M.flags.out && t - M.flags.out > 330) M.blackOut = Math.min(1, (t - M.flags.out - 330) / 40);
+          if (M.flags.out && t - M.flags.out > 380) M.fadeText = ['20 MINUTES EARLIER', ''];
+        },
+        done: () => M.flags.out && t - M.flags.out > 520,
+        end() { M.dig = undefined; M.fadeText = null; M.meter = null; camH = 0.5; pitch = 0; } },
+      // 1 — the Black Hawks
+      { obj: '', checkpoint: false,
+        start() {
+          go('roof', [-6, 15, 0]); M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.hT = t; M.blackOut = 1;
+          heli = spawnDeco('heli', -6, 15.8, 1.4, 1.6, { z: 5.5, far: 160, faceA: 0 });
+          birds = [spawnDeco('heli', -12, 9, 1.4, 1.6, { z: 7, far: 160 }), spawnDeco('heli', -18, 22, 1.4, 1.6, { z: 8.5, far: 160 }), spawnDeco('heli', 40, -12, 1.4, 1.6, { z: 12, far: 200 })];
+          squad = team([[-6, 15], [-6, 15], [-6, 15]]); squad.forEach(s => { s.hold = true; });
+          say('OVERLORD', 'Meatal 0-1, Overlord. The eggplant is in the Hotel Gutentag. Bring it home.', 240);
+        },
+        tick() {
+          const f = t - M.flags.hT, k = Math.min(1, f / 900); M.blackOut = Math.max(0, 1 - f / 60);
+          heli.x = lerp(-26, 7.5, ease(k)); heli.y = 15.8 + Math.sin(f * 0.01) * 0.6 * (1 - k); heli.z = lerp(9, 1.6, ease(Math.min(1, k * 1.05))); heli.faceA = Math.PI / 2;
+          player.x = heli.x - 0.2; player.y = heli.y + 2.5; camH = 0.35 + heli.z; player.a = lerpA(player.a, f < 500 ? 0.35 + Math.sin(f * 0.006) * 0.5 : 0, 0.03); pitch = lerp(pitch, f < 500 ? -12 : -4, 0.02);
+          squad.forEach((s, i) => { s.x = heli.x + (i ? 0 : 0.9); s.y = heli.y + (i ? 0 : 2.4); s.z = heli.z - (i ? 0 : 0.35); s.faceA = i ? Math.PI / 2 : Math.PI; });
+          birds.forEach((b, i) => { b.x += 0.05 + i * 0.01; b.faceA = Math.PI / 2; b.y += Math.sin(f * 0.01 + i) * 0.01; if (b.x > 120) b.x = -40; });
+          if (t % 8 === 0) sfx('chop');
+          if (f === 260) say('SACKMAN', 'Copy. Meatal team, two minutes. Lock and load.', 180);
+          if (f === 440) say('CHUCK', 'I lock. I load. I\'m a professional.', 150);
+          if (f === 600) say('GRINDER', 'Is it true the whole city smells like bratwurst?', 180);
+          if (f === 760) say('PILOT', 'Thirty seconds! Rooftop LZ!', 140);
+          if (f === 880) { say('SACKMAN', 'Feet dry, dicks wet. GO!', 140); sfx('slide'); }
+        },
+        done: () => t - M.flags.hT > 960,
+        end() { camH = 0.5; pitch = 0; squad.forEach(s => { s.hold = false; s.z = 0; }); squadWarp([[9, 13], [9, 18], [6, 15]]); player.x = 7; player.y = 15.5; M.state = 'play'; player.canMove = true; player.canFire = true; } },
+      // 2 — floor 40
+      { obj: 'Into the office tower. Clear floor 40 with Meatal team.', at: [7, 15.5, 0], count: () => `Hostiles on the floor: ${zoneLeft().length}`, clearAll: true, clearList: () => zoneLeft(), hint: 'In through the door on the east side of the helipad. Use the cubicles as cover.',
+        pre() { go('roof', [7, 15.5, 0]); if (!M.squad) squad = team([[9, 13], [9, 18], [6, 15]]); M.state = 'play'; player.canMove = true; player.canFire = true; if (heli && !heli.gone) heli.leave = true; else heli = spawnDeco('heli', 7.5, 15.8, 1.4, 1.6, { z: 1.6, far: 160, faceA: Math.PI / 2, leave: true }); },
+        start() {
+          zone = []; M.goal = { x: 16, y: 15.5 };
+          idle([['condom', 19, 11], ['condom', 23, 15], ['crab', 26, 19], ['condom', 27, 8.5], ['chili', 22, 21.5], ['condom', 28, 14]]);
+          say('SACKMAN', 'Stack up on the door. We take the floor, then the stairs.', 200);
+        },
+        tick() { if (heli && heli.leave) { heli.z += 0.03; heli.x -= 0.06; heli.faceA = -Math.PI / 2; if (t % 9 === 0) sfx('chop'); if (heli.z > 14) heli.gone = true; }
+          if (player.x > 15 && !M.flags.f40) { M.flags.f40 = true; M.goal = null; say('GRINDER', 'Cubicles. My personal hell.', 140); }
+          if (M.stageT === 60 * 40) say('CHUCK', 'Somebody\'s lunch is still in the microwave. ...It\'s a bratwurst.', 220);
+          if (M.flags.f40 && !M.flags.f40b && zoneLeft().length <= 2) { M.flags.f40b = true; wave([['condom', 30.5, 22], ['condom', 31, 20], ['crab', 30.5, 19], ['bee', 28, 21]], { sightMul: 4 }); say('SACKMAN', 'More coming up the stairwell!', 150); } },
+        done: () => M.flags.f40b && zoneLeft().length === 0,
+        end() { say('SACKMAN', 'Floor\'s clear. Stairwell, south-east corner. Down to thirty-nine.', 220); M.goal = { x: 30.5, y: 21 }; } },
+      // 3 — floor 39
+      { obj: 'Down the stairwell to floor 39 and fight through to the roof exit', at: [27, 20.5, 0], count: () => `Hostiles: ${zoneLeft().length}`, hint: 'The stairwell is the striped steps in the south-east of floor 40. The roof exit is on the east wall of floor 39, near the north end.', hintAfter: 1200,
+        pre() { go('roof', [27, 20.5, 0]); if (!M.squad) squad = team([[25, 19.5], [25, 21.5], [23, 20.5]]); },
+        start() { zone = []; M.goal = { x: 30.5, y: 21 }; idle([['condom', 35, 17], ['condom', 40, 12], ['crab', 44, 21], ['condom', 43, 9], ['chili', 37, 8.5], ['bee', 40, 18], ['condom', 45, 13]]); },
+        tick() {
+          if (player.x > 29.6 && !M.flags.st) { M.flags.st = true; announce('FLOOR 39', 'the stairs smelled weird', 30); M.goal = { x: 46.5, y: 10.5 }; }
+          if (player.x > 34 && !M.flags.f39a) { M.flags.f39a = true; wave([['condom', 44, 21], ['chili', 45, 18], ['crab', 41, 22]], { sightMul: 4 }); chatter('GRINDER', 'Behind the copier!', 120); }
+          if (player.x > 38 && !M.flags.f39) { M.flags.f39 = true; wave([['condom', 46, 10.5], ['condom', 46, 11.5], ['crab', 45, 8]], { sightMul: 4 }); say('CHUCK', 'Coming in from the roof door!', 140); }
+        },
+        done: () => M.flags.f39 && zoneLeft().length === 0 && player.x > 40,
+        end() { say('SACKMAN', 'Roof door. Go!', 120); } },
+      // 4 — the roof yard
+      { obj: 'Out onto the roof. Clear it, then grab the DICK-50 cal from the case by the east edge.', at: [45, 10.5, 0], count: () => M.flags.gotCal ? 'Got the DICK-50' : `Hostiles: ${zoneLeft().length}`, hint: 'Out the roof door, past the chain-link. The rifle case is on the sandbags on the east edge, by the flag.',
+        pre() { go('roof', [45, 10.5, 0]); if (!M.squad) squad = team([[44, 9.5], [44, 11.5], [42, 10.5]]); },
+        start() {
+          zone = []; M.goal = { x: 60.5, y: 12 };
+          wave([['condom', 55, 7], ['condom', 58, 15], ['crab', 54, 22], ['chili', 61, 19], ['condom', 50, 24]]);
+          const across = idle([['condom', 85, 5], ['condom', 89, 7], ['condom', 74, 25]]); for (const e of across) { e.rangeMul = 3.5; e.sightMul = 3; e.speedMul = 0; e.ai = 'chase'; }
+          say('SACKMAN', 'Contacts on the roof! And across the gap!', 160);
+          M.flags.calCase = spawnPickup('crate', 60.5, 12); M.flags.calCase.onGet = () => { M.flags.gotCal = true; };
+        },
+        tick() { if (M.stageT % 600 === 300 && zoneLeft().filter(e => e.x < 64).length < 2) wave([[pickOne(['condom', 'crab']), 49, rand(5, 25)], ['condom', 63, rand(5, 25)]]); },
+        done: () => M.flags.gotCal && zoneLeft().filter(e => e.x < 64).length === 0,
+        end() { M.goal = null; announce('DICK-50 CAL', isTouch ? 'tap AIM to scope in · it reaches the street' : 'right-click to scope in · it reaches the street', 40); say('SACKMAN', 'You\'re on overwatch, Frosting. Granola team is pushing up the street below. Keep them alive.', 260); } },
+      // 5 — overwatch
+      { obj: isTouch ? 'OVERWATCH: tap AIM to scope, and shoot the Condom Troopers ambushing Granola team in the street below' : 'OVERWATCH: right-click to scope, and shoot the Condom Troopers ambushing Granola team in the street below', at: [61.5, 12, 0],
+        count: () => `Hostiles below: ${zoneLeft().length} · Granola team: ${granola.filter(g => !g.down).length}/4`, hint: 'Stand at the east parapet and look DOWN over the edge. Scope in; the red arrows are on the street.', hintAfter: 900, clearAll: true, clearList: () => zoneLeft(),
+        pre() { go('roof', [61.5, 12, 0]); if (!M.squad) squad = team([[60, 9], [61, 16], [58, 12]]); M.flags.gotCal = true; },
+        start() {
+          zone = []; M.scope = true; M.squadAt = [[61, 8.6], [62, 16.6], [59, 12]];
+          for (const e of ents) if (e.kind === 'enemy' && !e.dead && e.x > 64 && e.z >= 0) killEnt(e, false, 'CHUCK');
+          granola = [0, 1, 2, 3].map(i => spawnNpc('soup', 66 + i * 0.8, 13.5 + (i % 2) * 1.6, 1.3, 1.0, { z: STREET_Z, far: 140, friendly: true }));
+          const below = [[80, 12], [82, 16.5], [86, 11], [79, 19], [88, 15], [91, 12], [84, 20], [93, 17]];
+          for (const [x, y] of below) { const e = spawnEnemy('condom', x, y, { z: STREET_Z, frozen: true, far: 140, reveal: true }); zone.push(e); }
+          say('OVERLORD', 'Granola team is pinned on the boulevard. Thin them out, Meatal.', 200);
+          say('GRANOLA', 'Granola here! We could really use some love from above!', 200);
+        },
+        tick() {
+          for (const g of granola) { if (g.down) continue; g.x = Math.min(g.x + 0.004, 78); g.walk = (g.walk || 0) + ts; g.attackT = t % 60 < 8 ? 5 : 0; g.faceA = Math.PI / 2; }
+          // the ambush hurts them slowly until you sort it out
+          if (t % 400 === 0 && zoneLeft().length > 4) { const g = granola.find(q => !q.down); if (g && granola.filter(q => !q.down).length > 2) { g.down = true; g.dead = true; g.deadT = t; say('GRANOLA', 'Man down! We need that overwatch!', 150); } }
+          if (t % 37 === 0) { const e = pickOne(zoneLeft()); if (e) { e.attackT = 10; sfx('ashotfar'); } }
+          if (M.stageT === 600 && player.ads < 0.5) say('SACKMAN', isTouch ? 'Scope in, Frosting! Tap AIM!' : 'Scope in, Frosting! Right-click!', 160);
+        },
+        done: () => zoneLeft().length === 0,
+        end() { say('GRANOLA', 'Street\'s clear! Thanks, Meatal! We owe you a beer. A small one.', 220); } },
+      // 6 — paint the tanks
+      { obj: 'Three T-69s rolling up the boulevard. Scope in and hold your aim on each one to paint it for the Wart-Hogs.', at: [61.5, 12, 0],
+        count: () => `T-69s: ${tanks.filter(k => !k.dead).length} left${paint ? ` · painting ${Math.round(paint.k * 100)}%` : ''}`, hint: 'Scope in, look down at a tank on the street and keep the crosshair on it until it says PAINTED.', hintAfter: 900,
+        pre() { go('roof', [61.5, 12, 0]); if (!M.squad) squad = team([[60, 9], [61, 16], [58, 12]]); M.scope = true; M.squadAt = [[61, 8.6], [62, 16.6], [59, 12]]; },
+        start() {
+          zone = []; M.scope = true; paint = null;
+          tanks = [[100, 11.5, 86], [104, 15.5, 80], [108, 18.5, 92]].map(([x, y, to]) => spawnDeco('etank', x, y, 1.4, 3, { z: STREET_Z, far: 160, faceA: Math.PI, turretA: Math.PI, reveal: true, scale: 1.4, r: 2.2, to: [to, y], shootable: false,
+            onDeath: e => { e.reveal = false; spawnProp('fire', e.x, e.y, { passable: true, z: STREET_Z + 0.4, far: 160 }); spawnProp('smoke', e.x, e.y, { passable: true, z: STREET_Z + 1.4, far: 160 }); announce('T-69 DESTROYED', pickOne(['brrrrrrrrt.', 'the Wart-Hog sends its regards.', 'that\'s a lot of bullet for one tank.']), 34); } }));
+          say('OVERLORD', 'Three T-69s on the boulevard. Wart-Hogs are on station. Paint the targets.', 220);
+          say('HOG', 'Wart-Hog Two, ready to make it rain. Show me where.', 200);
+        },
+        tick() {
+          const p = player; let on = null;
+          if (p.ads > 0.6) for (const tk of tanks) { if (tk.dead || tk.painted) continue; const da = Math.abs(wrapA(angleTo(p, tk) - p.a)), d = dist(p, tk);
+            const elev = Math.atan2(STREET_Z * YS + 0.8 - camH * YS, d); if (da < 0.07 + 0.6 / d && Math.abs(elev - pitch * PX2RAD) < 0.12) on = tk; }
+          if (on) { if (!paint || paint.tk !== on) paint = { tk: on, k: 0 }; paint.k = Math.min(1, paint.k + 1 / 100 * ts); M.meter = { label: 'PAINTING TARGET', k: paint.k, color: '#ff5050' }; if (t % 8 === 0) sfx('tick');
+            if (paint.k >= 1) { const tk = paint.tk; tk.painted = true; paint = null; M.meter = null; announce('TARGET PAINTED', 'wart-hog inbound', 30); say('HOG', pickOne(['Target confirmed. Brrrrrrt.', 'Rolling in hot.', 'Painted target, I see it. Here comes the rain.']), 150); tk.strikeAt = t + 90; } }
+          else { if (paint) paint.k = Math.max(0, paint.k - 0.02); if (paint && paint.k <= 0) paint = null; M.meter = paint ? { label: 'PAINTING TARGET', k: paint.k, color: '#ff5050' } : null; }
+          for (const tk of tanks) if (tk.strikeAt && !tk.dead) { const f = t - tk.strikeAt; if (f === 0) sfx('streak'); if (f >= 0 && f % 4 === 0) { burst3d(tk.x + rand(-2.5, 2.5) + (f / 4 - 5) * 0.4, tk.y + rand(-1, 1), STREET_Z + 0.3, 6, 'spark', 0.12); sfx('ashot'); }
+            if (f === 32) { sfx('boom'); shake = Math.max(shake, 14); burst3d(tk.x, tk.y, STREET_Z + 0.5, 40, 'puff', 0.18); killEnt(tk); } }
+          for (const tk of tanks) if (!tk.dead) { tk.turretA = lerpA(tk.turretA, angleTo(tk, player), 0.01); if (t % 300 === (tanks.indexOf(tk) * 90)) { burst3d(tk.x - 2, tk.y, STREET_Z + 1.2, 10, 'puff', 0.08); sfx('thud'); } }
+        },
+        done: () => tanks.length === 3 && tanks.every(k => k.dead),
+        end() { M.meter = null; M.flags.fallT = t; say('HOG', 'Three for three. Wart-Hog Two, going home.', 170); } },
+      // 7 — the tower across the street falls over
+      { obj: '', checkpoint: false,
+        pre() { go('roof', [61.5, 12, 0]); if (!M.squad) squad = team([[60, 9], [61, 16], [58, 12]]); },
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.fallT = t; M.scope = false; player.ads = 0; player.x = 62.6; player.y = 18.5; },
+        tick() {
+          const f = t - M.flags.fallT;
+          player.a = lerpA(player.a, angleTo(player, { x: 95, y: 24 }), 0.04); pitch = lerp(pitch, 14, 0.03);
+          if (f === 30) say('CHUCK', 'Uh. That building\'s leaning.', 140);
+          if (f === 150) say('SACKMAN', 'Buildings don\'t lean.', 120);
+          if (f > 170 && tower) { const k = Math.min(1, (f - 170) / 280); tower.rotation.x = -ease(k) * 0.95; tower.rotation.z = ease(k) * 0.2; if (f % 10 === 0) { shake = Math.max(shake, 6 + k * 14); sfx('boom'); burst3d(95 + rand(-6, 6), 24 + rand(-8, 4), STREET_Z + rand(0, 6), 10, 'puff', 0.2); } }
+          if (f === 340) { say('GRINDER', 'That one did.', 120); flash = 0.4; }
+          if (f === 420) say('SACKMAN', 'Ropes! We\'re going down to the street! Go, go!', 180);
+          if (f > 480) { camH -= 0.05; M.blackOut = Math.min(1, (f - 480) / 50); }
+        },
+        done: () => t - M.flags.fallT > 560,
+        end() { camH = 0.5; pitch = 0; } },
+      // 8 — the boulevard
+      { obj: 'Push up the boulevard with WAR PECKER. Head for the Hotel Gutentag at the far end.', at: [4, 12.5, 0], count: () => `Distance to the hotel: ${Math.max(0, Math.round((80 - player.x) * 1.5))} m`, hint: 'Stay behind the tank and the wrecks. The hotel is at the east end of the street, north side.', hintAfter: 1500,
+        pre() { go('street', [4, 12.5, 0]); squad = team([[6, 10.5], [6, 14.5], [3, 14]]); M.state = 'play'; player.canMove = true; player.canFire = true; M.blackOut = 0;
+          pecker = spawnDeco('tank', 9, 12.5, 1.6, 4, { faceA: 0, hullA: 0, turretA: 0, restA: 0, far: 120, guns: true, range: 20, rof: 340 }); },
+        start() {
+          zone = []; M.goal = { x: 76, y: 12.5 }; M.flags.wv = 0;
+          idle([['condom', 13, 6], ['condom', 33, 19], ['chili', 22, 9], ['crab', 30, 15], ['condom', 40, 9]]);
+          say('SACKMAN', 'WAR PECKER, Meatal 0-1. Nice to see you out of the bog.', 200); say('PECKER', 'We don\'t. Talk. About the bog.', 160);
+        },
+        tick() {
+          // the tank rolls when you're near it and nothing's in its face
+          if (pecker && pecker.x < 60 && dist(player, pecker) < 10 && !zoneLeft().some(e => dist(e, pecker) < 6)) { pecker.x += 0.01 * ts; if (t % 14 === 0) sfx('step'); }
+          const x = player.x;
+          if (x > 18 && !M.flags.b1) { M.flags.b1 = true; wave([['condom', 34, 9], ['condom', 35, 16], ['crab', 31, 19], ['chili', 37, 12]]); say('GRINDER', 'Contacts, up by the cars!', 140); }
+          if (x > 34 && !M.flags.b2) { M.flags.b2 = true; wave([['condom', 49, 6], ['condom', 51, 6.5], ['bee', 48, 10], ['crab', 52, 16], ['chili', 55, 9]]); say('GRINDER', 'Deutsche Bonk. I\'ve got an account there.', 170); say('CHUCK', 'Not anymore.', 100); }
+          if (x > 26 && !M.flags.b1b && M.flags.b1 && zoneLeft().length <= 2) { M.flags.b1b = true; wave([['condom', 34, 10.5], ['condom', 33, 19.5], ['crab', 40, 15], ['chili', 42, 9]], { sightMul: 4 }); say('SACKMAN', 'Second floor windows! Light \'em up!', 150); }
+          if (x > 48 && !M.flags.b3) { M.flags.b3 = true; wave([['condom', 63, 19], ['condom', 65, 9], ['crab', 60, 16], ['condom', 66, 15]]); }
+          if (M.flags.b3 && !M.flags.b4 && zoneLeft().length <= 1) { M.flags.b4 = true; wave([['condom', 72, 6], ['condom', 66, 19.5], ['bee', 70, 12], ['chili', 73, 6.5], ['crab', 70, 16]], { sightMul: 5 }); say('PECKER', 'More armour-less idiots up ahead. Engaging.', 160); }
+        },
+        done: () => player.x > 58 && M.flags.b4 && zoneLeft().filter(e => e.x < 76).length === 0,
+        end() { M.goal = null; } },
+      // 9 — the kill zone
+      { obj: 'AMBUSH! Get out of the kill zone! Run for the hotel lobby!', at: [60, 12.5, 0], count: () => `RUN · ${Math.max(0, Math.round(dist(player, { x: 80.5, y: 5.5 })))} m to the lobby`,
+        pre() { go('street', [60, 12.5, 0]); if (!M.squad) squad = team([[58, 10.5], [58, 14.5], [56, 12.5]]); if (!pecker) pecker = spawnDeco('tank', 55, 12.5, 1.6, 4, { faceA: 0, hullA: 0, turretA: 0, restA: 0, far: 120, guns: true, range: 20, rof: 340 }); },
+        start() {
+          zone = []; M.goal = { x: 80.5, y: 5.5 }; M.squadAt = [[79.5, 5], [81.5, 5], [80.5, 6.5]]; M.squadSpeed = 1.4;
+          for (const e of wave([['condom', 71, 6], ['condom', 73, 6.5], ['condom', 63, 18.5], ['condom', 65, 19.5], ['chili', 75, 16], ['bee', 70, 10], ['condom', 86, 12], ['condom', 87, 15]], { sightMul: 6 })) e.rangeMul = 1.4;
+          M.flags.kzT = t; shake = 16; sfx('boom'); flash = 0.4;
+          say('SACKMAN', 'AMBUSH! Get out of the kill zone! Move, move! Head for the building!', 220);
+          say('GRINDER', 'WHICH building?!', 100); say('SACKMAN', 'THE HOTEL! GO!', 120);
+          if (pecker) pecker.restA = -0.6;
+        },
+        tick() {
+          if (t % 50 === 0) { const x = player.x + rand(-6, 8), y = rand(9, 16); burst3d(x, y, 0.2, 12, 'puff', 0.12); sfx('ashot'); if (Math.random() < 0.35) { sfx('boom'); shake = Math.max(shake, 8); } }
+          if (t % 25 === 0 && player.y > 7.5) hurtPlayer(2, 'bee');   // the kill zone is a kill zone
+        },
+        done: () => near(80.5, 5.5, 1.8),
+        end() { M.squadSpeed = 1; } },
+      // 10 — the hotel comes down
+      { obj: '', checkpoint: false,
+        pre() { go('street', [80.5, 5.5, 0]); if (!M.squad) squad = team([[79.5, 5], [81.5, 5], [80.5, 6.5]]); },
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.hcT = t; for (const e of ents) if (e.kind === 'enemy') e.frozen = true; },
+        tick() {
+          const f = t - M.flags.hcT;
+          if (f === 20) say('CHUCK', 'Uh, Sackman? The building is doing the thing.', 160);
+          if (f === 120) say('SACKMAN', 'What thi—', 60);
+          player.a = lerpA(player.a, -Math.PI / 2, 0.06); pitch = lerp(pitch, f > 100 ? 70 : 20, 0.04);
+          if (hotel && f > 110) { const k = Math.min(1, (f - 110) / 120); hotel.rotation.x = ease(k) * 0.9; if (f % 6 === 0) { shake = Math.max(shake, 10 + k * 24); sfx(f % 12 ? 'thud' : 'boom'); burst3d(player.x + rand(-3, 3), player.y + rand(-3, 1), rand(0.5, 3), 8, 'puff', 0.2); } }
+          if (f > 210) M.blackOut = Math.min(1, (f - 210) / 25);
+        },
+        done: () => t - M.flags.hcT > 300 },
+      // 11 — the basement
+      { obj: 'You\'re alive. Follow Sackman out through the collapsed basement. Flashlight\'s on.', at: [4, 11, 0], count: () => `Hostiles: ${zoneLeft().length}`, hint: 'East out of the rubble, through the wrecked shop, down the back, up the TREPPE stairs, along the hallway.', hintAfter: 1500,
+        pre() { go('rubble', [4, 11, 0]); squad = team([[5.2, 10.4], [6.4, 12.2], [3, 12.6]]); M.state = 'play'; player.canMove = true; player.canFire = true; M.blackOut = 0; M.fadeText = null; camH = 0.5; pitch = 0; },
+        start() {
+          zone = []; M.goal = { x: 26, y: 17.5 }; M.blackOut = 1; M.flags.bT = t;
+          idle([['crab', 17, 7], ['crab', 21, 8], ['crab', 15, 15], ['condom', 22, 15.5], ['crab', 19, 13]]);
+          say('SACKMAN', 'Meatal team, sound off.', 140); say('CHUCK', 'Chuck. Mostly.', 100); say('GRINDER', 'Grinder. Concussed. Happy.', 140); say('SACKMAN', 'Flashlights on. We go through the basement.', 180);
+        },
+        tick() { M.blackOut = Math.max(0, 1 - (t - M.flags.bT) / 90);
+          if (player.x > 12 && !M.flags.amb) { M.flags.amb = true; wave([['crab', 22, 5.5], ['crab', 13, 9], ['crab', 20, 9]], { sightMul: 5 }); say('GRINDER', 'Crabs! They\'re in the walls!', 150); flash = 0.2; }
+          if (player.x > 23 && !M.flags.tr) { M.flags.tr = true; say('GRINDER', 'Treppe. That\'s German for stairs. Or stop. One of those.', 200); M.goal = { x: 36.5, y: 17.5 }; } },
+        done: () => M.flags.tr && near(36.5, 17.5, 1.8) && zoneLeft().filter(e => dist(e, player) < 9).length === 0,
+        end() { M.goal = null; } },
+      // 12 — breach
+      { obj: 'Breach the door. Slow and wet.', at: [36.5, 17.6, -Math.PI / 2], count: () => `Hostiles: ${zoneLeft().length}`,
+        pre() { go('rubble', [36.5, 17.6, -Math.PI / 2]); if (!M.squad) squad = team([[35, 17.6], [38, 17.6], [33, 17.6]]); },
+        start() {
+          zone = []; M.squadAt = [[35.2, 17.6], [38, 17.6], [33.5, 17.6]];
+          idle([['condom', 35, 11], ['condom', 39, 12], ['condom', 37, 10]]);
+          say('SACKMAN', 'Door. Frosting, kick it in on my mark. ...Mark.', 180);
+          M.flags.brT = t;
+        },
+        tick() {
+          const f = t - M.flags.brT;
+          if (f === 150) { openGate(37, 15); openGate(37, 16); sfx('butt'); shake = 12; ts = 0.35; sfx('slowmo'); announce('BREACH', 'slow-mo. make it count.', 30); for (const e of zoneLeft()) { e.ai = 'chase'; e.cd = 60; } }
+          if (f > 150 && (zoneLeft().length === 0 || f > 150 + 420)) ts = 1;
+        },
+        done: () => M.flags.brT && t - M.flags.brT > 160 && zoneLeft().length === 0,
+        end() { ts = 1; say('SACKMAN', 'Room clear. Daylight, north side. Move.', 160); M.goal = { x: 39.5, y: 4.5 }; M.squadAt = null; } },
+      // 13 — out
+      { obj: 'Out into the daylight', at: [37.5, 12, -Math.PI / 2],
+        pre() { go('rubble', [37.5, 12, -Math.PI / 2]); if (!M.squad) squad = team([[36, 12], [39, 12], [37, 13.5]]); },
+        start() { M.goal = { x: 39.5, y: 4.5 }; },
+        done: () => near(39.5, 4.5, 1.8),
+        end() { M.goal = null; flashlight(false); } },
+      { obj: '', checkpoint: false,
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.endT = t; M.squadAt = [[38, 3], [41, 3.2], [40.5, 5.5]]; M.squadCut = true; },
+        tick() { const f = t - M.flags.endT; player.a = lerpA(player.a, angleTo(player, squad[0]), 0.04);
+          if (f === 30) say('SACKMAN', 'Overlord, Meatal 0-1. We\'re out. We\'re going after the eggplant.', 220);
+          if (f === 30) say('OVERLORD', 'Copy, Meatal. ...Again?', 140);
+          if (f === 30) say('SACKMAN', 'Again.', 100);
+          if (f > 560) M.blackOut = Math.min(1, (f - 560) / 50);
+          if (f > 600) M.fadeText = ['SCORCHED GIRTH', 'the eggplant is still out there'];
+        },
+        done: () => t - M.flags.endT > 800,
+        end() { M.blackOut = 0; M.fadeText = null; M.squadCut = false; } },
+    ],
+  };
+};
+
 // ---------- 5. GAME OVA ----------
 const M5 = () => {
   const g = grid(184, 11);
@@ -941,5 +1328,5 @@ const M5 = () => {
     ],
   };
 };
-const MISSIONS = [M1, M2, M3, MB, M4, M5];
+const MISSIONS = [M1, M2, M3, MB, M4, MS, M5];
 
