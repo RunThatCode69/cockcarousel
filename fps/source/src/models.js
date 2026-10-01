@@ -512,6 +512,7 @@ export const PROP3D = {
     const turret = new THREE.Group(); turret.position.set(0.1, 1.05, 0); g.add(turret); turret.add(at(ink(G.cyl(0.4, 0.5, 0.3, 14), m, 0.03), 0, 0.15, 0));
     const b = ink(G.cyl(0.05, 0.05, 1.2, 8), toon('#26262a'), 0.02); b.rotation.z = -Math.PI / 2; b.position.set(0.7, 0.2, 0); turret.add(b);
     g.userData.turret = turret; return g; },
+  slab: () => { const g = new THREE.Group(); const m = toon('#8a8580'); const b = ink(G.box(1.2, 0.25, 0.8), m, 0.03); b.position.y = 0.12; g.add(b); const r = new THREE.Mesh(G.cyl(0.02, 0.02, 0.9, 4), toon('#5a3a2a')); r.rotation.z = 1.2; r.position.set(0.5, 0.2, 0.2); g.add(r); return g; },
   plant: () => { const g = new THREE.Group(); g.add(at(ink(G.cyl(0.16, 0.12, 0.3, 10), toon('#c98b4b')), 0, 0.15, 0)); for (let i = 0; i < 6; i++) { const l = ink(G.sph, toon('#3f8f32'), 0.02); l.scale.set(0.06, 0.3, 0.06); const a = i / 6 * Math.PI * 2; l.position.set(Math.cos(a) * 0.1, 0.5, Math.sin(a) * 0.1); l.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); g.add(l); } return g; },
 };
 export const PROP_SOLID = { zpu: 1, truck: 1, van: 1, tombstone: 1, carousel: 1, barrel: 1, sandbags: 1, cratestack: 1, tent: 1, palm: 1, tires: 1, barrier: 1, cactus: 1, flag: 1, rock: 1, car: 1, wreck: 1, lampost: 1, cooler: 1, magrack: 1, desk: 1, posterstand: 1 };

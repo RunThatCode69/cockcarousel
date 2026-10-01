@@ -948,11 +948,23 @@ const MS = () => {
   box(U, 34, 9, 41, 14); put(U, 37, 15, 'G'); put(U, 37, 16, 'G');   // the room behind the door (breach)
   box(U, 36, 2, 43, 7); put(U, 39, 8, '.');               // out: daylight
   for (const [x, y] of [[4, 10], [6, 12], [15, 7], [20, 6], [16, 15], [21, 14], [29, 18], [33, 17], [36, 11], [40, 13]]) put(U, x, y, 'B');
+  // ---- AMBUSH: the cold open. A dead-end boulevard full of dust, and a collapsed building at the end of it ----
+  const A = grid(48, 17);
+  box(A, 1, 5, 33, 11);                                                        // the street
+  box(A, 6, 3, 10, 4); box(A, 18, 12, 23, 13); box(A, 26, 3, 30, 4);           // blown-in shopfronts
+  for (const [x, y] of [[8, 9], [9, 9], [13, 6], [16, 10], [17, 10], [21, 7], [24, 9], [27, 6], [28, 6], [30, 9]]) put(A, x, y, 'B');   // slabs of facade
+  box(A, 34, 4, 45, 12, 'C'); box(A, 34, 6, 44, 10); box(A, 38, 5, 40, 5); box(A, 41, 9, 43, 11);   // the building you run into
+  for (const [x, y] of [[37, 7], [39, 9], [42, 7]]) put(A, x, y, 'B');
+  const PAL_DUST = Object.assign({}, PAL.finale, { fog: '#8e887e', fogNear: 1.5, fogDist: 4.2, exposure: 1.5, hemiSky: '#c8c2b8', hemiGround: '#5a544a', hemiI: 1.7, sunC: '#e8dcc8', sunI: 0.9, weather: 'embers', plumes: 6, ceil: ['#6a665e', '#a8a296'], sun: false, clouds: false,
+    cod: { sat: 0.28, con: 1.18, shadow: [0.96, 0.96, 0.98], high: [1.04, 1.02, 0.98], vig: 0.7, grain: 0.07, bloom: 0.3 } });
   const PAL_ROOF = Object.assign({}, PAL.bridge, { fog: '#8a8a88', fogDist: 26, fogNear: 14, ceil: ['#4a4c52', '#a8a49a'], sun: false, clouds: true, cloudC: 'rgba(80,80,84,0.95)', plumes: 8, weather: 'embers', exposure: 1.45,
     hemiSky: '#d0d0d4', hemiGround: '#5a5650', hemiI: 1.6, sunC: '#f0e8dc', sunI: 1.4, cod: { sat: 0.55, con: 1.2, shadow: [0.92, 0.96, 1.04], high: [1.06, 1.0, 0.94], vig: 0.45, grain: 0.04, bloom: 0.35 } });
   const PAL_STREET = Object.assign({}, PAL_ROOF, { fogDist: 16, fogNear: 8, fog: '#7a7672' });
   const PAL_DARK = Object.assign({}, PAL.finale, { fog: '#141210', fogDist: 9, fogNear: 3, exposure: 1.7, hemiI: 1.0, sunI: 0.3, weather: null, cod: { sat: 0.45, con: 1.25, shadow: [0.9, 0.92, 1.0], high: [1.1, 1.02, 0.9], vig: 0.75, grain: 0.06, bloom: 0.5 } });
   const MAPS = {
+    ambush: { map: A, heights: { '#': 3.6, B: 0.9, C: 3.0 }, tex: { '#': 'panelblock', B: 'concrete', C: 'concrete' }, variants: { '#': ['concrete', 3] }, floor: 'rubble', floorOf: (x, y) => x >= 34 ? 'rubble' : y >= 6 && y <= 10 ? 'asphalt' : null,
+      roofs: [[34, 4, 46, 13, 'concrete', 2.6, '#4a4640']], indoor: (x, y) => x >= 34, areaGrade: null, outer: { ground: 'rubble', ring: 'city', near: 4, count: 30 }, pal: PAL_DUST,
+      props: [['wreck', 5, 6.4], ['wreck', 12, 9.6], ['car', 19, 6.2], ['wreck', 25, 10.2], ['fire', 12, 9.4, { passable: true }], ['smoke', 12, 9.3, { passable: true, z: 0.8 }], ['fire', 25, 10, { passable: true }], ['barrier', 22, 9.8], ['lampost', 15, 5.4], ['tires', 31, 6], ['fire', 38, 8, { passable: true }], ['smoke', 30, 7.5, { passable: true, z: 0.8 }]] },
     roof: { map: R, heights: { '#': 2.6, C: 2.2, A: 0.7, P: 0.62, X: 0.32, V: 1.4 }, tex: { '#': 'concrete', C: 'panelblock', A: 'sand', P: 'steel', X: 'concrete', V: 'fence' }, variants: { C: ['concrete', 6] }, floor: 'gravel',
       floorOf: (x, y) => x >= 30 && x <= 31 && y >= 18 ? 'steps' : x >= 15 && x <= 46 && y >= 7 && y <= 23 ? 'carpet' : null, roofs: [[14, 6, 48, 25, 'concrete', 2.2, '#e8eef0']], indoor: (x, y) => x >= 14.5 && x <= 47.5 && y >= 6.5 && y <= 24.5,
       areaGrade: null, outer: { ground: 'asphalt', ring: 'city', groundY: STREET_Z * YS, near: 30, count: 30 }, pal: PAL_ROOF,
@@ -973,6 +985,10 @@ const MS = () => {
   const idle = (list, o = {}) => { const out = spawnWave(list); for (const e of out) { e.sightMul = 1.4; Object.assign(e, o); } zone.push(...out); return out; };
   const team = (pts) => spawnSquad([['vas', 'SACKMAN', ...pts[0], 2.4, -2.0], ['gas', 'CHUCK', ...pts[1], -1.6, 1.8], ['gropes', 'GRINDER', ...pts[2], -2.2, -1.2]]);
   const mapInit = {
+    ambush() {
+      M.flags.ambTower = makeTowerBlock(21, 0.2, 13, 7.6, 30, 0);   // the tower that comes down on you: it IS the north side of the street
+      for (const [x, y, h, w] of [[6, -4, 26, 9], [38, -4, 22, 8], [10, 21, 24, 10], [28, 21, 30, 9]]) makeTowerBlock(x, y, w, w, h, 0);
+    },
     roof() {
       // the street below: Granola team, the wreckage, and the tower that's about to have a very bad day
       for (const [ty, x, y] of [['wreck', 70, 14], ['car', 76, 18.5], ['wreck', 84, 13], ['car', 92, 16], ['fire', 84, 13.2], ['smoke', 84, 13.1], ['wreck', 96, 19]]) spawnProp(ty, x, y, { passable: true, z: STREET_Z, far: 120 });
@@ -988,40 +1004,87 @@ const MS = () => {
   const go = (name, start) => {
     if (M.curMap !== name) { swapMap(Object.assign({ start }, MAPS[name])); M.curMap = name; mapInit[name](); }
     else if (start) { player.x = start[0]; player.y = start[1]; if (start[2] !== undefined) player.a = start[2]; }
-    flashlight(name === 'rubble'); M.scope = false;
+    flashlight(name === 'rubble'); M.scope = false; M.dust = 0; M.hands = false; M.debris = 0;
   };
   return {
-    map: U, heights: MAPS.rubble.heights, tex: MAPS.rubble.tex, variants: MAPS.rubble.variants, floor: 'rubble', floorOf: MAPS.rubble.floorOf, roofs: MAPS.rubble.roofs, indoor: MAPS.rubble.indoor, areaGrade: MAPS.rubble.areaGrade,
-    outer: MAPS.rubble.outer, pal: PAL_DARK, start: [4, 11, 0], par: 720, lookDown: -290, scopeZoom: 0.5, noStreaks: true, shrinkMul: 0.25, propCover: true, music: 'tense', amb: 'wind', killWho: ['SACKMAN', 'GRINDER'], leadWho: 'SACKMAN',
+    map: A, heights: MAPS.ambush.heights, tex: MAPS.ambush.tex, variants: MAPS.ambush.variants, floor: 'rubble', floorOf: MAPS.ambush.floorOf, roofs: MAPS.ambush.roofs, indoor: MAPS.ambush.indoor, areaGrade: null,
+    outer: MAPS.ambush.outer, pal: PAL_DUST, start: [3, 8, 0], par: 720, lookDown: -290, scopeZoom: 0.5, noStreaks: true, shrinkMul: 0.25, propCover: true, music: 'tense', amb: 'wind', killWho: ['SACKMAN', 'GRINDER'], leadWho: 'SACKMAN',
     card: ['Day 9 – 15:20:04', "Sgt. Derek 'Frosting' Westbrook", 'Delta Forcefully', 'Boinlin, Germany'],
-    props: MAPS.rubble.props,
+    props: MAPS.ambush.props,
     brief: ['> BOINLIN, GERMANY. 15:20. THE CITY IS ON FIRE. AGAIN.', 'The Prime Minister\'s prize eggplant, Sir Aubergine, is being held in the Hotel Gutentag.', 'Delta Forcefully goes in: Sackman (call sign Meatal 0-1), Chuck, Grinder, and you. You are Frosting. Nobody chose that.',
       'Black Hawks to a rooftop. Through the offices. Overwatch on the street with the DICK-50 cal while Granola team pushes up. Paint the tanks for the Wart-Hogs.', 'Then down to the street, across the boulevard, into the hotel.', '> OBJECTIVE: get the eggplant. Don\'t get buried. (You get buried.)'],
-    init() { M.curMap = 'rubble'; mapInit.rubble(); M.always = () => { flashlightTick();
+    init() { M.curMap = 'ambush'; mapInit.ambush(); M.always = () => { flashlightTick(); debrisTick();
       if (M.ledge && M.state === 'play') { camH = lerp(camH, 1.25, 0.1); player.x = Math.max(player.x, 63.4); player.x = Math.min(player.x, 63.75); }
       if (M.curMap === 'rubble') { const out = player.x > 35 && player.y < 8.6 ? 1 : 0; hemi.intensity = lerp(hemi.intensity, out ? 2.4 : M.pal.hemiI, 0.04); if (scene.fog) { scene.fog.color.lerp(_dayFog.set(out ? '#b8b4ac' : M.pal.fog), 0.04); scene.background = scene.fog.color; scene.fog.far = lerp(scene.fog.far, out ? 60 : M.pal.fogDist * 3.2, 0.04); } renderer.toneMappingExposure = lerp(renderer.toneMappingExposure, out ? 2.6 : M.pal.exposure, 0.04); sun.intensity = lerp(sun.intensity, out ? 2.0 : M.pal.sunI, 0.04); if (out && M.flash) flashlight(false); } if (tanks.length) for (const tk of tanks) if (!tk.dead && tk.to) { const d = tk.to[0] - tk.x; if (Math.abs(d) > 0.05) tk.x += Math.sign(d) * 0.012 * ts; } if (pecker && pecker.guns) tankTick(pecker); }; },
     stages: [
-      // 0 — cold open: under the hotel
+      // 0 — cold open, part 1: the street, the blast, the tower coming down on you
       { obj: '', checkpoint: false,
-        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.coT = t; M.blackOut = 1; camH = 0.16; pitch = 40; player.a = -0.4; M.dig = 0; flashlight(false);
-          squad = team([[5.2, 10.4], [6.4, 12.2], [3, 12.6]]); squad.forEach(s => { s.hold = true; }); },
-        tick() {
-          const f = t - M.flags.coT, sk = squad[0];
-          M.blackOut = f < 90 ? 1 : Math.max(0, 1 - (f - 90) / 120) * (0.85 + 0.15 * Math.random());
-          if (f === 1) { const l = new THREE.PointLight('#ffb070', 6, 9, 1.2); l.position.set(6, 1.4, 10); level.add(l); M.flags.coLight = l; } if (M.flags.coLight) M.flags.coLight.intensity = 5 + Math.sin(t * 0.4) * 1.2 + Math.random();
-          if (f % 40 === 0 && f < 300) sfx('tick');
-          if (f === 140) say('SACKMAN', 'Frosting! FROSTING! Can you hear me?', 200);
-          if (f === 300) { say('SACKMAN', isTouch ? 'Grab my hand! Dig, man! DIG! (mash JUMP)' : 'Grab my hand! Dig, man! DIG! (mash SPACE)', 240); announce(isTouch ? 'MASH JUMP' : 'MASH SPACE', 'dig yourself out', 60); }
-          if (f > 300) { M.meter = { label: 'DIGGING OUT', k: Math.min(1, M.dig / 14), color: '#d8d0c0' }; sk.faceA = Math.atan2(player.x - sk.x, player.y - sk.y); sk.attackT = 5; }
-          player.a = lerpA(player.a, angleTo(player, sk), 0.03); pitch = lerp(pitch, f > 300 ? 25 : 40, 0.02);
-          if (M.dig >= 14 && !M.flags.out) { M.flags.out = t; M.meter = null; sfx('slide'); shake = 10; say('GRINDER', 'He\'s alive! Barely. Ish.', 150); }
-          if (M.flags.out) { const k = Math.min(1, (t - M.flags.out) / 90); camH = lerp(0.16, 0.5, k); pitch = lerp(25, 0, k); }
-          if (M.flags.out && t - M.flags.out === 150) say('SACKMAN', 'Meatal 0-1 to Overlord. We are under a building. ...Again.', 220);
-          if (M.flags.out && t - M.flags.out > 330) M.blackOut = Math.min(1, (t - M.flags.out - 330) / 40);
-          if (M.flags.out && t - M.flags.out > 380) M.fadeText = ['20 MINUTES EARLIER', ''];
+        start() {
+          M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.coT = t; M.blackOut = 1; player.x = 3; player.y = 8.4; player.a = 0; pitch = 0; camH = 0.5; M.dust = 0.3;
+          squad = team([[6, 7], [7, 9.4], [4.5, 9.6]]); M.squadAt = [[11, 6.6], [12.5, 9.2], [9, 9.6]]; M.squadCut = true; M.squadSpeed = 1.3;
+          M.flags.car = spawnProp('car', 15, 8.2, { passable: true, far: 60 });
         },
-        done: () => M.flags.out && t - M.flags.out > 520,
-        end() { M.dig = undefined; M.fadeText = null; M.meter = null; camH = 0.5; pitch = 0; } },
+        tick() {
+          const f = t - M.flags.coT, car = M.flags.car, tw = M.flags.ambTower;
+          M.blackOut = f < 40 ? 1 - f / 40 : 0;
+          if (f < 150) { player.x = Math.min(player.x + 0.03, 7.5); player.walkT = (player.walkT || 0) + 1; camH = 0.5 + Math.sin(f * 0.25) * 0.012; }
+          if (f === 30) say('SACKMAN', 'Keep moving! Stay tight on me!', 140);
+          if (f === 90) chatter('GRINDER', 'Contact! Upper floors!', 100);
+          if (f % 22 === 0 && f < 150) { sfx('ashotfar'); burst3d(rand(10, 30), rand(4, 12), rand(0.5, 3), 3, 'spark', 0.05); }
+          // the blast: the car goes up
+          if (f === 150) { explodeAt(15, 8.2, 2.5, 0); sfx('boom'); sfx('nade'); flash = 0.55; shake = 34; M.flags.carV = 0.42; M.dust = 0.5; M.squadAt = null; squad.forEach(q => { q.hold = true; }); }
+          if (f >= 150 && car && !car.gone) { const k = f - 150; car.z = Math.max(0, (car.z || 0) + (M.flags.carV -= 0.012)); car.x -= 0.05; car.rotZ = (car.rotZ || 0) + 0.13; car.rotX = (car.rotX || 0) + 0.05; if (car.z <= 0 && k > 10) { car.gone = true; explodeAt(car.x, car.y, 1.5, 0); shake = 20; spawnProp('wreck', car.x, car.y, { passable: true }); spawnProp('fire', car.x, car.y, { passable: true }); } }
+          if (f > 150 && f < 200) { camH = lerp(camH, 0.22, 0.12); roll = Math.sin(f * 0.4) * 0.08; }
+          if (f === 160) sfx('ring');
+          // you're on your back. Look up. The tower is coming over.
+          if (f > 200) { camH = lerp(camH, 0.2, 0.05); player.x = lerp(player.x, 19, 0.01); player.a = lerpA(player.a, -Math.PI / 2 + 0.15, 0.04); pitch = lerp(pitch, 250, 0.025); roll = lerp(roll, 0.1, 0.02); }
+          if (f === 230) say('CHUCK', 'Sackman! The building!', 110);
+          if (tw && f > 240) { const k = Math.min(1, (f - 240) / 200); tw.rotation.x = Math.pow(k, 1.7) * 1.05; if (f % 7 === 0) { shake = Math.max(shake, 8 + k * 26); sfx(f % 14 ? 'thud' : 'boom'); } if (f % 3 === 0) burst3d(player.x + rand(-6, 6), player.y + rand(-6, 2), rand(1, 6), 4, 'puff', 0.2); if (f % 2 === 0) { const hh = 30 * YS * Math.cos(tw.rotation.x), yy = 0.2 + 30 * Math.sin(tw.rotation.x) * rand(0.3, 1); burst3d(rand(15, 27), yy, rand(2, hh / YS), 3, 'puff', 0.12); } M.dust = 0.55 + k * 0.45; M.debris = 3 + k * 9; }
+          if (f > 410) M.blackOut = Math.min(1, (f - 410) / 18);
+        },
+        done: () => t - M.flags.coT > 520,
+        end() { roll = 0; M.debris = 0; if (M.flags.ambTower) { M.flags.ambTower.visible = false; } } },
+      // 0b — cold open, part 2: face down in the dust. Get out of the kill zone. Head for the building.
+      { obj: 'Get out of the kill zone! Head for the building!', checkpoint: false, at: [9, 8, 0],
+        count: () => `${Math.max(0, Math.round((34.5 - player.x) * 1.5))} m to the building`,
+        pre() { if (M.curMap !== 'ambush') go('ambush', [9, 8, 0]); if (M.flags.ambTower) M.flags.ambTower.visible = false; if (!M.squad) squad = team([[11, 7], [12, 9], [10, 9.5]]); },
+        start() {
+          M.flags.crT = t; M.state = 'crawl'; player.canMove = true; player.canFire = false; camH = 0.14; pitch = -70; M.blackOut = 1; M.dust = 1; M.hands = true; M.debris = 5; player.hp = 60;
+          squad.forEach(q => { q.hold = true; }); squad[0].x = 6.5; squad[0].y = 8.7; squad[1].x = 14; squad[1].y = 6.4; squad[2].x = 16; squad[2].y = 9.4;
+          for (const [x, y] of [[12, 6], [20, 10], [27, 7], [31, 9]]) spawnProp('wreck', x, y, { passable: true, far: 30 });
+        },
+        tick() {
+          const f = t - M.flags.crT, sk = squad[0];
+          M.blackOut = f < 70 ? 1 - f / 70 : 0;
+          if (f > 30 && f < 300) { pitch = lerp(pitch, f < 120 ? -60 : -15, 0.03); }
+          if (f === 60) sfx('ring');
+          // Sandman comes running out of the dust, right past you
+          if (f > 120 && f < 260) { sk.hold = true; sk.x = Math.max(sk.x, player.x - 2.5) + 0.07; sk.y = lerp(sk.y, player.y + 0.7, 0.08); sk.walk = (sk.walk || 0) + 2; sk.faceA = Math.PI / 2; }
+          if (f === 130) say('SACKMAN', 'It\'s an ambush! We gotta get the hell out of the kill zone! Move! Move!', 260);
+          if (f === 300) { M.state = 'play'; player.canFire = true; M.hands = false; M.dust = 0.85; squad.forEach(q => { q.hold = false; }); M.squadAt = [[34.5, 6.6], [34.5, 9.4], [33, 8]]; M.squadSpeed = 1.5; M.goal = { x: 35, y: 8 }; announce('GET UP', 'run for the building', 34); }
+          if (f > 300 && camH < 0.5) camH = lerp(camH, 0.5, 0.08);
+          if (f === 360) say('SACKMAN', 'Head for the building!', 140);
+          // the street keeps coming apart around you
+          if (f > 300 && f % 95 === 0) { const x = player.x + rand(4, 10), y = rand(5.5, 10.5); explodeAt(x, y, 1.6, 0); flash = Math.max(flash, 0.2); shake = Math.max(shake, 12); }
+          if (f > 300 && f % 40 === 0) sfx(pickOne(['ashot', 'ashotfar', 'thud']));
+          if (f === 700) chatter('GRINDER', 'Go! Go! Inside!', 100);
+        },
+        done: () => player.x > 35.5,
+        end() { M.goal = null; } },
+      // 0c — cold open, part 3: inside. It comes down again. 20 minutes earlier.
+      { obj: '', checkpoint: false,
+        start() { M.state = 'cut'; player.canMove = false; player.canFire = false; M.flags.inT = t; M.debris = 8; },
+        tick() {
+          const f = t - M.flags.inT;
+          player.a = lerpA(player.a, -0.2, 0.05); pitch = lerp(pitch, f > 50 ? 60 : 10, 0.05);
+          if (f === 10) say('CHUCK', 'Ceiling!', 70);
+          if (f % 6 === 0 && f < 90) { shake = Math.max(shake, 18); sfx(f % 12 ? 'thud' : 'boom'); burst3d(player.x + rand(-2, 2), player.y + rand(-2, 2), 1.6, 6, 'puff', 0.12); }
+          if (f > 60) { camH = lerp(camH, 0.18, 0.1); M.dust = Math.min(1, M.dust + 0.02); }
+          if (f > 80) M.blackOut = Math.min(1, (f - 80) / 10);
+          if (f > 130) M.fadeText = ['20 MINUTES EARLIER', ''];
+        },
+        done: () => t - M.flags.inT > 300,
+        end() { M.fadeText = null; M.debris = 0; M.dust = 0; M.hands = false; camH = 0.5; pitch = 0; M.squadCut = false; M.squadSpeed = 1; M.squadAt = null; } },
       // 1 — the Black Hawks
       { obj: '', checkpoint: false,
         start() {

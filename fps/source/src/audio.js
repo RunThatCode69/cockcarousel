@@ -59,6 +59,8 @@ function sfx(n) {
     case 'shoot': hiss(0.16, 0.5, 0, 'lowpass', 5000, 400); tone(160, 45, 0.18, 'sine', 0.5); tone(700, 200, 0.07, 'square', 0.05); hiss(0.08, 0.15, 0.03, 'highpass', 3000, 6000, 0.5); break;   // crack + thump + a wet tail
     case 'ashot': hiss(0.1, 0.13, 0, 'lowpass', 1600, 300); tone(130, 55, 0.12, 'sine', 0.13); break;   // a squadmate's shot: muffled, off to the side
     case 'ashotfar': hiss(0.08, 0.06, 0, 'lowpass', 900, 200); tone(100, 50, 0.1, 'sine', 0.06); break;
+    case 'ring': tone(3300, 3260, 3.2, 'sine', 0.045); tone(3420, 3400, 2.4, 'sine', 0.02, 0.1); break;   // tinnitus after a blast
+    case 'rumble': hiss(1.6, 0.6, 0, 'lowpass', 300, 60, 0.5); tone(45, 30, 1.6, 'sine', 0.35); break;
     case 'pump': tone(150, 520, 0.16, 'sine', 0.2); tone(520, 120, 0.3, 'sine', 0.18, 0.17); hiss(0.05, 0.2, 0.3, 'highpass', 3000, 5000); break;
     case 'click': hiss(0.03, 0.3, 0, 'highpass', 4000, 6000, 2); tone(2400, 1800, 0.03, 'square', 0.05); break;
     case 'magout': hiss(0.05, 0.3, 0, 'bandpass', 2500, 1200, 3); tone(300, 90, 0.12, 'square', 0.06); tone(90, 40, 0.2, 'sine', 0.2, 0.05); break;

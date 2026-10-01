@@ -392,3 +392,48 @@ function makeTowerBlock(x, y, w, d, h, base = 0) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.9 })); m.position.y = h / 2; m.castShadow = true; g.add(m);
   g.position.set(x, base, y); level.add(g); return g;
 }
+
+// ---------- v5.3: the collapse: falling concrete, dust you can't see through, your hands in the rubble ----------
+function debrisTick() {
+  if (!M || !player) return;
+  if (M.curMap === 'ambush' && scene.fog) { const d = M.dust || 0; scene.fog.near = lerp(scene.fog.near, lerp(14, 0.6, d), 0.05); scene.fog.far = lerp(scene.fog.far, lerp(70, 7, d), 0.05); }
+  if (M.debris > 0 && Math.random() < M.debris / 60) {
+    const a = rand(0, TAU), r = rand(0.8, 7), x = player.x + Math.cos(a) * r + Math.cos(player.a) * 3, y = player.y + Math.sin(a) * r + Math.sin(player.a) * 3;
+    spawnDeco(Math.random() < 0.6 ? 'slab' : 'rock', x, y, 1, 1, { z: rand(5, 10), fallV: 0, falling: true, rotX: rand(0, 3), rotZ: rand(0, 3), spin: rand(-0.15, 0.15), scale: rand(1.2, 2.6), far: 30, born: t });
+  }
+  for (const e of ents) {
+    if (!e.falling) { if (e.landed && t - e.landed > 700) e.gone = true; continue; }
+    e.fallV += 0.012 * ts; e.z -= e.fallV * ts; e.rotX += e.spin; e.rotZ += e.spin * 0.7;
+    if (e.z <= 0) {
+      e.z = 0; e.falling = false; e.landed = t; const d = dist(e, player);
+      burst3d(e.x, e.y, 0.2, 10, 'puff', 0.1); if (d < 9) { sfx(d < 4 ? 'boom' : 'thud'); shake = Math.max(shake, 14 - d * 1.4); }
+      if (d < 0.9 && M.state === 'play' && !player.invul) hurtPlayer(10, 'hazard', e);
+    }
+  }
+}
+function drawDust() {
+  const d = M.dust || 0; if (d <= 0) return;
+  const g = hctx; g.save();
+  g.fillStyle = `rgba(150,143,132,${0.18 + 0.32 * d})`; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 14; i++) { const x = ((i * 173 + t * (0.6 + i % 3 * 0.3) - player.a * 300) % (W + 400)) - 200, y = (i * 97 + Math.sin(t * 0.01 + i) * 40) % H, r = 120 + (i % 4) * 60;
+    const gr = g.createRadialGradient(x, y, 10, x, y, r); gr.addColorStop(0, `rgba(170,163,150,${0.25 * d})`); gr.addColorStop(1, 'rgba(170,163,150,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  g.restore();
+}
+function drawHands() {   // gloves pushing off the rubble while you crawl
+  if (!M.hands) return;
+  const g = hctx, mv = player.moving || 0, ph = (player.walkT || 0) * 0.15, bob = mv > 0.05 ? Math.sin(ph) : Math.sin(t * 0.03) * 0.3;
+  const glove = (cx, cy, s, ang) => {   // a flat gloved hand, fingers forward, palm down in the dirt
+    g.save(); g.translate(cx, cy); g.rotate(ang); g.scale(s, Math.abs(s));
+    g.lineWidth = 5; g.strokeStyle = '#0c0b0a';
+    const fill = g.createLinearGradient(0, -170, 0, 80); fill.addColorStop(0, '#4a453e'); fill.addColorStop(1, '#23201c'); g.fillStyle = fill;
+    for (const [fx, len, a] of [[-46, 92, -0.22], [-16, 112, -0.07], [14, 108, 0.06], [42, 86, 0.2]]) { g.save(); g.translate(fx, -40); g.rotate(a); g.beginPath(); g.roundRect(-15, -len, 30, len + 20, 15); g.fill(); g.stroke();
+      g.strokeStyle = 'rgba(0,0,0,0.45)'; g.lineWidth = 2; g.beginPath(); g.moveTo(-10, -len * 0.55); g.lineTo(10, -len * 0.55); g.moveTo(-10, -len * 0.25); g.lineTo(10, -len * 0.25); g.stroke(); g.restore(); g.lineWidth = 5; g.strokeStyle = '#0c0b0a'; }
+    g.save(); g.translate(-70, 10); g.rotate(-0.9); g.beginPath(); g.roundRect(-16, -70, 32, 84, 16); g.fill(); g.stroke(); g.restore();   // thumb
+    g.beginPath(); g.roundRect(-66, -52, 132, 150, 40); g.fill(); g.stroke();   // back of the hand
+    g.fillStyle = 'rgba(150,140,124,0.45)'; g.beginPath(); g.ellipse(-8, 10, 44, 30, 0.3, 0, TAU); g.fill();   // dust
+    g.fillStyle = '#2a2722'; g.fillRect(-70, 90, 140, 80); g.strokeRect(-70, 90, 140, 80);   // the sleeve
+    g.restore();
+  };
+  glove(W * 0.3 + bob * 16, H + 10 - Math.max(0, bob) * 50, 1.15, 0.18);
+  glove(W * 0.7 - bob * 16, H + 10 - Math.max(0, -bob) * 50, -1.15, -0.18);
+}

@@ -144,6 +144,7 @@ function syncViews() {
       if (ud.spin) { if (ud.spin.userData.slow) ud.spin.rotation.z += 0.0015; else ud.spin.rotation.y += 0.008; }
       if (ud.strobe) ud.strobe.visible = t % 40 < 4;
       if (e.faceA !== undefined && !o.isSprite) o.rotation.y = e.faceA;
+      if (e.rotZ !== undefined) o.rotation.z = e.rotZ; if (e.rotX !== undefined) o.rotation.x = e.rotX;
       if (e.rock !== undefined) o.rotation.z = e.rock;
       if (ud.turret && e.turretA !== undefined) ud.turret.rotation.y = -e.turretA - (e.faceA || 0);
       if (ud.barrel) ud.barrel.position.x = 0.8 - (e.recoil || 0) * 0.35;

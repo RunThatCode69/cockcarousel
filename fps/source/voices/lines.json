@@ -2708,5 +2708,40 @@
 "id": "2db0455f",
 "who": "SACKMAN",
 "text": "Contacts on the roof!"
+},
+{
+"id": "0f09063e",
+"who": "SACKMAN",
+"text": "Keep moving! Stay tight on me!"
+},
+{
+"id": "25bb4251",
+"who": "GRINDER",
+"text": "Contact! Upper floors!"
+},
+{
+"id": "59e37858",
+"who": "CHUCK",
+"text": "Sackman! The building!"
+},
+{
+"id": "f1ba415c",
+"who": "SACKMAN",
+"text": "It's an ambush! We gotta get the hell out of the kill zone! Move! Move!"
+},
+{
+"id": "8b13885c",
+"who": "SACKMAN",
+"text": "Head for the building!"
+},
+{
+"id": "23ad8d25",
+"who": "GRINDER",
+"text": "Go! Go! Inside!"
+},
+{
+"id": "a39ddead",
+"who": "CHUCK",
+"text": "Ceiling!"
 }
 ]
