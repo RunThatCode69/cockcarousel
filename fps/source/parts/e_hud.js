@@ -136,9 +136,9 @@ if (M.state !== 'crawl' && p.ads < 0.5 && p.sprint < 0.5) {
     if (M.state === 'play') {
       // stance: a tiny dick silhouette, standing / crouched / sprinting
       ctx.save(); ctx.translate(40, H - 72); ctx.scale(1, p.crouch ? 0.6 : 1); ctx.rotate(p.sprint * 0.4); ctx.globalAlpha = 0.85; drawDick(0, 0, 0.55, { still: true, face: false }); ctx.restore(); ctx.globalAlpha = 1;
-      if (p.streak > 0) txt(`STREAK ${p.streak}`, 70, H - 36, 22, p.streak >= 3 ? YEL : '#fff', 'left');
+      if (p.streak > 0 && !M.noStreaks) txt(`STREAK ${p.streak}`, 70, H - 36, 22, p.streak >= 3 ? YEL : '#fff', 'left');
       const next = STREAKS.find(s => s.n > p.streak);
-      if (next && p.streak > 0) txt(`${next.n - p.streak} more → ${next.name}`, 70, H - 12, 15, '#fff', 'left', null);
+      if (next && p.streak > 0 && !M.noStreaks) txt(`${next.n - p.streak} more → ${next.name}`, 70, H - 12, 15, '#fff', 'left', null);
     }
   }
   if (M.timer !== undefined && M.timer !== null) {

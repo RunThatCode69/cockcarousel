@@ -62,6 +62,7 @@ function makeView(e) {
     if (o && o.isSprite) { const h = (e.h || 1) * YS; o.scale.set(h * (e.w || e.h || 1) / (e.h || 1), h, 1); }
   }
   if (!o) return null;
+  if (e.vscale && !o.isSprite) o.scale.multiplyScalar(e.vscale);
   if (!o.isSprite && !o.isInstancedMesh) MD.bakeModel(o);
   dyn.add(o); return o;
 }

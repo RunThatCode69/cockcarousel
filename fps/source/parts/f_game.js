@@ -99,7 +99,7 @@ const SIZE_MIN = 0.3, SIZE_STEP = 0.012;
 const sizeMul = () => player ? 0.5 + 0.5 * player.size : 1;
 function shrinkShot() {
   const p = player; if (M.state === 'showdown' || p.hardT > 0) return;
-  const was = p.size; p.size = Math.max(SIZE_MIN, p.size - SIZE_STEP);
+  const was = p.size; p.size = Math.max(SIZE_MIN, p.size - SIZE_STEP * (M.shrinkMul === undefined ? 1 : M.shrinkMul));
   if (was > 0.75 && p.size <= 0.75 && !M.flags.sizeTip) { M.flags.sizeTip = true; say(M.leadWho || 'PRICK', "It's getting smaller, son. Every shot costs you. Find lotion.", 240); }
   if (was > 0.45 && p.size <= 0.45) { announce('SHRINKAGE', pickOne(['find lotion. now.', 'it\'s cold out here, okay?', 'is it in yet?', 'damage way down']), 40); sfx('deflate'); }
 }
@@ -155,7 +155,7 @@ function killEnt(e, butt, by) {
   if (e.kind === 'enemy') {
     stats.kills++; sfx('kill'); sfx('xp'); hitT = 12; hitKill = true; xpPop(e.type === 'boss' ? 500 : e.type === 'ice' ? 250 : 69); killFeed(`YOU  ⟶  ${NAMES[e.type] || e.type}`); burst3d(e.x, e.y, (e.z || 0) + e.h * 0.5, 10, 'drop');
     const p = player; p.streak++;
-    const s = STREAKS.find(s => s.n === p.streak);
+    const s = !M.noStreaks && STREAKS.find(s => s.n === p.streak);
     if (s) { sfx('streak'); announce(s.line, s.sub, 44); streakReward(s.n); if (s.n === 7) p.streak = 0; }
     if (Math.random() < 0.3) chatter(pickOne(M.killWho || ['PRICK', 'PRICK', 'SARGE']), pickOne(KILL_LINES), 150);
     if (e.type === 'ice') announce('SHRINKAGE OVER', 'welcome back, big guy', 40);
@@ -230,8 +230,8 @@ function updatePlayer() {
   p.ads = lerp(p.ads, wantAds ? 1 : 0, 0.2);
   const wantSprint = (keys.ShiftLeft || keys.ShiftRight || (joy.active && -joy.dy > 54)) && !wantAds && !fireHeld && M.state === 'play' && !p.crouch && !M.noRun;
   p.sprint = lerp(p.sprint, wantSprint && p.moving > 0.3 ? 1 : 0, 0.15);
-  if (M.state === 'play') camH = lerp(camH, p.crouch ? 0.33 : 0.5, 0.15);
-  if (M.state !== 'cut') fovK = lerp(fovK, 0.66 - (M.scope ? 0.48 : 0.24) * p.ads + 0.05 * p.sprint, 0.25);
+  if (M.state === 'play') camH = lerp(camH, M.ledge ? 1.25 : p.crouch ? 0.33 : 0.5, 0.15);
+  if (M.state !== 'cut') fovK = lerp(fovK, 0.66 - (M.scope ? (M.scopeZoom || 0.48) : 0.24) * p.ads + 0.05 * p.sprint, 0.25);
   p.throwT -= ts;
   p.a += turn * (M.state === 'crawl' ? 0.5 : 1);
   if (M.state === 'rails') { p.a = Math.PI + clamp(wrapA(p.a - Math.PI), -0.75, 0.75); }
@@ -300,7 +300,7 @@ function updateGlobs() {
   for (const q of eproj) {
     q.x += q.vx * ts; q.y += q.vy * ts; q.life -= ts;
     if (q.arc) { q.z += q.vz * ts; q.vz -= 0.004 * ts; if (q.z <= 0) { q.life = 0; puddles.push({ x: q.x, y: q.y, life: 700, spr: 'puddle', z: 0, h: 0.28, w: 1.4, seed: 0 }); burst3d(q.x, q.y, 0.2, 8, 'saucedrop'); sfx('sizzle'); continue; } }
-    if (solid(q.x, q.y)) { q.life = 0; continue; }
+    if (solid(q.x, q.y) || (M.propCover && blocked[(q.y | 0) * MW + (q.x | 0)] && dist(q, player) > 0.9)) { q.life = 0; if (M.propCover) burst3d(q.x, q.y, 0.6, 3, 'spark', 0.04); continue; }   // v5.2: cars, sandbags and the tank stop bullets too
     if (q.atAlly && dist(q, q.atAlly) < 0.45) { q.life = 0; burst3d(q.x, q.y, 0.6, 3, q.spr === 'condomshot' ? 'drop' : 'spark', 0.04); q.atAlly.hurtT = 6; continue; }
     if (!q.arc && dist(q, player) < 0.45) { q.life = 0; if (q.spr === 'condomshot') wrapHit(0.25, q); else hurtPlayer(q.dmg, 'bee', q); }
   }

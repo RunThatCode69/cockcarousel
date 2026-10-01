@@ -132,7 +132,8 @@ function fireRocket() {
   const p = player; if (p.swapT > 0 || p.rocketCd > 0 || !p.canFire) return;
   if (p.rockets <= 0) { if (!M.flags.noRkt || t - M.flags.noRkt > 120) { M.flags.noRkt = t; announce('OUT OF DILDOS', 'care packages have more', 26); sfx('click'); } return; }
   p.rockets--; p.rocketCd = 75; p.recoil = 1; p.kick -= 16; stats.shots++; sfx('fwip'); sfx('thud'); shake = Math.max(shake, 5);
-  const tgt = bestTarget(0.12); const a = tgt ? angleTo(p, tgt) : p.a;
+  let tgt = null; { let bd = 1e9; for (const e of ents) { if (!e.armor || !alive(e)) continue; const d = dist(p, e); if (d < 26 && Math.abs(wrapA(angleTo(p, e) - p.a)) < 0.3 + 1.2 / d && d < bd && los(p.x, p.y, e.x, e.y)) { bd = d; tgt = e; } } }   // rockets lock onto armour first
+  if (!tgt) tgt = bestTarget(0.12); const a = tgt ? angleTo(p, tgt) : p.a;
   const y0 = camH * YS - 0.1, dd = tgt ? Math.max(0.5, dist(p, tgt)) : 14, y1 = tgt ? (tgt.z || 0) * YS + 0.6 : y0 + Math.tan(pitch * PX2RAD) * dd;
   rockets.push({ x: p.x + Math.cos(a) * 0.5, y: p.y + Math.sin(a) * 0.5, vx: Math.cos(a) * 0.26, vy: Math.sin(a) * 0.26, y3: y0, vy3: (y1 - y0) / (dd / 0.26), life: 160, a });
   if (p.rockets === 0) setTimeout(() => { if (player === p && p.weapon === 'rocket') setWeapon('rifle'); }, 600);
@@ -167,11 +168,12 @@ function speakLine(who, text) {
   if (!VOICE.on || AUD.muted) return;
   try {
     if (curVoice) { curVoice.pause(); curVoice = null; }
-    const a = new Audio(VBASE + lineId(who, text) + '.mp3'); a.volume = 0.95; curVoice = a;
-    const pr = a.play(); if (pr && pr.catch) pr.catch(() => {});
+    const a = new Audio(VBASE + lineId(who, text) + '.mp3'); a.volume = 0.95; curVoice = a; a._t = performance.now(); a._max = 1500 + text.length * 90;
+    a.onerror = () => { if (curVoice === a) curVoice = null; };   // a missing clip must never hold up the radio
+    const pr = a.play(); if (pr && pr.catch) pr.catch(() => { if (curVoice === a) curVoice = null; });
   } catch (e) {}
 }
-function voiceBusy() { return !!(curVoice && !curVoice.paused && !curVoice.ended); }
+function voiceBusy() { if (curVoice && performance.now() - curVoice._t > curVoice._max) { curVoice = null; } return !!(curVoice && !curVoice.paused && !curVoice.ended && !curVoice.error); }
 function hushVoices() { try { if (curVoice) { curVoice.pause(); curVoice = null; } } catch (e) {} }
 function toggleVoices() { VOICE.on = !VOICE.on; try { localStorage.setItem('mw_voices', VOICE.on ? '1' : '0'); } catch (e) {} if (!VOICE.on) hushVoices(); announce(VOICE.on ? 'VOICES ON' : 'VOICES OFF', 'press O to toggle', 26); }
 
@@ -377,12 +379,12 @@ function swapMap(o) {   // o: { map, heights, tex, variants, floor, floorOf, roo
   if (o.start) { player.x = o.start[0]; player.y = o.start[1]; player.a = o.start[2] || 0; }
 }
 function flashlight(on) {   // a torch on your gun, for the dark bits
-  if (on && !M.flash) { const l = new THREE.SpotLight('#fff4dc', 22, 18, 0.5, 0.6, 1.0); scene.add(l); scene.add(l.target); M.flash = l; }
+  if (on && !M.flash) { const l = new THREE.SpotLight('#fff4dc', 2.2, 11, 0.42, 0.75, 2); scene.add(l); scene.add(l.target); M.flash = l; }
   if (!on && M.flash) { scene.remove(M.flash); scene.remove(M.flash.target); M.flash = null; }
 }
 function flashlightTick() {
   const l = M.flash; if (!l || !player) return; const p = player, ca = Math.cos(p.a), sa = Math.sin(p.a), pt = Math.tan(pitch * PX2RAD);
-  l.position.set(p.x + ca * 0.2, camH * YS - 0.15, p.y + sa * 0.2); l.target.position.set(p.x + ca * 4, camH * YS - 0.15 + pt * 4, p.y + sa * 4); l.intensity = 21 + Math.sin(t * 0.7) * 1;
+  l.position.set(p.x + ca * 0.2, camH * YS - 0.15, p.y + sa * 0.2); l.target.position.set(p.x + ca * 4, camH * YS - 0.15 + pt * 4, p.y + sa * 4); l.intensity = 2.2 + Math.sin(t * 0.7) * 0.1;
 }
 // a whole building as one object: a box of windows you can tilt over
 function makeTowerBlock(x, y, w, d, h, base = 0) {
