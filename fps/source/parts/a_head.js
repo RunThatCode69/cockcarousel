@@ -7,7 +7,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import * as A2 from './art2d.js';
 import { W, H, FONT, INK, SKIN, SKIN2, HEAD, HEAD2, PINK, YEL, PURP, CYAN, CUM, CUM2, TAU, rand, clamp, lerp, wrapA, pickOne,
   E, fs, poly, rr, heart, txt, txtWrap, mkCanvas, bake, setCtx, TEX, FT, bakeTextures, drawDick, crabArt, condomArt, bossArt, pubeArt } from './art2d.js';
-import { audio, audioTick, hiss, noise, note, pianoBar, playMusic, setAmbience, setMuted, sfx, tone, A as AUD } from './audio.js';
+import { audio, audioTick, hiss, noise, note, pianoBar, playMusic, setAmbience, setMuted, sfx, tone, playCue, cueVolume, preloadCues, A as AUD } from './audio.js';
 import * as MD from './models.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';

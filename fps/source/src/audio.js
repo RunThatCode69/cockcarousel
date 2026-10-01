@@ -175,5 +175,41 @@ const PIANO = [[0, 220], [0.5, 261.6], [1, 329.6], [1.5, 261.6], [2, 196], [2.5,
                [4, 174.6], [4.5, 220], [5, 261.6], [5.5, 220], [6, 164.8], [6.5, 207.7], [7, 246.9], [7.5, 329.6]];
 function pianoBar() { if (!live()) return; const t0 = actx.currentTime; for (const [at, f] of PIANO) { note(f, f * 0.995, t0 + at * 0.55, 1.4, 'triangle', 0.12, musBus); note(f * 2, f * 1.99, t0 + at * 0.55, 0.6, 'sine', 0.04, musBus); } }
 
-export { audio, audioTick, hiss, noise, note, pianoBar, playMusic, setAmbience, setMuted, sfx, silentWavURL, tone };
+// ---------- v5.5: the real score. Pre-rendered orchestral cues (fps/music/*.mp3), looped, crossfaded, ducked under dialogue ----------
+const MBASE = location.protocol === 'file:' ? 'music/' : '/fps/music/';
+const cueBuf = {}, cueFail = {}, cueLen = {};
+let cueCur = null, cueWant = null, cueLevel = 1;
+function loadCue(name) {
+  if (!actx || cueBuf[name] !== undefined || cueFail[name]) return;
+  cueBuf[name] = 0;
+  fetch(MBASE + name + '.mp3').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
+    .then(ab => new Promise((res, rej) => actx.decodeAudioData(ab, res, rej)))
+    .then(b => { cueBuf[name] = b; if (cueWant === name) startCue(name); })
+    .catch(() => { cueFail[name] = true; delete cueBuf[name]; });
+}
+function startCue(name) {
+  const a = actx, b = cueBuf[name]; if (!a || !b) return;
+  if (cueCur && cueCur.name === name) return;
+  if (cueCur) { const old = cueCur; try { old.g.gain.cancelScheduledValues(a.currentTime); old.g.gain.setTargetAtTime(0.0001, a.currentTime, 0.45); setTimeout(() => { try { old.src.stop(); } catch (e) {} }, 2500); } catch (e) {} }
+  const src = a.createBufferSource(), g = a.createGain();
+  src.buffer = b; src.loop = true;
+  const L = cueLen[name];   // the musical length: the mp3 may carry a few ms of encoder padding at the start
+  if (L && b.duration > L + 0.005) { src.loopStart = Math.min(0.05, b.duration - L); src.loopEnd = src.loopStart + L; }
+  g.gain.setValueAtTime(0.0001, a.currentTime); g.gain.setTargetAtTime(cueLevel, a.currentTime, 0.6);
+  src.connect(g); g.connect(musBus); src.start(0, src.loopStart || 0);
+  cueCur = { name, src, g };
+}
+// name: a cue, or null for silence. Returns false when that cue can't be played (missing file: use the synth instead)
+function playCue(name, len) {
+  if (len) cueLen[name] = len;
+  cueWant = name;
+  if (!actx) return !!name;
+  if (!name) { if (cueCur) { const old = cueCur; cueCur = null; try { old.g.gain.setTargetAtTime(0.0001, actx.currentTime, 0.5); setTimeout(() => { try { old.src.stop(); } catch (e) {} }, 2500); } catch (e) {} } return true; }
+  if (cueFail[name]) { playCue(null); return false; }
+  if (cueBuf[name]) startCue(name); else loadCue(name);
+  return true;
+}
+function cueVolume(v) { if (Math.abs(v - cueLevel) < 0.01) return; cueLevel = v; if (cueCur && actx) cueCur.g.gain.setTargetAtTime(v, actx.currentTime, 0.25); }
+function preloadCues(names) { if (actx) for (const n of names) loadCue(n); }
+export { audio, audioTick, hiss, noise, note, pianoBar, playMusic, setAmbience, setMuted, sfx, silentWavURL, tone, playCue, cueVolume, preloadCues };
 export const A = { get ctx() { return actx; }, get muted() { return muted; } };

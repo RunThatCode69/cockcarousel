@@ -30,7 +30,12 @@ function syncAudio() {
   if (state === 'title' || state === 'select' || state === 'brief' || state === 'clear') m = 'title';
   else if ((state === 'game' || state === 'pause') && M) { if (M.state === 'play' || M.state === 'rails') m = M.music; a = M.state === 'crawl' || M.state === 'showdown' ? 'fire' : M.amb; }
   else if (state === 'dead' && M) a = M.amb;
-  playMusic(m);
+  // v5.5: real score first; the old synth tunes only play if the cue file is missing (e.g. opened from file://)
+  let cue = undefined;
+  if (state === 'title' || state === 'select' || state === 'brief' || state === 'clear') cue = 'menu';
+  else if ((state === 'game' || state === 'pause' || state === 'dead') && M) cue = M.cue === undefined ? null : M.cue;
+  if (cue !== undefined && playCue(cue, CUE_LEN[cue])) { playMusic(null); } else playMusic(m);
+  cueVolume(state === 'pause' ? 0.35 : state === 'dead' ? 0.3 : (typeof voiceBusy === 'function' && voiceBusy()) ? 0.62 : 1);
   if (a !== ambWant && AUD.ctx) { ambWant = a; setAmbience(a); }
   audioTick();
 }

@@ -1394,4 +1394,15 @@ const M5 = () => {
   };
 };
 const MISSIONS = [M1, M2, M3, MB, M4, MS, M5];
+// v5.5: which piece of the score plays where. Index = stage; null = silence; anything left out keeps the previous cue.
+const CUES = {
+  1: { def: 'camp', 8: 'camp_pit', 9: 'menu' },
+  2: { def: 'ghillie', 3: 'ghillie_tense', 4: 'ghillie_tense', 5: 'ghillie', 8: 'ghillie_hold', 11: 'sg_end' },
+  3: { def: 'ship', 5: 'ship_sink' },
+  4: { def: 'bog', 1: 'bog_fight', 2: 'bog', 3: 'bog_fight', 4: 'bog_hold', 5: 'bog', 6: 'bog_fight', 7: 'bog_hold', 9: 'bog_fight', 10: 'sg_end' },
+  5: { def: 'muzak', 2: 'dome' },
+  6: { def: 'sg_open', 0: 'sg_open', 1: 'sg_killzone', 2: 'sg_open', 3: 'sg_heli', 4: 'sg_combat', 7: 'sg_overwatch', 9: 'sg_open', 10: 'sg_combat', 11: 'sg_killzone', 12: null, 13: 'sg_dark', 16: 'sg_end' },
+  7: { def: 'chase', 1: null, 2: 'chase', 3: 'finale' },
+};
+MISSIONS.forEach((f, i) => { const c = CUES[i + 1]; if (!c) return; MISSIONS[i] = () => { const m = f(); m.cue = c.def; m.stages.forEach((s, k) => { if (k in c) s.cue = c[k]; }); return m; }; });
 

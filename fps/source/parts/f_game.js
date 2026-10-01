@@ -469,8 +469,11 @@ function scatterProps(types, n, avoid = [], seed = 1) {
 function startMission(i, stageIdx = 0) {
   missionIdx = i;
   M = MISSIONS[i - 1]();
+  preloadCues([...new Set([M.cue, ...M.stages.map(s => s.cue)].filter(Boolean))]);
   c3.style.filter = ''; gsShells = []; hushVoices();
   M.idx = i; M.state = 'play'; M.stage = -1; M.flags = {}; M.timer = null; M.checkpoint = 0;
+  if (M.cue === undefined) M.cue = null;
+  for (let k = 0; k <= stageIdx && k < M.stages.length; k++) if (M.stages[k].cue !== undefined) M.cue = M.stages[k].cue;   // a checkpoint restart picks up the right music
   loadMap(M.map);
   ents = []; globs = []; eproj = []; rockets = []; aglobs = []; puddles = []; jam = []; radio = null; radioQ = []; announceQ = []; objText = ''; hintT = 0; flash = 0; shake = 0; whiteOut = 0;
   camH = 0.5; pitch = 0; roll = 0; ts = 1; joy.active = false; fireHeld = false; look.da = 0; look.dp = 0; parts3 = []; shells = []; feed = []; dmgDir = []; hitT = 0; nades = []; xps = []; adsHeld = false; adsToggle = false; fovK = 0.66;
@@ -498,6 +501,7 @@ function goStage(i) {
   const s = M.stages[i];
   if (!s) { missionClear(); return; }
   if (s.checkpoint !== false) M.checkpoint = i;
+  if (s.cue !== undefined) M.cue = s.cue;
   if (s.at) { player.x = s.at[0]; player.y = s.at[1]; if (s.at[2] !== undefined) player.a = s.at[2]; }
   if (s.pre) s.pre();
   if (s.obj !== undefined) setObjective(s.obj);

@@ -125,6 +125,22 @@ v4 made every mission several times longer (about 5 minutes each for a first pla
 
 Each mission opens with a typewriter briefing over a "satellite map" (it's a scrotum) and ends with a stats screen: kills, accuracy, time and a rank — Private Parts, Corporal Punishment, Sergeant Sausage, Colonel Angus, Major Wood, General Erection.
 
+## Music (v5.5)
+
+Every mission has its own score now, 22 original cues in `fps/music/*.mp3` (about 11 MB). They're composed in code (`source/music/sg.py` for Scorched Girth, `source/music/rest.py` for everything else) and rendered through FluidSynth with the GeneralUser GS soundfont (free, github.com/mrbumpy409/GeneralUser-GS; put it at `tools/_build/gu.sf2`, which is git-ignored). Each cue loops seamlessly. The game crossfades between them as you move through a mission's stages (the `CUES` table at the bottom of `h_missions.js`), ducks them under dialogue, and falls back to the old synth tunes if the files can't load (e.g. opened from `file://`).
+
+- Scorched Girth: dread drone and taiko hits for the collapse, a driving D-minor ostinato with horns for the Black Hawks, a combat loop, a ticking overwatch cue, a frantic kill-zone loop, a dark cello-and-choir cue for the basement, and a somber ending.
+- Bootie Camp: a silly piccolo-and-tuba march; THE PIT gets a stopwatch-and-taiko cue.
+- All Girthed Up: almost nothing (low strings, celeste, wind) while sneaking, a heartbeat for the chopper and convoy, and full orchestra for the carousel hold.
+- Crew Expandable: a low-string pulse on the ship and a frantic cue while it sinks.
+- The Bog: night snare cadence and synth pulse, a fight cue, and big brass and choir for holding the tank.
+- No Rushin': airport bossa-nova muzak, then four-on-the-floor in the Pleasure Dome.
+- GAME OVA: the bridge chase, then slow strings and piano at the end.
+
+## Voices (v5.5)
+
+`source/voices/gen2.py` re-voiced every line except Sarge's (his flat read stays exactly as it was). Kokoro TTS can't act on its own, so each character now gets a voice blend, a pitch, a speed and an effect (radio, tank intercom, in the room, whispering next to you), and each line gets a delivery from its punctuation: shouted, raised, normal, question, whisper, or cold. ALL-CAPS words and weapon names are rewritten so they're read as words instead of spelled out.
+
 ## Progression
 
 `localStorage`: `mw_unlocked` (highest mission unlocked; v5 and v5.2 move old progress up a slot each time a mission is inserted; `mw_v5`/`mw_v6` mark that as done), `mw_best` (best stats per mission), `mw_diff`. Title screen has New Game / Continue / Mission Select and a difficulty toggle: **Easy** (default) or **Regular** (about 40% more enemies in each wave, slightly more damage).
