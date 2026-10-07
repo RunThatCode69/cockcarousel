@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Wine Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one centered card, one question at a time, like a wine bar chalkboard at night. Dark by choice. */
+  :root {
+    --bg: #16131b;
+    --surface: #211d29;
+    --raised: #2b2634;
+    --line: #3b3444;
+    --fg: #f1e9df;
+    --muted: #a3979f;
+    --accent: #c0344f;
+    --accent-ink: #ffffff;
+    --good: #5fae7a;
+    --bad: #d9534f;
+    --gold: #d8a84a;
+    --display: "Libre Caslon Display", Georgia, "Times New Roman", serif;
+    --body: "IBM Plex Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.45;
+    padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
+    padding-inline: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { max-width: 560px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; padding-block: 20px 32px; }
+  header { display: flex; align-items: center; gap: 12px; min-height: 40px; }
+  header .back { background: none; border: 0; color: var(--muted); font: 500 15px var(--body); padding: 6px 4px; cursor: pointer; }
+  header .back:hover { color: var(--fg); }
+  header .crumb { flex: 1; min-width: 0; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); display: block; }
+  .dots i.on { background: var(--accent); }
+  .dots i.cur { box-shadow: 0 0 0 2px var(--fg) inset; }
+
+  main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-block: 20px; }
+  h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.12; }
+  h1 { font-size: clamp(38px, 9vw, 56px); }
+  h2 { font-size: clamp(26px, 6.5vw, 34px); }
+  .eyebrow { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .lede { color: var(--muted); margin: 10px 0 0; max-width: 42ch; }
+  .prompt { font-size: 15px; color: var(--muted); margin: 0 0 14px; }
+  .q { margin-block: 8px 24px; }
+  .q .big { font-family: var(--display); font-size: clamp(26px, 6.5vw, 34px); line-height: 1.15; }
+  .q .sub { color: var(--muted); font-size: 15px; margin-top: 6px; }
+
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .choice {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    background: var(--surface); border: 1px solid var(--line); color: var(--fg);
+    border-radius: 12px; padding: 14px 16px; font: 500 17px/1.3 var(--body); cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .choice:hover { background: var(--raised); }
+  .choice:focus-visible, .btn:focus-visible, .seg button:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .choice .k { width: 26px; height: 26px; border-radius: 7px; background: var(--raised); color: var(--muted); font-size: 13px; display: grid; place-items: center; flex: none; }
+  .choice.good { border-color: var(--good); background: color-mix(in srgb, var(--good) 18%, var(--surface)); }
+  .choice.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, var(--surface)); }
+  .choice:disabled { cursor: default; }
+
+  .btn {
+    border: 0; border-radius: 999px; padding: 14px 26px; font: 600 16px var(--body); cursor: pointer;
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .btn.ghost { background: var(--raised); color: var(--fg); }
+  .btn.quiet { background: none; color: var(--muted); padding-inline: 10px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
+  .row .spacer { flex: 1; }
+
+  textarea {
+    width: 100%; min-height: 96px; resize: vertical; background: var(--surface); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 12px; padding: 14px; font: 400 17px/1.4 var(--body);
+  }
+  .mic { display: inline-flex; align-items: center; gap: 8px; }
+  .mic.listening { background: var(--accent); color: var(--accent-ink); }
+  .mic.listening .pulse { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .mic.listening .pulse { animation: none; } }
+
+  .verdict { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+  .verdict.good { border-color: var(--good); }
+  .verdict.bad { border-color: var(--bad); }
+  .verdict .t { font-weight: 600; margin-bottom: 6px; }
+  .verdict .t.good { color: var(--good); } .verdict .t.bad { color: var(--bad); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-size: 14px; padding: 4px 10px; border-radius: 999px; background: var(--raised); color: var(--muted); }
+  .chip.hit { background: color-mix(in srgb, var(--good) 22%, var(--raised)); color: var(--fg); }
+  .chip.miss { background: color-mix(in srgb, var(--bad) 20%, var(--raised)); color: var(--fg); text-decoration: line-through; }
+
+  .field { margin-top: 18px; }
+  .field label { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 5px; }
+  .seg button { border: 0; border-radius: 8px; background: none; color: var(--muted); font: 500 16px var(--body); padding: 12px 6px; cursor: pointer; }
+  .seg button.on { background: var(--raised); color: var(--fg); }
+  .seg button.good { background: color-mix(in srgb, var(--good) 28%, var(--raised)); color: var(--fg); }
+  .seg button.bad { background: color-mix(in srgb, var(--bad) 24%, var(--raised)); color: var(--fg); }
+
+  .levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 22px; }
+  .lv { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; color: var(--fg); cursor: pointer; font-family: var(--body); }
+  .lv:hover { background: var(--raised); }
+  .lv:disabled { opacity: .4; cursor: default; }
+  .lv .n { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .lv .t { font-family: var(--display); font-size: 20px; margin: 4px 0 6px; line-height: 1.15; }
+  .lv .s { font-size: 14px; color: var(--gold); letter-spacing: .1em; min-height: 1.2em; }
+
+  .study { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .study li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .study b { font-family: var(--display); font-weight: 400; font-size: 20px; display: block; }
+  .study .g { color: var(--muted); font-size: 14px; }
+  .study .d { margin-top: 4px; }
+
+  .stars { font-size: 34px; letter-spacing: .12em; color: var(--gold); margin: 14px 0 4px; }
+  .stat { color: var(--muted); }
+  footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; }
+  footer a { color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <button class="back" id="back" hidden>&larr; Levels</button>
+    <div class="crumb" id="crumb">Wine Trainer</div>
+    <div class="dots" id="dots" hidden></div>
+  </header>
+  <main id="main"></main>
+  <footer id="foot">60 wines &middot; 12 levels &middot; progress saves on this device</footer>
+</div>
+
+<script>
+// ---------- Data ----------
+// body/acid/tan on a 0–2 scale in half steps: 0 light/low, 1 medium, 2 full/high.
+// keys: [label, regex-source]. Grading needs 2 hits when there are 3 or fewer keys, 3 hits when there are 4.
+const W = [
+  // Italy reds
+  {n:"Barolo", g:"Nebbiolo", r:"Piedmont, Italy", t:"red", body:1.5, acid:2, tan:2, taste:"dried rose, cherry, tar and leather", keys:[["rose","rose"],["cherry","cherr"],["tar","tar\\b"],["leather","leather"]]},
+  {n:"Barbaresco", g:"Nebbiolo", r:"Piedmont, Italy", t:"red", body:1.5, acid:2, tan:1.5, taste:"rose, red cherry and licorice", keys:[["rose","rose"],["cherry","cherr"],["licorice","licorice|liquorice"]]},
+  {n:"Langhe Nebbiolo", g:"Nebbiolo", r:"Piedmont, Italy", t:"red", body:1, acid:2, tan:1.5, taste:"red cherry and rose petals", keys:[["cherry","cherr"],["rose","rose"]]},
+  {n:"Barbera", g:"Barbera", r:"Piedmont, Italy", t:"red", body:1, acid:2, tan:0, taste:"juicy dark cherry and plum", keys:[["cherry","cherr"],["plum","plum"],["juicy","juic"]]},
+  {n:"Dolcetto", g:"Dolcetto", r:"Piedmont, Italy", t:"red", body:1, acid:0.5, tan:1, taste:"blackberry and cherry with a bitter almond finish", keys:[["blackberry","blackberr"],["cherry","cherr"],["almond","almond"]]},
+  {n:"Chianti", g:"Sangiovese", r:"Tuscany, Italy", t:"red", body:1, acid:2, tan:1, taste:"tart red cherry, dried herbs and tomato leaf", keys:[["cherry","cherr"],["herbs","herb"],["tomato","tomato"]]},
+  {n:"Vino Nobile di Montepulciano", g:"Sangiovese", r:"Tuscany, Italy", t:"red", body:1, acid:2, tan:1.5, taste:"cherry, plum and dried herbs", keys:[["cherry","cherr"],["plum","plum"],["herbs","herb"]]},
+  {n:"Brunello di Montalcino", g:"Sangiovese", r:"Tuscany, Italy", t:"red", body:2, acid:2, tan:2, taste:"dark cherry, leather and dried herbs", keys:[["cherry","cherr"],["leather","leather"],["herbs","herb"]]},
+  {n:"Super Tuscan", g:"Sangiovese + Cabernet or Merlot", r:"Tuscany, Italy", t:"red", body:2, acid:1, tan:1.5, taste:"dark fruit, cedar and spice", keys:[["dark fruit","dark fruit|black fruit|blackcurrant|blackberr"],["cedar","cedar"],["spice","spic"]]},
+  {n:"Valpolicella", g:"Corvina blend", r:"Veneto, Italy", t:"red", body:0, acid:2, tan:0.5, taste:"bright cherry with a bitter finish", keys:[["cherry","cherr"],["bitter","bitter"]]},
+  {n:"Ripasso", g:"Corvina blend", r:"Veneto, Italy", t:"red", body:1.5, acid:1.5, tan:1, taste:"dark cherry, raisin and spice", keys:[["cherry","cherr"],["raisin","raisin"],["spice","spic"]]},
+  {n:"Amarone", g:"Corvina blend, dried grapes", r:"Veneto, Italy", t:"red", body:2, acid:1, tan:1.5, taste:"raisin, dark cherry and dark chocolate", keys:[["raisin","raisin"],["cherry","cherr"],["chocolate","chocolate"]]},
+  {n:"Montepulciano d'Abruzzo", g:"Montepulciano", r:"Abruzzo, Italy", t:"red", body:1, acid:1, tan:0.5, taste:"soft ripe plum and dark cherry", keys:[["plum","plum"],["cherry","cherr"],["soft","soft"]]},
+  {n:"Primitivo", g:"same grape as Zinfandel", r:"Puglia, Italy", t:"red", body:2, acid:1, tan:1, taste:"jammy black cherry and spice", keys:[["jammy","jam"],["cherry","cherr"],["spice","spic"]]},
+  {n:"Nero d'Avola", g:"Nero d'Avola", r:"Sicily, Italy", t:"red", body:1.5, acid:1, tan:1, taste:"dark plum and black pepper", keys:[["plum","plum"],["pepper","pepper"]]},
+  {n:"Etna Rosso", g:"Nerello Mascalese", r:"Sicily, Italy", t:"red", body:0.5, acid:2, tan:1, taste:"red fruit, smoke and ash", keys:[["red fruit","red fruit|cherr|strawberr|raspberr"],["smoke","smok"],["ash","ash\\b"]]},
+  {n:"Aglianico / Taurasi", g:"Aglianico", r:"Campania, Italy", t:"red", body:2, acid:2, tan:2, taste:"black cherry, smoke and dark earth", keys:[["cherry","cherr"],["smoke","smok"],["earth","earth"]]},
+  // Italy whites
+  {n:"Pinot Grigio", g:"Pinot Grigio", r:"Friuli / Veneto, Italy", t:"white", body:0, acid:1, taste:"lemon and pear, clean and neutral", keys:[["lemon","lemon"],["pear","pear"],["neutral","neutral|clean"]]},
+  {n:"Friulano", g:"Friulano", r:"Friuli, Italy", t:"white", body:1, acid:1, taste:"almond and stone fruit with a bitter finish", keys:[["almond","almond"],["stone fruit","stone fruit|peach|apricot"],["bitter","bitter"]]},
+  {n:"Soave", g:"Garganega", r:"Veneto, Italy", t:"white", body:0, acid:1.5, taste:"almond and citrus", keys:[["almond","almond"],["citrus","citrus|lemon"]]},
+  {n:"Vermentino", g:"Vermentino", r:"Sardinia / Liguria, Italy", t:"white", body:0, acid:2, taste:"citrus and green apple with a little salt", keys:[["citrus","citrus|lemon|lime"],["apple","apple"],["salt","salt|salin"]]},
+  {n:"Gavi", g:"Cortese", r:"Piedmont, Italy", t:"white", body:0, acid:2, taste:"lemon, lime and minerals", keys:[["lemon","lemon"],["lime","lime"],["minerals","mineral"]]},
+  {n:"Verdicchio", g:"Verdicchio", r:"Marche, Italy", t:"white", body:0.5, acid:2, taste:"lemon and green almond with a bitter finish", keys:[["lemon","lemon"],["almond","almond"],["bitter","bitter"]]},
+  {n:"Fiano / Greco", g:"Fiano, Greco", r:"Campania, Italy", t:"white", body:1, acid:1.5, taste:"stone fruit, hazelnut and minerals", keys:[["stone fruit","stone fruit|peach|apricot"],["hazelnut","hazelnut|nut"],["minerals","mineral"]]},
+  {n:"Zibibbo", g:"Muscat of Alexandria", r:"Sicily, Italy", t:"white", body:0.5, acid:1, taste:"orange blossom and grape, but dry", keys:[["orange blossom","orange|blossom"],["grape","grape"],["dry","dry"]]},
+  // Spain reds
+  {n:"Rioja", g:"Tempranillo", r:"Rioja, Spain", t:"red", body:1, acid:1, tan:1, taste:"red cherry, leather and vanilla", keys:[["cherry","cherr"],["leather","leather"],["vanilla","vanilla"]]},
+  {n:"Ribera del Duero", g:"Tempranillo", r:"Castilla y León, Spain", t:"red", body:2, acid:1, tan:2, taste:"black fruit, spice and cedar", keys:[["black fruit","black fruit|blackberr|blackcurrant|dark fruit"],["spice","spic"],["cedar","cedar"]]},
+  {n:"Toro", g:"Tinta de Toro", r:"Castilla y León, Spain", t:"red", body:2, acid:1, tan:2, taste:"dark plum, black fruit and spice", keys:[["plum","plum"],["black fruit","black fruit|dark fruit|blackberr"],["spice","spic"]]},
+  {n:"Priorat", g:"Garnacha + Cariñena", r:"Catalonia, Spain", t:"red", body:2, acid:1, tan:1.5, taste:"black cherry, licorice and wet stone", keys:[["cherry","cherr"],["licorice","licorice|liquorice"],["wet stone","stone|mineral"]]},
+  {n:"Garnacha", g:"Grenache", r:"Spain", t:"red", body:1.5, acid:0.5, tan:0, taste:"ripe strawberry, raspberry and white pepper", keys:[["strawberry","strawberr"],["raspberry","raspberr"],["pepper","pepper"]]},
+  {n:"Monastrell", g:"Mourvèdre", r:"Jumilla, Spain", t:"red", body:2, acid:1, tan:1.5, taste:"blackberry, earth and meat", keys:[["blackberry","blackberr"],["earth","earth"],["meat","meat"]]},
+  {n:"Mencía", g:"Mencía", r:"Bierzo, Spain", t:"red", body:1, acid:1.5, tan:1, taste:"red fruit, violets and pepper", keys:[["red fruit","red fruit|cherr|raspberr"],["violets","violet|floral|flower"],["pepper","pepper"]]},
+  // Spain whites
+  {n:"Albariño", g:"Albariño", r:"Rías Baixas, Spain", t:"white", body:0.5, acid:2, taste:"peach, grapefruit and sea spray", keys:[["peach","peach"],["grapefruit","grapefruit"],["sea spray","sea|salt|salin"]]},
+  {n:"Verdejo", g:"Verdejo", r:"Rueda, Spain", t:"white", body:1, acid:1.5, taste:"grapefruit, lime and herbs with a bitter almond finish", keys:[["grapefruit","grapefruit"],["lime","lime"],["herbs","herb"],["almond","almond"]]},
+  {n:"Godello", g:"Godello", r:"Galicia, Spain", t:"white", body:1, acid:1.5, taste:"citrus, stone fruit and wet stone", keys:[["citrus","citrus|lemon"],["stone fruit","stone fruit|peach|apricot"],["wet stone","wet stone|mineral"]]},
+  {n:"Txakoli", g:"Hondarrabi Zuri", r:"Basque Country, Spain", t:"white", body:0, acid:2, taste:"lemon and salt with a slight fizz", keys:[["lemon","lemon|citrus"],["salt","salt|salin"],["fizz","fizz|spritz|bubbl"]]},
+  {n:"Viura", g:"Viura", r:"white Rioja, Spain", t:"white", body:1, acid:1, taste:"citrus and apple, turning nutty with age", keys:[["citrus","citrus|lemon"],["apple","apple"],["nutty","nut"]]},
+  {n:"Grenache Blanc", g:"Grenache Blanc", r:"Catalonia, Spain", t:"white", body:2, acid:0.5, taste:"waxy stone fruit", keys:[["waxy","wax"],["stone fruit","stone fruit|peach|apricot"]]},
+  // Sherry
+  {n:"Fino / Manzanilla", g:"Sherry, Palomino", r:"Jerez, Spain", t:"sherry", body:0, acid:2, taste:"salty almond and green apple, bone dry", keys:[["salty","salt"],["almond","almond"],["apple","apple"]]},
+  {n:"Amontillado", g:"Sherry", r:"Jerez, Spain", t:"sherry", body:1, acid:1, taste:"hazelnut, caramel and dried orange peel", keys:[["hazelnut","hazelnut|nut"],["caramel","caramel"],["orange","orange"]]},
+  {n:"Oloroso", g:"Sherry", r:"Jerez, Spain", t:"sherry", body:2, acid:0.5, taste:"walnut, dried fig and tobacco", keys:[["walnut","walnut|nut"],["fig","fig\\b"],["tobacco","tobacco"]]},
+  {n:"Pedro Ximénez", g:"Sherry, PX", r:"Jerez, Spain", t:"sherry", body:2, acid:0, taste:"raisin, molasses and toffee, very sweet", keys:[["raisin","raisin"],["molasses","molasses"],["toffee","toffee"],["sweet","sweet"]]},
+  // California reds
+  {n:"Napa Cabernet Sauvignon", g:"Cabernet Sauvignon", r:"Napa Valley, California", t:"red", body:2, acid:1, tan:2, taste:"blackcurrant, cedar and dark chocolate", keys:[["blackcurrant","blackcurrant|black currant|cassis"],["cedar","cedar"],["chocolate","chocolate"]]},
+  {n:"Merlot", g:"Merlot", r:"California", t:"red", body:1.5, acid:1, tan:1, taste:"plum, cherry and chocolate", keys:[["plum","plum"],["cherry","cherr"],["chocolate","chocolate"]]},
+  {n:"Red Blend / Meritage", g:"Cab, Merlot, Cab Franc", r:"Napa Valley, California", t:"red", body:2, acid:1, tan:1.5, taste:"blackcurrant, plum and cedar", keys:[["blackcurrant","blackcurrant|black currant|cassis"],["plum","plum"],["cedar","cedar"]]},
+  {n:"Zinfandel", g:"Zinfandel", r:"Lodi / Dry Creek, California", t:"red", body:2, acid:1, tan:1, taste:"jammy blackberry and black pepper", keys:[["jammy","jam"],["blackberry","blackberr"],["pepper","pepper"]]},
+  {n:"Petite Sirah", g:"Petite Sirah", r:"California", t:"red", body:2, acid:1, tan:2, taste:"blueberry and black pepper, inky dark", keys:[["blueberry","blueberr"],["pepper","pepper"],["inky","ink"]]},
+  {n:"Pinot Noir (Oregon / Sonoma Coast)", g:"Pinot Noir", r:"Willamette / Sonoma Coast", t:"red", body:0, acid:2, tan:0, taste:"red cherry, earth and silk", keys:[["cherry","cherr"],["earth","earth"],["silk","silk"]]},
+  {n:"Pinot Noir (Russian River / Santa Maria)", g:"Pinot Noir", r:"California", t:"red", body:0.5, acid:1.5, tan:0, taste:"ripe cherry, cola and baking spice", keys:[["cherry","cherr"],["cola","cola"],["spice","spic"]]},
+  {n:"Syrah", g:"Syrah", r:"California", t:"red", body:2, acid:1, tan:1.5, taste:"blackberry, black pepper and smoke", keys:[["blackberry","blackberr"],["pepper","pepper"],["smoke","smok"]]},
+  {n:"Paso Robles Rhône blend", g:"Syrah, Grenache, Mourvèdre", r:"Paso Robles, California", t:"red", body:2, acid:0.5, tan:1, taste:"ripe dark fruit, spice and earth", keys:[["dark fruit","dark fruit|black fruit|blackberr|plum"],["spice","spic"],["earth","earth"]]},
+  // California whites and rosé
+  {n:"Chardonnay (Napa, buttery)", g:"Chardonnay", r:"Napa Valley, California", t:"white", body:2, acid:1, taste:"butter, vanilla and toast", keys:[["butter","butter"],["vanilla","vanilla"],["toast","toast"]]},
+  {n:"Chardonnay (Sonoma Coast)", g:"Chardonnay", r:"Sonoma Coast, California", t:"white", body:1, acid:1.5, taste:"lemon, apple and wet stone", keys:[["lemon","lemon|citrus"],["apple","apple"],["wet stone","stone|mineral"]]},
+  {n:"Sauvignon Blanc", g:"Sauvignon Blanc", r:"Napa / Sonoma, California", t:"white", body:0.5, acid:2, taste:"grapefruit, lime and cut grass", keys:[["grapefruit","grapefruit"],["lime","lime"],["grass","grass"]]},
+  {n:"Rosé", g:"Grenache, Syrah or Pinot", r:"California", t:"white", body:0, acid:2, taste:"strawberry, watermelon and citrus", keys:[["strawberry","strawberr"],["watermelon","watermelon"],["citrus","citrus|lemon"]]},
+  // Sparkling
+  {n:"Champagne", g:"Chardonnay, Pinot Noir, Meunier", r:"Champagne, France", t:"sparkling", body:0.5, acid:2, taste:"toast, brioche and green apple, with fine bubbles", keys:[["toast","toast"],["brioche","brioche|bread"],["apple","apple"]]},
+  {n:"Franciacorta", g:"Chardonnay, Pinot", r:"Lombardy, Italy", t:"sparkling", body:1, acid:2, taste:"toast, cream and citrus, with fine bubbles", keys:[["toast","toast"],["cream","cream"],["citrus","citrus|lemon"]]},
+  {n:"Cava", g:"Xarel·lo, Macabeu, Parellada", r:"Catalonia, Spain", t:"sparkling", body:0.5, acid:2, taste:"citrus, green apple and a little earth", keys:[["citrus","citrus|lemon"],["apple","apple"],["earth","earth"]]},
+  {n:"Prosecco", g:"Glera", r:"Veneto, Italy", t:"sparkling", body:0, acid:1, taste:"green apple, pear and white flowers, with soft bubbles", keys:[["apple","apple"],["pear","pear"],["flowers","flower|floral|blossom"]]},
+  {n:"Moscato d'Asti", g:"Moscato", r:"Piedmont, Italy", t:"sparkling", body:0, acid:1, taste:"peach and orange blossom, lightly sweet with a gentle fizz", keys:[["peach","peach"],["orange blossom","orange|blossom"],["sweet","sweet"]]},
+];
+const LEVEL_NAMES = ["Piedmont","Tuscany & Veneto","Veneto & the South","Sicily & Friuli","Italian Whites","Spanish Reds","Across Spain","Basque to Jerez","Sherry to Napa","California Reds","California Whites","Sparkling"];
+const LEVELS = LEVEL_NAMES.map((name, i) => ({ i, name, wines: W.slice(i*5, i*5+5) }));
+const BODY_L = ["light-bodied","light to medium-bodied","medium-bodied","medium to full-bodied","full-bodied"];
+const LVL_L = ["low","low to medium","medium","medium to high","high"];
+const lbl = (arr, v) => arr[Math.round(v*2)];
+
+// ---------- Grading ----------
+function gradeTaste(w, text) {
+  const s = (text || "").toLowerCase();
+  const hits = w.keys.map(k => new RegExp("\\b(" + k[1] + ")").test(s));
+  const got = hits.filter(Boolean).length;
+  const need = w.keys.length <= 3 ? 2 : 3;
+  return { hits, got, need, pass: got >= need };
+}
+const near = (v, pick) => Math.abs(v - pick) <= 0.5;
+
+// ---------- Progress ----------
+const KEY = "wine-trainer-v1";
+let prog = { stars: {} };
+try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(prog)); } catch (e) {} }
+const highest = () => { let h = 0; for (const k in prog.stars) h = Math.max(h, +k + 1); return h; };
+
+// ---------- Helpers ----------
+const main = document.getElementById("main"), crumb = document.getElementById("crumb"),
+      dots = document.getElementById("dots"), back = document.getElementById("back"), foot = document.getElementById("foot");
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function setDots(done, total, cur) {
+  dots.hidden = false; dots.innerHTML = "";
+  for (let i = 0; i < total; i++) { const d = el("i"); if (i < done) d.classList.add("on"); if (i === cur) d.classList.add("cur"); dots.appendChild(d); }
+}
+let keyHandler = null;
+document.addEventListener("keydown", e => { if (keyHandler) keyHandler(e); });
+
+// ---------- Screens ----------
+function showLevels() {
+  keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer"; foot.hidden = false;
+  main.innerHTML = "";
+  main.appendChild(el("h1", null, "Wine Trainer"));
+  main.appendChild(el("p", "lede", "Five wines a level. Name them from the taste, then say the taste from memory, then call body and tannin. Three stars means no mistakes."));
+  const grid = el("div", "levels");
+  const unlocked = highest();
+  LEVELS.forEach(L => {
+    const b = el("button", "lv");
+    const st = prog.stars[L.i];
+    b.innerHTML = `<div class="n">Level ${L.i + 1}</div><div class="t">${L.name}</div><div class="s">${st ? "★".repeat(st) + "☆".repeat(3 - st) : ""}</div>`;
+    b.disabled = L.i > unlocked;
+    b.onclick = () => showStudy(L);
+    grid.appendChild(b);
+  });
+  main.appendChild(grid);
+  if (Object.keys(prog.stars).length) {
+    const r = el("div", "row"); const reset = el("button", "btn quiet", "Reset progress");
+    reset.onclick = () => { prog = { stars: {} }; save(); showLevels(); }; r.appendChild(reset); main.appendChild(r);
+  }
+}
+
+function showStudy(L) {
+  keyHandler = null; back.hidden = false; dots.hidden = true; foot.hidden = true;
+  crumb.textContent = `Level ${L.i + 1} · ${L.name}`;
+  main.innerHTML = "";
+  main.appendChild(el("div", "eyebrow", `Level ${L.i + 1}`));
+  main.appendChild(el("h2", null, L.name));
+  main.appendChild(el("p", "lede", "Read these once. Then they go away."));
+  const ul = el("ul", "study");
+  L.wines.forEach(w => {
+    const li = el("li");
+    const struct = w.t === "red" ? `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity, ${lbl(LVL_L, w.tan)} tannin` : `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity`;
+    li.innerHTML = `<b>${esc(w.n)}</b><div class="g">${esc(w.g)} · ${esc(w.r)}</div><div class="d">Tastes like ${esc(w.taste)}.</div><div class="g">${struct}</div>`;
+    ul.appendChild(li);
+  });
+  main.appendChild(ul);
+  const r = el("div", "row"); const go = el("button", "btn", "Start round 1");
+  go.onclick = () => round1(L, { mistakes: 0 }); r.appendChild(go); main.appendChild(r);
+  back.onclick = showLevels;
+  keyHandler = e => { if (e.key === "Enter") go.click(); };
+}
+
+// Round 1: taste shown, pick the wine. Wrong answers come back around until all five are cleared.
+function round1(L, run) {
+  const queue = shuffle(L.wines); let cleared = 0; const pool = W.filter(w => w.t !== undefined);
+  back.onclick = showLevels;
+  function ask() {
+    if (!queue.length) return round2(L, run);
+    const w = queue[0];
+    crumb.textContent = `Round 1 · Which wine is this?`; setDots(cleared, 5, cleared);
+    main.innerHTML = "";
+    main.appendChild(el("div", "eyebrow", "Round 1 · taste to name"));
+    const q = el("div", "q"); q.innerHTML = `<div class="big">Tastes like ${esc(w.taste)}.</div>`; main.appendChild(q);
+    const same = shuffle(pool.filter(x => x.t === w.t && x !== w));
+    const inLevel = same.filter(x => L.wines.includes(x)), outLevel = same.filter(x => !L.wines.includes(x));
+    const distractors = inLevel.concat(outLevel).slice(0, 3);
+    const opts = shuffle([w].concat(distractors));
+    const stack = el("div", "stack"); const btns = [];
+    opts.forEach((o, i) => {
+      const b = el("button", "choice", `<span class="k">${i + 1}</span><span>${esc(o.n)}</span>`);
+      b.onclick = () => pick(o, b); stack.appendChild(b); btns.push(b);
+    });
+    main.appendChild(stack);
+    let done = false;
+    function pick(o, b) {
+      if (done) return; done = true; btns.forEach(x => x.disabled = true);
+      if (o === w) { b.classList.add("good"); cleared++; queue.shift(); setDots(cleared, 5, cleared); setTimeout(ask, 450); }
+      else {
+        run.mistakes++; b.classList.add("bad"); btns[opts.indexOf(w)].classList.add("good");
+        queue.push(queue.shift());
+        const r = el("div", "row"); const n = el("button", "btn ghost", "Next"); n.onclick = ask; r.appendChild(n); main.appendChild(r); n.focus();
+        keyHandler = e => { if (e.key === "Enter") n.click(); };
+      }
+    }
+    keyHandler = e => { const i = +e.key - 1; if (i >= 0 && i < btns.length) btns[i].click(); };
+  }
+  ask();
+}
+
+// Round 2: wine shown, say or type the taste. Graded on key words, no AI involved.
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function round2(L, run) {
+  const queue = shuffle(L.wines); let cleared = 0; let rec = null;
+  back.onclick = () => { if (rec) try { rec.abort(); } catch (e) {} showLevels(); };
+  function ask() {
+    if (!queue.length) return round3(L, run);
+    const w = queue[0];
+    crumb.textContent = `Round 2 · What does it taste like?`; setDots(cleared, 5, cleared);
+    main.innerHTML = "";
+    main.appendChild(el("div", "eyebrow", "Round 2 · name to taste, from memory"));
+    const q = el("div", "q"); q.innerHTML = `<div class="big">${esc(w.n)}</div><div class="sub">${esc(w.g)} · ${esc(w.r)}</div>`; main.appendChild(q);
+    const ta = el("textarea"); ta.id = "taste-" + w.n.replace(/\W+/g, "-"); ta.placeholder = "It tastes like…"; ta.setAttribute("autocomplete", "off");
+    main.appendChild(ta);
+    const r = el("div", "row");
+    const mic = el("button", "btn ghost mic", `<span class="pulse" hidden></span>Say it`);
+    if (!SR) mic.hidden = true;
+    const check = el("button", "btn", "Check");
+    const skip = el("button", "btn quiet", "Show answer");
+    r.append(mic, el("span", "spacer"), skip, check); main.appendChild(r);
+    ta.focus();
+    let listening = false;
+    mic.onclick = () => {
+      if (listening) { try { rec.stop(); } catch (e) {} return; }
+      rec = new SR(); rec.lang = "en-US"; rec.interimResults = true; rec.maxAlternatives = 1;
+      let finalText = "";
+      rec.onstart = () => { listening = true; mic.classList.add("listening"); mic.querySelector(".pulse").hidden = false; mic.lastChild.textContent = "Listening… tap to stop"; };
+      rec.onresult = ev => { let t = ""; for (const res of ev.results) t += res[0].transcript; ta.value = t; if (ev.results[ev.results.length - 1].isFinal) finalText = t; };
+      rec.onerror = () => { stopUI(); };
+      rec.onend = () => { stopUI(); if (ta.value.trim()) grade(); };
+      function stopUI() { listening = false; mic.classList.remove("listening"); mic.querySelector(".pulse").hidden = true; mic.lastChild.textContent = "Say it"; }
+      try { rec.start(); } catch (e) { stopUI(); }
+    };
+    let done = false;
+    function verdict(g, reveal) {
+      done = true; check.disabled = true; mic.disabled = true; skip.disabled = true;
+      const v = el("div", "verdict " + (g.pass ? "good" : "bad"));
+      const chips = w.keys.map((k, i) => `<span class="chip ${g.hits[i] ? "hit" : "miss"}">${esc(k[0])}</span>`).join("");
+      v.innerHTML = `<div class="t ${g.pass ? "good" : "bad"}">${g.pass ? "Got it" : reveal ? "Here it is" : `${g.got} of ${w.keys.length}. Need ${g.need}.`}</div><div>${esc(w.n)} tastes like <b>${esc(w.taste)}</b>.</div><div class="chips">${chips}</div>`;
+      main.appendChild(v);
+      if (g.pass) { cleared++; queue.shift(); } else { run.mistakes++; queue.push(queue.shift()); }
+      setDots(cleared, 5, cleared);
+      const r2 = el("div", "row"); const n = el("button", "btn " + (g.pass ? "" : "ghost"), "Next"); n.onclick = ask; r2.appendChild(n); main.appendChild(r2); n.focus();
+      keyHandler = e => { if (e.key === "Enter") { e.preventDefault(); n.click(); } };
+    }
+    function grade() { if (done) return; verdict(gradeTaste(w, ta.value), false); }
+    check.onclick = grade;
+    skip.onclick = () => { if (done) return; verdict({ hits: w.keys.map(() => false), got: 0, need: 0, pass: false }, true); };
+    keyHandler = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); grade(); } };
+  }
+  ask();
+}
+
+// Round 3: wine shown, call body and tannin (acidity for whites). Half-step answers accept either neighbour.
+function round3(L, run) {
+  const queue = shuffle(L.wines); let cleared = 0;
+  back.onclick = showLevels;
+  function ask() {
+    if (!queue.length) return finish(L, run);
+    const w = queue[0]; const second = w.t === "red" ? "tan" : "acid";
+    crumb.textContent = `Round 3 · Body and ${second === "tan" ? "tannin" : "acidity"}`; setDots(cleared, 5, cleared);
+    main.innerHTML = "";
+    main.appendChild(el("div", "eyebrow", "Round 3 · structure"));
+    const q = el("div", "q"); q.innerHTML = `<div class="big">${esc(w.n)}</div><div class="sub">${esc(w.g)} · ${esc(w.r)}</div>`; main.appendChild(q);
+    const picks = { body: null, second: null };
+    function seg(label, key, names) {
+      const f = el("div", "field"); f.innerHTML = `<label>${label}</label>`;
+      const s = el("div", "seg"); const bs = [];
+      names.forEach((nm, i) => { const b = el("button", null, nm); b.onclick = () => { if (done) return; bs.forEach(x => x.classList.remove("on")); b.classList.add("on"); picks[key] = i; check.disabled = picks.body == null || picks.second == null; }; s.appendChild(b); bs.push(b); });
+      f.appendChild(s); main.appendChild(f); return bs;
+    }
+    const bodyBtns = seg("Body", "body", ["Light", "Medium", "Full"]);
+    const secBtns = seg(second === "tan" ? "Tannin" : "Acidity", "second", ["Low", "Medium", "High"]);
+    const r = el("div", "row"); const check = el("button", "btn", "Check"); check.disabled = true; r.append(el("span", "spacer"), check); main.appendChild(r);
+    let done = false;
+    check.onclick = () => {
+      if (done || check.disabled) return; done = true; check.disabled = true;
+      const okB = near(w.body, picks.body), okS = near(w[second], picks.second);
+      bodyBtns[picks.body].classList.add(okB ? "good" : "bad"); secBtns[picks.second].classList.add(okS ? "good" : "bad");
+      if (!okB) bodyBtns[Math.round(w.body)].classList.add("good"); if (!okS) secBtns[Math.round(w[second])].classList.add("good");
+      const pass = okB && okS;
+      const v = el("div", "verdict " + (pass ? "good" : "bad"));
+      v.innerHTML = `<div class="t ${pass ? "good" : "bad"}">${pass ? "Right" : "Not quite"}</div><div>${esc(w.n)} is <b>${lbl(BODY_L, w.body)}</b> with <b>${lbl(LVL_L, w[second])} ${second === "tan" ? "tannin" : "acidity"}</b>.</div>`;
+      main.appendChild(v);
+      if (pass) { cleared++; queue.shift(); } else { run.mistakes++; queue.push(queue.shift()); }
+      setDots(cleared, 5, cleared);
+      const r2 = el("div", "row"); const n = el("button", "btn " + (pass ? "" : "ghost"), "Next"); n.onclick = ask; r2.appendChild(n); main.appendChild(r2); n.focus();
+      keyHandler = e => { if (e.key === "Enter") n.click(); };
+    };
+    keyHandler = e => { if (e.key === "Enter") check.click(); };
+  }
+  ask();
+}
+
+function finish(L, run) {
+  keyHandler = null; dots.hidden = true; crumb.textContent = `Level ${L.i + 1} · ${L.name}`;
+  const stars = run.mistakes === 0 ? 3 : run.mistakes <= 2 ? 2 : 1;
+  prog.stars[L.i] = Math.max(prog.stars[L.i] || 0, stars); save();
+  main.innerHTML = "";
+  main.appendChild(el("div", "eyebrow", "Level complete"));
+  main.appendChild(el("h2", null, L.name));
+  main.appendChild(el("div", "stars", "★".repeat(stars) + "☆".repeat(3 - stars)));
+  main.appendChild(el("div", "stat", run.mistakes === 0 ? "No mistakes." : `${run.mistakes} ${run.mistakes === 1 ? "mistake" : "mistakes"}. Three stars needs zero.`));
+  const r = el("div", "row");
+  const again = el("button", "btn ghost", "Play again"); again.onclick = () => showStudy(L);
+  r.appendChild(again);
+  if (L.i + 1 < LEVELS.length) { const next = el("button", "btn", `Level ${L.i + 2}: ${LEVELS[L.i + 1].name}`); next.onclick = () => showStudy(LEVELS[L.i + 1]); r.appendChild(next); keyHandler = e => { if (e.key === "Enter") next.click(); }; }
+  else { const all = el("button", "btn", "All levels"); all.onclick = showLevels; r.appendChild(all); }
+  main.appendChild(r);
+  back.onclick = showLevels;
+}
+
+showLevels();
+</script>
+</body>
+</html>
