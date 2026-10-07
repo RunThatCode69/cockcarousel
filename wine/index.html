@@ -118,6 +118,18 @@
   .lv .t { font-family: var(--display); font-size: 20px; margin: 4px 0 6px; line-height: 1.15; }
   .lv .s { font-size: 14px; color: var(--gold); letter-spacing: .1em; min-height: 1.2em; }
 
+  .names { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .name { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 9px 14px; font: 500 15px var(--body); cursor: pointer; }
+  .name.sel { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 18%, var(--surface)); }
+  .name.done { opacity: .35; cursor: default; }
+  .tastes { display: flex; flex-direction: column; gap: 8px; }
+  .taste { display: flex; flex-direction: column; gap: 4px; text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 12px; padding: 12px 14px; font: 400 16px/1.35 var(--body); cursor: pointer; }
+  .taste:hover { background: var(--raised); }
+  .taste.good { border-color: var(--good); cursor: default; }
+  .taste.good .who { color: var(--good); font-weight: 600; font-size: 14px; }
+  .taste.bad { border-color: var(--bad); animation: shake .3s; }
+  @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  @media (prefers-reduced-motion: reduce) { .taste.bad { animation: none; } }
   .study { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .study li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
   .study b { font-family: var(--display); font-weight: 400; font-size: 20px; display: block; }
@@ -257,7 +269,7 @@ function showLevels() {
   keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer"; foot.hidden = false;
   main.innerHTML = "";
   main.appendChild(el("h1", null, "Wine Trainer"));
-  main.appendChild(el("p", "lede", "Five wines a level. Name them from the taste, then say the taste from memory, then call body and tannin. Three stars means no mistakes."));
+  main.appendChild(el("p", "lede", "Five wines a level. Name them from the taste, match all five at once, say the taste from memory, then call body and tannin. Three stars means no mistakes."));
   const grid = el("div", "levels");
   const unlocked = highest();
   LEVELS.forEach(L => {
@@ -301,7 +313,7 @@ function round1(L, run) {
   const queue = shuffle(L.wines); let cleared = 0; const pool = W.filter(w => w.t !== undefined);
   back.onclick = showLevels;
   function ask() {
-    if (!queue.length) return round2(L, run);
+    if (!queue.length) return roundMatch(L, run);
     const w = queue[0];
     crumb.textContent = `Round 1 · Which wine is this?`; setDots(cleared, 5, cleared);
     main.innerHTML = "";
@@ -333,7 +345,38 @@ function round1(L, run) {
   ask();
 }
 
-// Round 2: wine shown, say or type the taste. Graded on key words, no AI involved.
+// Round 2: all five names and all five tastes on screen. Tap a name, then its taste. Wrong pairs flash and count.
+function roundMatch(L, run) {
+  const names = shuffle(L.wines), tastes = shuffle(L.wines); let cleared = 0; let sel = null;
+  back.onclick = showLevels;
+  crumb.textContent = "Round 2 · Match them up"; setDots(0, 5, 0);
+  main.innerHTML = "";
+  main.appendChild(el("div", "eyebrow", "Round 2 · match all five"));
+  main.appendChild(el("p", "prompt", "Tap a wine, then tap what it tastes like."));
+  const nameRow = el("div", "names"); const nameBtns = new Map();
+  names.forEach(w => { const b = el("button", "name", esc(w.n)); b.onclick = () => { if (b.classList.contains("done")) return; nameBtns.forEach(x => x.classList.remove("sel")); sel = w; b.classList.add("sel"); }; nameRow.appendChild(b); nameBtns.set(w, b); });
+  main.appendChild(nameRow);
+  const list = el("div", "tastes"); const tasteBtns = new Map();
+  tastes.forEach(w => {
+    const b = el("button", "taste", `<span>${esc(w.taste)}</span>`);
+    b.onclick = () => {
+      if (!sel || b.classList.contains("good")) return;
+      if (sel === w) {
+        b.classList.add("good"); b.insertAdjacentHTML("afterbegin", `<span class="who">${esc(w.n)}</span>`);
+        const nb = nameBtns.get(w); nb.classList.remove("sel"); nb.classList.add("done"); sel = null;
+        cleared++; setDots(cleared, 5, cleared);
+        if (cleared === 5) { const r = el("div", "row"); const n = el("button", "btn", "Next round"); n.onclick = () => round2(L, run); r.append(el("span", "spacer"), n); main.appendChild(r); n.focus(); keyHandler = e => { if (e.key === "Enter") n.click(); }; }
+      } else {
+        run.mistakes++; b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 350);
+      }
+    };
+    list.appendChild(b); tasteBtns.set(w, b);
+  });
+  main.appendChild(list);
+  keyHandler = e => { const i = +e.key - 1; if (i >= 0 && i < names.length) nameBtns.get(names[i]).click(); };
+}
+
+// Round 3: wine shown, say or type the taste. Graded on key words, no AI involved.
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function round2(L, run) {
   const queue = shuffle(L.wines); let cleared = 0; let rec = null;
@@ -341,9 +384,9 @@ function round2(L, run) {
   function ask() {
     if (!queue.length) return round3(L, run);
     const w = queue[0];
-    crumb.textContent = `Round 2 · What does it taste like?`; setDots(cleared, 5, cleared);
+    crumb.textContent = `Round 3 · What does it taste like?`; setDots(cleared, 5, cleared);
     main.innerHTML = "";
-    main.appendChild(el("div", "eyebrow", "Round 2 · name to taste, from memory"));
+    main.appendChild(el("div", "eyebrow", "Round 3 · name to taste, from memory"));
     const q = el("div", "q"); q.innerHTML = `<div class="big">${esc(w.n)}</div><div class="sub">${esc(w.g)} · ${esc(w.r)}</div>`; main.appendChild(q);
     const ta = el("textarea"); ta.id = "taste-" + w.n.replace(/\W+/g, "-"); ta.placeholder = "It tastes like…"; ta.setAttribute("autocomplete", "off");
     main.appendChild(ta);
@@ -386,16 +429,16 @@ function round2(L, run) {
   ask();
 }
 
-// Round 3: wine shown, call body and tannin (acidity for whites). Half-step answers accept either neighbour.
+// Round 4: wine shown, call body and tannin (acidity for whites). Half-step answers accept either neighbour.
 function round3(L, run) {
   const queue = shuffle(L.wines); let cleared = 0;
   back.onclick = showLevels;
   function ask() {
     if (!queue.length) return finish(L, run);
     const w = queue[0]; const second = w.t === "red" ? "tan" : "acid";
-    crumb.textContent = `Round 3 · Body and ${second === "tan" ? "tannin" : "acidity"}`; setDots(cleared, 5, cleared);
+    crumb.textContent = `Round 4 · Body and ${second === "tan" ? "tannin" : "acidity"}`; setDots(cleared, 5, cleared);
     main.innerHTML = "";
-    main.appendChild(el("div", "eyebrow", "Round 3 · structure"));
+    main.appendChild(el("div", "eyebrow", "Round 4 · structure"));
     const q = el("div", "q"); q.innerHTML = `<div class="big">${esc(w.n)}</div><div class="sub">${esc(w.g)} · ${esc(w.r)}</div>`; main.appendChild(q);
     const picks = { body: null, second: null };
     function seg(label, key, names) {
