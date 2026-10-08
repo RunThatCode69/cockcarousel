@@ -105,6 +105,8 @@
   .field { margin-top: 18px; }
   .field label { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 5px; }
+  .seg.two { grid-template-columns: repeat(2, 1fr); }
+  .lv .ez { color: var(--muted); letter-spacing: 0; }
   .seg button { border: 0; border-radius: 8px; background: none; color: var(--muted); font: 500 16px var(--body); padding: 12px 6px; cursor: pointer; }
   .seg button.on { background: var(--raised); color: var(--fg); }
   .seg button.good { background: color-mix(in srgb, var(--good) 28%, var(--raised)); color: var(--fg); }
@@ -246,10 +248,11 @@ const near = (v, pick) => Math.abs(v - pick) <= 0.5;
 
 // ---------- Progress ----------
 const KEY = "wine-trainer-v1";
-let prog = { stars: {} };
+let prog = { stars: {}, easy: {}, mode: "full" };
 try { prog = Object.assign(prog, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(prog)); } catch (e) {} }
-const highest = () => { let h = 0; for (const k in prog.stars) h = Math.max(h, +k + 1); return h; };
+const highest = () => { let h = 0; for (const k in prog.stars) h = Math.max(h, +k + 1); for (const k in prog.easy) h = Math.max(h, +k + 1); return h; };
+const isEasy = () => prog.mode === "easy";
 
 // ---------- Helpers ----------
 const main = document.getElementById("main"), crumb = document.getElementById("crumb"),
@@ -269,21 +272,27 @@ function showLevels() {
   keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer"; foot.hidden = false;
   main.innerHTML = "";
   main.appendChild(el("h1", null, "Wine Trainer"));
-  main.appendChild(el("p", "lede", "Five wines a level. Name them from the taste, match all five at once, say the taste from memory, then call body and tannin. Three stars means no mistakes."));
+  main.appendChild(el("p", "lede", isEasy()
+    ? "Easy mode. Everything is tap-to-answer: pick the wine from its taste, match all five, pick the taste from a list, then call body and tannin. No typing, no mic."
+    : "Five wines a level. Name them from the taste, match all five at once, say the taste from memory, then call body and tannin. Three stars means no mistakes."));
+  const mf = el("div", "field"); mf.style.marginTop = "6px"; mf.innerHTML = `<label>Mode</label>`;
+  const ms = el("div", "seg two");
+  [["full", "Full"], ["easy", "Easy · late night"]].forEach(([v, t]) => { const b = el("button", prog.mode === v ? "on" : "", t); b.onclick = () => { prog.mode = v; save(); showLevels(); }; ms.appendChild(b); });
+  mf.appendChild(ms); main.appendChild(mf);
   const grid = el("div", "levels");
   const unlocked = highest();
   LEVELS.forEach(L => {
     const b = el("button", "lv");
-    const st = prog.stars[L.i];
-    b.innerHTML = `<div class="n">Level ${L.i + 1}</div><div class="t">${L.name}</div><div class="s">${st ? "★".repeat(st) + "☆".repeat(3 - st) : ""}</div>`;
+    const st = prog.stars[L.i], ez = prog.easy[L.i];
+    b.innerHTML = `<div class="n">Level ${L.i + 1}</div><div class="t">${L.name}</div><div class="s">${st ? "★".repeat(st) + "☆".repeat(3 - st) : ""}${ez ? `<span class="ez">${st ? " · " : ""}easy ✓</span>` : ""}</div>`;
     b.disabled = L.i > unlocked;
     b.onclick = () => showStudy(L);
     grid.appendChild(b);
   });
   main.appendChild(grid);
-  if (Object.keys(prog.stars).length) {
+  if (Object.keys(prog.stars).length || Object.keys(prog.easy).length) {
     const r = el("div", "row"); const reset = el("button", "btn quiet", "Reset progress");
-    reset.onclick = () => { prog = { stars: {} }; save(); showLevels(); }; r.appendChild(reset); main.appendChild(r);
+    reset.onclick = () => { prog = { stars: {}, easy: {}, mode: prog.mode }; save(); showLevels(); }; r.appendChild(reset); main.appendChild(r);
   }
 }
 
@@ -302,7 +311,7 @@ function showStudy(L) {
     ul.appendChild(li);
   });
   main.appendChild(ul);
-  const r = el("div", "row"); const go = el("button", "btn", "Start round 1");
+  const r = el("div", "row"); const go = el("button", "btn", isEasy() ? "Start · easy" : "Start round 1");
   go.onclick = () => round1(L, { mistakes: 0 }); r.appendChild(go); main.appendChild(r);
   back.onclick = showLevels;
   keyHandler = e => { if (e.key === "Enter") go.click(); };
@@ -365,7 +374,7 @@ function roundMatch(L, run) {
         b.classList.add("good"); b.insertAdjacentHTML("afterbegin", `<span class="who">${esc(w.n)}</span>`);
         const nb = nameBtns.get(w); nb.classList.remove("sel"); nb.classList.add("done"); sel = null;
         cleared++; setDots(cleared, 5, cleared);
-        if (cleared === 5) { const r = el("div", "row"); const n = el("button", "btn", "Next round"); n.onclick = () => round2(L, run); r.append(el("span", "spacer"), n); main.appendChild(r); n.focus(); keyHandler = e => { if (e.key === "Enter") n.click(); }; }
+        if (cleared === 5) { const r = el("div", "row"); const n = el("button", "btn", "Next round"); n.onclick = () => (isEasy() ? roundTasteMC(L, run) : round2(L, run)); r.append(el("span", "spacer"), n); main.appendChild(r); n.focus(); keyHandler = e => { if (e.key === "Enter") n.click(); }; }
       } else {
         run.mistakes++; b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 350);
       }
@@ -374,6 +383,38 @@ function roundMatch(L, run) {
   });
   main.appendChild(list);
   keyHandler = e => { const i = +e.key - 1; if (i >= 0 && i < names.length) nameBtns.get(names[i]).click(); };
+}
+
+// Easy round 3: wine shown, pick its taste from four. Replaces the memory round in easy mode.
+function roundTasteMC(L, run) {
+  const queue = shuffle(L.wines); let cleared = 0;
+  back.onclick = showLevels;
+  function ask() {
+    if (!queue.length) return round3(L, run);
+    const w = queue[0];
+    crumb.textContent = "Round 3 · What does it taste like?"; setDots(cleared, 5, cleared);
+    main.innerHTML = "";
+    main.appendChild(el("div", "eyebrow", "Round 3 · name to taste"));
+    const q = el("div", "q"); q.innerHTML = `<div class="big">${esc(w.n)}</div><div class="sub">${esc(w.g)} · ${esc(w.r)}</div>`; main.appendChild(q);
+    const same = shuffle(W.filter(x => x.t === w.t && x !== w));
+    const inLevel = same.filter(x => L.wines.includes(x)), outLevel = same.filter(x => !L.wines.includes(x));
+    const opts = shuffle([w].concat(inLevel.concat(outLevel).slice(0, 3)));
+    const stack = el("div", "stack"); const btns = [];
+    opts.forEach((o, i) => { const b = el("button", "choice", `<span class="k">${i + 1}</span><span>${esc(o.taste)}</span>`); b.onclick = () => pick(o, b); stack.appendChild(b); btns.push(b); });
+    main.appendChild(stack);
+    let done = false;
+    function pick(o, b) {
+      if (done) return; done = true; btns.forEach(x => x.disabled = true);
+      if (o === w) { b.classList.add("good"); cleared++; queue.shift(); setDots(cleared, 5, cleared); setTimeout(ask, 450); }
+      else {
+        run.mistakes++; b.classList.add("bad"); btns[opts.indexOf(w)].classList.add("good"); queue.push(queue.shift());
+        const r = el("div", "row"); const n = el("button", "btn ghost", "Next"); n.onclick = ask; r.appendChild(n); main.appendChild(r); n.focus();
+        keyHandler = e => { if (e.key === "Enter") n.click(); };
+      }
+    }
+    keyHandler = e => { const i = +e.key - 1; if (i >= 0 && i < btns.length) btns[i].click(); };
+  }
+  ask();
 }
 
 // Round 3: wine shown, say or type the taste. Graded on key words, no AI involved.
@@ -473,12 +514,20 @@ function round3(L, run) {
 function finish(L, run) {
   keyHandler = null; dots.hidden = true; crumb.textContent = `Level ${L.i + 1} · ${L.name}`;
   const stars = run.mistakes === 0 ? 3 : run.mistakes <= 2 ? 2 : 1;
-  prog.stars[L.i] = Math.max(prog.stars[L.i] || 0, stars); save();
   main.innerHTML = "";
-  main.appendChild(el("div", "eyebrow", "Level complete"));
-  main.appendChild(el("h2", null, L.name));
-  main.appendChild(el("div", "stars", "★".repeat(stars) + "☆".repeat(3 - stars)));
-  main.appendChild(el("div", "stat", run.mistakes === 0 ? "No mistakes." : `${run.mistakes} ${run.mistakes === 1 ? "mistake" : "mistakes"}. Three stars needs zero.`));
+  if (isEasy()) {
+    prog.easy[L.i] = true; save();
+    main.appendChild(el("div", "eyebrow", "Level complete · easy mode"));
+    main.appendChild(el("h2", null, L.name));
+    main.appendChild(el("div", "stars", "✓"));
+    main.appendChild(el("div", "stat", (run.mistakes === 0 ? "No mistakes. " : `${run.mistakes} ${run.mistakes === 1 ? "mistake" : "mistakes"}. `) + "Stars come from full mode."));
+  } else {
+    prog.stars[L.i] = Math.max(prog.stars[L.i] || 0, stars); save();
+    main.appendChild(el("div", "eyebrow", "Level complete"));
+    main.appendChild(el("h2", null, L.name));
+    main.appendChild(el("div", "stars", "★".repeat(stars) + "☆".repeat(3 - stars)));
+    main.appendChild(el("div", "stat", run.mistakes === 0 ? "No mistakes." : `${run.mistakes} ${run.mistakes === 1 ? "mistake" : "mistakes"}. Three stars needs zero.`));
+  }
   const r = el("div", "row");
   const again = el("button", "btn ghost", "Play again"); again.onclick = () => showStudy(L);
   r.appendChild(again);
