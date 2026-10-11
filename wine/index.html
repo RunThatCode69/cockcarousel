@@ -139,6 +139,7 @@
   .study .d { margin-top: 4px; }
 
   .tabs { margin-top: 18px; }
+  .blank { color: var(--gold); letter-spacing: -.05em; }
   .country { margin-top: 34px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
   .region { margin-top: 16px; }
   .rn { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
@@ -166,7 +167,7 @@
     <div class="dots" id="dots" hidden></div>
   </header>
   <main id="main"></main>
-  <footer id="foot">60 wines &middot; 12 levels &middot; map quiz &middot; progress saves on this device</footer>
+  <footer id="foot">60 wines &middot; 12 levels &middot; map &middot; wildcard &middot; progress saves on this device</footer>
 </div>
 
 <script>
@@ -368,13 +369,108 @@ const MAP = [
 const byName = Object.fromEntries(W.map(w => [w.n, w]));
 
 function tabs(cur) {
-  const t = el("div", "seg two tabs");
-  [["levels", "Levels"], ["map", "Map · regions & grapes"]].forEach(([v, s]) => {
+  const t = el("div", "seg tabs");
+  [["levels", "Levels", showLevels], ["map", "Map", showMap], ["wild", "Wildcard", showWild]].forEach(([v, s, fn]) => {
     const b = el("button", cur === v ? "on" : "", s);
-    b.onclick = () => v === "map" ? showMap() : showLevels();
+    b.onclick = fn;
     t.appendChild(b);
   });
   return t;
+}
+
+// ---------- Wildcard: random fill-in-the-blank, any fact about any wine ----------
+function showWild() {
+  keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer · Wildcard"; foot.hidden = true;
+  main.innerHTML = "";
+  main.appendChild(el("h1", null, "Wildcard"));
+  main.appendChild(tabs("wild"));
+  main.appendChild(el("p", "lede", "Random fill-in-the-blank, multiple choice, every fact about every wine: grape, region, body, tannin, acidity, taste, and the name. No order, no end. Stop when you want."));
+  const unlocked = Math.max(1, highest() + 1);
+  const f = el("div", "field"); f.innerHTML = `<label>Which wines</label>`;
+  const s = el("div", "seg two");
+  const scopes = [["all", "All 60"], ["unlocked", `Levels 1–${Math.min(unlocked, 12)}`]];
+  prog.wild = prog.wild || "all";
+  scopes.forEach(([v, t]) => { const b = el("button", prog.wild === v ? "on" : "", t); b.onclick = () => { prog.wild = v; save(); showWild(); }; s.appendChild(b); });
+  f.appendChild(s); main.appendChild(f);
+  const r = el("div", "row"); const go = el("button", "btn", "Start");
+  go.onclick = () => wildQ({ n: 0, right: 0, streak: 0, best: 0, pool: prog.wild === "all" ? W : W.slice(0, Math.min(unlocked, 12) * 5), last: null });
+  r.appendChild(go); main.appendChild(r);
+  keyHandler = e => { if (e.key === "Enter") go.click(); };
+}
+
+// Builds one question: { text (with ___), answer, options[], explain }
+function wildQuestion(pool, last) {
+  let w; do { w = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && w === last);
+  const distinct = (arr, ans, n = 3) => shuffle([...new Set(arr)].filter(v => v !== ans)).slice(0, n);
+  const struct = x => x.t === "red" ? `${lbl(BODY_L, x.body)}, ${lbl(LVL_L, x.acid)} acidity, ${lbl(LVL_L, x.tan)} tannin` : `${lbl(BODY_L, x.body)}, ${lbl(LVL_L, x.acid)} acidity`;
+  const explain = `${w.n}: ${w.g}, ${w.r}. Tastes like ${w.taste}. ${struct(w)[0].toUpperCase() + struct(w).slice(1)}.`;
+  const giveaway = w.n.toLowerCase().includes(w.g.toLowerCase());
+  const kinds = ["grape", "region", "body", "acid", "taste", "whichTaste", "blankWord"];
+  if (!giveaway) kinds.push("name", "whichGrape");
+  if (w.t === "red") kinds.push("tan", "tan");
+  const kind = kinds[Math.floor(Math.random() * kinds.length)];
+  let text, answer, options;
+  switch (kind) {
+    case "name":
+      answer = w.n; options = distinct(W.filter(x => x.g !== w.g || x.r !== w.r).map(x => x.n), answer);
+      text = `___ is ${w.g} from ${w.r}.`; break;
+    case "grape":
+      answer = w.g; options = distinct(W.map(x => x.g), answer); text = `${w.n} is made from ___.`; break;
+    case "region":
+      answer = w.r; options = distinct(W.map(x => x.r), answer); text = `${w.n} comes from ___.`; break;
+    case "body":
+      answer = lbl(BODY_L, w.body); options = distinct(BODY_L, answer); text = `${w.n} is ___.`; break;
+    case "acid":
+      answer = lbl(LVL_L, w.acid); options = distinct(LVL_L, answer); text = `${w.n} has ___ acidity.`; break;
+    case "tan":
+      answer = lbl(LVL_L, w.tan); options = distinct(LVL_L, answer); text = `${w.n} has ___ tannin.`; break;
+    case "taste":
+      answer = w.taste; options = distinct(W.map(x => x.taste), answer); text = `${w.n} tastes like ___.`; break;
+    case "whichTaste":
+      answer = w.n; options = distinct(W.map(x => x.n), answer); text = `___ tastes like ${w.taste}.`; break;
+    case "whichGrape": {
+      answer = w.n; options = distinct(W.filter(x => x.g !== w.g).map(x => x.n), answer); text = `Which one is ${w.g}? ___`; break;
+    }
+    case "blankWord": {
+      const k = w.keys[Math.floor(Math.random() * w.keys.length)];
+      answer = k[0];
+      const others = W.flatMap(x => x.keys.map(y => y[0])).filter(v => v !== answer && !w.keys.some(y => y[0] === v));
+      options = distinct(others, answer);
+      const re = new RegExp("\\b(" + k[1] + ")[a-z]*", "i");
+      text = `${w.n} tastes like ${w.taste.replace(re, "___")}.`;
+      if (!text.includes("___")) text = `${w.n} tastes like ___ (one of its notes).`;
+      break;
+    }
+  }
+  return { w, text, answer, options: shuffle([answer, ...options]), explain };
+}
+
+function wildQ(run) {
+  keyHandler = null; back.hidden = false; dots.hidden = true; foot.hidden = true;
+  back.textContent = "← Wildcard"; back.onclick = () => { back.textContent = "← Levels"; showWild(); };
+  const q = wildQuestion(run.pool, run.last); run.last = q.w;
+  crumb.textContent = `Wildcard · ${run.right}/${run.n}${run.streak >= 3 ? ` · ${run.streak} in a row` : ""}`;
+  main.innerHTML = "";
+  main.appendChild(el("p", "prompt", "Fill in the blank"));
+  main.appendChild(el("div", "q", `<div class="big">${esc(q.text).replace("___", '<span class="blank">______</span>')}</div>`));
+  const stack = el("div", "stack"); let done = false;
+  const btns = q.options.map((o, i) => {
+    const b = el("button", "choice", `<span class="k">${i + 1}</span><span>${esc(o)}</span>`);
+    b.onclick = () => {
+      if (done) return; done = true; run.n++;
+      const ok = o === q.answer; if (ok) { run.right++; run.streak++; run.best = Math.max(run.best, run.streak); } else run.streak = 0;
+      btns.forEach(x => { x.disabled = true; if (x.dataset.o === q.answer) x.classList.add("good"); });
+      if (!ok) b.classList.add("bad");
+      main.appendChild(el("div", "verdict " + (ok ? "good" : "bad"), `<div class="t ${ok ? "good" : "bad"}">${ok ? "Yes." : "No."}</div>${esc(q.explain)}`));
+      const r = el("div", "row"); const next = el("button", "btn", "Next"); next.onclick = () => wildQ(run);
+      const stop = el("button", "btn quiet", `Stop · ${run.right}/${run.n}`); stop.onclick = () => { back.textContent = "← Levels"; showWild(); };
+      r.appendChild(next); r.appendChild(stop); main.appendChild(r); next.focus();
+      keyHandler = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); next.click(); } };
+    };
+    b.dataset.o = o; stack.appendChild(b); return b;
+  });
+  main.appendChild(stack);
+  keyHandler = e => { const i = "1234".indexOf(e.key); if (i >= 0 && btns[i] && !done) btns[i].click(); };
 }
 
 function showMap() {
