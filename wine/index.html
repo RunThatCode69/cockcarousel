@@ -138,6 +138,19 @@
   .study .g { color: var(--muted); font-size: 14px; }
   .study .d { margin-top: 4px; }
 
+  .tabs { margin-top: 18px; }
+  .country { margin-top: 34px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .region { margin-top: 16px; }
+  .rn { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .grape { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .gn { font-weight: 600; margin-bottom: 8px; }
+  .grape .chips { margin-top: 0; align-items: center; }
+  .chip.wine { border: 1px solid var(--line); color: var(--fg); font: 500 15px var(--body); padding: 7px 12px; cursor: pointer; }
+  .chip.wine:hover { background: color-mix(in srgb, var(--gold) 18%, var(--raised)); }
+  .arrow { color: var(--muted); font-size: 14px; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .peek { margin-top: 10px; padding: 10px 12px; border-left: 2px solid var(--gold); color: var(--fg); font-size: 15px; background: var(--raised); border-radius: 0 8px 8px 0; }
+  .peek b { font-weight: 600; }
   .stars { font-size: 34px; letter-spacing: .12em; color: var(--gold); margin: 14px 0 4px; }
   .stat { color: var(--muted); }
   footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; }
@@ -153,7 +166,7 @@
     <div class="dots" id="dots" hidden></div>
   </header>
   <main id="main"></main>
-  <footer id="foot">60 wines &middot; 12 levels &middot; progress saves on this device</footer>
+  <footer id="foot">60 wines &middot; 12 levels &middot; map quiz &middot; progress saves on this device</footer>
 </div>
 
 <script>
@@ -272,6 +285,7 @@ function showLevels() {
   keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer"; foot.hidden = false;
   main.innerHTML = "";
   main.appendChild(el("h1", null, "Wine Trainer"));
+  main.appendChild(tabs("levels"));
   main.appendChild(el("p", "lede", isEasy()
     ? "Easy mode. Everything is tap-to-answer: pick the wine from its taste, match all five, pick the taste from a list, then call body and tannin. No typing, no mic."
     : "Five wines a level. Name them from the taste, match all five at once, say the taste from memory, then call body and tannin. Three stars means no mistakes."));
@@ -294,6 +308,141 @@ function showLevels() {
     const r = el("div", "row"); const reset = el("button", "btn quiet", "Reset progress");
     reset.onclick = () => { prog = { stars: {}, easy: {}, mode: prog.mode }; save(); showLevels(); }; r.appendChild(reset); main.appendChild(r);
   }
+}
+
+// ---------- Map: country → region → grape → wines ----------
+// Rows: [country, region, grape, [wine names exactly as in W], note]
+const MAP = [
+  ["Italy", "Piedmont · northwest", "Nebbiolo", ["Langhe Nebbiolo", "Barbaresco", "Barolo"], "one grape, three weights: young and light → elegant → the big one"],
+  ["Italy", "Piedmont · northwest", "Barbera", ["Barbera"], "high acid, almost no tannin"],
+  ["Italy", "Piedmont · northwest", "Dolcetto", ["Dolcetto"], "the reverse of Barbera: softer acid, some tannin"],
+  ["Italy", "Piedmont · northwest", "Cortese", ["Gavi"], ""],
+  ["Italy", "Piedmont · northwest", "Moscato", ["Moscato d'Asti"], "lightly sweet, gentle fizz"],
+  ["Italy", "Tuscany · center", "Sangiovese", ["Chianti", "Vino Nobile di Montepulciano", "Brunello di Montalcino"], "one grape, named by town: Chianti → Montepulciano → Montalcino, light → big"],
+  ["Italy", "Tuscany · center", "Sangiovese + Cabernet or Merlot", ["Super Tuscan"], "the blend that broke the rules"],
+  ["Italy", "Veneto & Friuli · northeast", "Corvina", ["Valpolicella", "Ripasso", "Amarone"], "one grape, three methods: fresh → re-passed over skins → dried grapes"],
+  ["Italy", "Veneto & Friuli · northeast", "Garganega", ["Soave"], ""],
+  ["Italy", "Veneto & Friuli · northeast", "Glera", ["Prosecco"], "tank method, soft bubbles"],
+  ["Italy", "Veneto & Friuli · northeast", "Pinot Grigio", ["Pinot Grigio"], ""],
+  ["Italy", "Veneto & Friuli · northeast", "Friulano", ["Friulano"], ""],
+  ["Italy", "Lombardy · north", "Chardonnay + Pinot", ["Franciacorta"], "Italy's Champagne-method sparkler"],
+  ["Italy", "Marche · east coast", "Verdicchio", ["Verdicchio"], ""],
+  ["Italy", "Abruzzo · east coast", "Montepulciano (the grape)", ["Montepulciano d'Abruzzo"], "not the Tuscan town. Different thing."],
+  ["Italy", "Campania · Naples", "Aglianico", ["Aglianico / Taurasi"], "the Barolo of the south"],
+  ["Italy", "Campania · Naples", "Fiano, Greco", ["Fiano / Greco"], ""],
+  ["Italy", "Puglia · the heel", "Primitivo", ["Primitivo"], "same grape as Zinfandel"],
+  ["Italy", "Sardinia & Liguria · coast", "Vermentino", ["Vermentino"], "salty coastal white"],
+  ["Italy", "Sicily", "Nero d'Avola", ["Nero d'Avola"], "Sicily's Cab"],
+  ["Italy", "Sicily", "Nerello Mascalese", ["Etna Rosso"], "Sicily's Pinot, grown on the volcano"],
+  ["Italy", "Sicily", "Zibibbo (Muscat)", ["Zibibbo"], ""],
+  ["Spain", "Rioja · north", "Tempranillo", ["Rioja"], "medium, smooth, vanilla from American oak"],
+  ["Spain", "Rioja · north", "Viura", ["Viura"], "white Rioja"],
+  ["Spain", "Castilla y León · north-central", "Tempranillo", ["Ribera del Duero", "Toro"], "same grape as Rioja, higher and hotter, so bigger and darker"],
+  ["Spain", "Rueda · north-central", "Verdejo", ["Verdejo"], "Spain's Sauvignon Blanc"],
+  ["Spain", "Bierzo · northwest", "Mencía", ["Mencía"], "light red, Pinot meets Syrah"],
+  ["Spain", "Galicia · northwest coast", "Albariño", ["Albariño"], "Rías Baixas, sea spray"],
+  ["Spain", "Galicia · northwest coast", "Godello", ["Godello"], "Spain's Chardonnay"],
+  ["Spain", "Basque Country · north coast", "Hondarrabi Zuri", ["Txakoli"], "poured from height, slight fizz"],
+  ["Spain", "Catalonia · northeast", "Garnacha + Cariñena", ["Priorat"], "old vines on slate"],
+  ["Spain", "Catalonia · northeast", "Xarel·lo, Macabeu, Parellada", ["Cava"], "Spain's Champagne-method sparkler"],
+  ["Spain", "Catalonia · northeast", "Grenache Blanc", ["Grenache Blanc"], ""],
+  ["Spain", "Jumilla · southeast", "Monastrell", ["Monastrell"], "same grape as Mourvèdre"],
+  ["Spain", "all over", "Garnacha", ["Garnacha"], "same grape as Grenache"],
+  ["Spain", "Jerez · south (Sherry)", "Palomino", ["Fino / Manzanilla", "Amontillado", "Oloroso"], "all dry; light and salty → nutty → heavy"],
+  ["Spain", "Jerez · south (Sherry)", "Pedro Ximénez", ["Pedro Ximénez"], "the sweet one"],
+  ["California & Oregon", "Napa Valley", "Cabernet Sauvignon", ["Napa Cabernet Sauvignon"], ""],
+  ["California & Oregon", "Napa Valley", "Cab + Merlot + Cab Franc", ["Red Blend / Meritage"], "the Bordeaux grapes together"],
+  ["California & Oregon", "Napa Valley", "Chardonnay", ["Chardonnay (Napa, buttery)"], "oak and malolactic = butter"],
+  ["California & Oregon", "Sonoma Coast & Russian River", "Pinot Noir", ["Pinot Noir (Oregon / Sonoma Coast)", "Pinot Noir (Russian River / Santa Maria)"], "cool site → light and earthy; warm site → ripe and cola"],
+  ["California & Oregon", "Sonoma Coast & Russian River", "Chardonnay", ["Chardonnay (Sonoma Coast)"], "leaner, less oak"],
+  ["California & Oregon", "Willamette Valley · Oregon", "Pinot Noir", ["Pinot Noir (Oregon / Sonoma Coast)"], ""],
+  ["California & Oregon", "Lodi & Dry Creek", "Zinfandel", ["Zinfandel"], "same grape as Primitivo"],
+  ["California & Oregon", "Paso Robles · central coast", "Syrah, Grenache, Mourvèdre", ["Paso Robles Rhône blend"], "the Rhône grapes together"],
+  ["California & Oregon", "statewide", "Merlot", ["Merlot"], "Cab's softer sibling"],
+  ["California & Oregon", "statewide", "Syrah", ["Syrah"], ""],
+  ["California & Oregon", "statewide", "Petite Sirah", ["Petite Sirah"], "not Syrah. Inkier, more tannin."],
+  ["California & Oregon", "statewide", "Sauvignon Blanc", ["Sauvignon Blanc"], ""],
+  ["California & Oregon", "statewide", "Grenache, Syrah or Pinot", ["Rosé"], ""],
+  ["France", "Champagne", "Chardonnay, Pinot Noir, Meunier", ["Champagne"], "the original Champagne-method sparkler"],
+];
+const byName = Object.fromEntries(W.map(w => [w.n, w]));
+
+function tabs(cur) {
+  const t = el("div", "seg two tabs");
+  [["levels", "Levels"], ["map", "Map · regions & grapes"]].forEach(([v, s]) => {
+    const b = el("button", cur === v ? "on" : "", s);
+    b.onclick = () => v === "map" ? showMap() : showLevels();
+    t.appendChild(b);
+  });
+  return t;
+}
+
+function showMap() {
+  keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer · Map"; foot.hidden = true;
+  main.innerHTML = "";
+  main.appendChild(el("h1", null, "The map"));
+  main.appendChild(tabs("map"));
+  main.appendChild(el("p", "lede", "Where it's from and what grape it is. This is the part a test actually checks. Tap a wine to see its taste."));
+  const r = el("div", "row"); const q = el("button", "btn", "Quiz me on this"); q.onclick = () => mapQuiz({ n: 0, right: 0, streak: 0 }); r.appendChild(q); main.appendChild(r);
+  let lastC = null, lastR = null, regionBox = null;
+  MAP.forEach(([c, reg, grape, wines, note]) => {
+    if (c !== lastC) { main.appendChild(el("h2", "country", esc(c))); lastC = c; lastR = null; }
+    if (reg !== lastR) { regionBox = el("div", "region"); regionBox.appendChild(el("div", "rn", esc(reg))); main.appendChild(regionBox); lastR = reg; }
+    const row = el("div", "grape");
+    row.appendChild(el("div", "gn", esc(grape)));
+    const chips = el("div", "chips");
+    wines.forEach((n, i) => {
+      const w = byName[n]; const chip = el("button", "chip wine", esc(n));
+      chip.onclick = () => {
+        const open = row.querySelector(".peek");
+        if (open) { const same = open.dataset.n === n; open.remove(); if (same) return; }
+        const struct = w.t === "red" ? `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity, ${lbl(LVL_L, w.tan)} tannin` : `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity`;
+        const p = el("div", "peek", `<b>${esc(w.n)}</b> tastes like ${esc(w.taste)}. ${esc(struct[0].toUpperCase() + struct.slice(1))}.`);
+        p.dataset.n = n; row.appendChild(p);
+      };
+      chips.appendChild(chip);
+      if (wines.length > 1 && i < wines.length - 1) chips.appendChild(el("span", "arrow", "→"));
+    });
+    row.appendChild(chips);
+    if (note) row.appendChild(el("div", "note", esc(note)));
+    regionBox.appendChild(row);
+  });
+  const r2 = el("div", "row"); const q2 = el("button", "btn", "Quiz me on this"); q2.onclick = () => mapQuiz({ n: 0, right: 0, streak: 0 }); r2.appendChild(q2); main.appendChild(r2);
+}
+
+// Map quiz: "What grape is X?" or "Where is X from?", four options, runs until you stop.
+function mapQuiz(run) {
+  keyHandler = null; back.hidden = false; dots.hidden = true; foot.hidden = true;
+  back.textContent = "← Map"; back.onclick = () => { back.textContent = "← Levels"; showMap(); };
+  const w = W[Math.floor(Math.random() * W.length)];
+  const askGrape = Math.random() < 0.5;
+  const field = askGrape ? "g" : "r";
+  const answer = w[field];
+  const others = shuffle([...new Set(W.map(x => x[field]))].filter(v => v !== answer)).slice(0, 3);
+  const opts = shuffle([answer, ...others]);
+  crumb.textContent = `Map quiz · ${run.right}/${run.n}${run.streak >= 3 ? ` · ${run.streak} in a row` : ""}`;
+  main.innerHTML = "";
+  main.appendChild(el("p", "prompt", askGrape ? "What grape is it?" : "Where is it from?"));
+  main.appendChild(el("div", "q", `<div class="big">${esc(w.n)}</div>`));
+  const stack = el("div", "stack"); let done = false;
+  const btns = opts.map((o, i) => {
+    const b = el("button", "choice", `<span class="k">${i + 1}</span><span>${esc(o)}</span>`);
+    b.onclick = () => {
+      if (done) return; done = true; run.n++;
+      const ok = o === answer; if (ok) { run.right++; run.streak++; } else run.streak = 0;
+      btns.forEach(x => { x.disabled = true; if (x.dataset.o === answer) x.classList.add("good"); });
+      if (!ok) b.classList.add("bad");
+      const v = el("div", "verdict " + (ok ? "good" : "bad"), `<div class="t ${ok ? "good" : "bad"}">${ok ? "Yes." : "No."}</div>${esc(w.n)} is ${esc(w.g)} from ${esc(w.r)}.`);
+      main.appendChild(v);
+      const r = el("div", "row"); const next = el("button", "btn", "Next"); next.onclick = () => mapQuiz(run);
+      const stop = el("button", "btn quiet", "Stop"); stop.onclick = () => { back.textContent = "← Levels"; showMap(); };
+      r.appendChild(next); r.appendChild(stop); main.appendChild(r); next.focus();
+      keyHandler = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); next.click(); } };
+    };
+    b.dataset.o = o; stack.appendChild(b); return b;
+  });
+  main.appendChild(stack);
+  keyHandler = e => { const i = "1234".indexOf(e.key); if (i >= 0 && btns[i] && !done) btns[i].click(); };
 }
 
 function showStudy(L) {
