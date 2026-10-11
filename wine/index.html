@@ -473,37 +473,104 @@ function wildQ(run) {
   keyHandler = e => { const i = "1234".indexOf(e.key); if (i >= 0 && btns[i] && !done) btns[i].click(); };
 }
 
+// Grape view: [grape family, [wine names], where it lives, note]
+const GRAPES = [
+  ["Nebbiolo", ["Langhe Nebbiolo", "Barbaresco", "Barolo"], "Piedmont, Italy", "one grape, three weights"],
+  ["Sangiovese", ["Chianti", "Vino Nobile di Montepulciano", "Brunello di Montalcino", "Super Tuscan"], "Tuscany, Italy", "named by town; Super Tuscan is Sangiovese + Cab or Merlot"],
+  ["Corvina", ["Valpolicella", "Ripasso", "Amarone"], "Veneto, Italy", "one grape, three methods"],
+  ["Tempranillo", ["Rioja", "Ribera del Duero", "Toro"], "Spain", "one grape, three regions, light → dark"],
+  ["Palomino (Sherry)", ["Fino / Manzanilla", "Amontillado", "Oloroso"], "Jerez, Spain", "all dry, light → heavy"],
+  ["Pedro Ximénez", ["Pedro Ximénez"], "Jerez, Spain", "the sweet sherry"],
+  ["Cabernet Sauvignon", ["Napa Cabernet Sauvignon", "Red Blend / Meritage"], "Napa, California", "Meritage = Cab + Merlot + Cab Franc"],
+  ["Merlot", ["Merlot", "Red Blend / Meritage"], "California", "Cab's softer sibling"],
+  ["Pinot Noir", ["Pinot Noir (Oregon / Sonoma Coast)", "Pinot Noir (Russian River / Santa Maria)"], "Oregon & California", "cool site light, warm site ripe"],
+  ["Chardonnay", ["Chardonnay (Napa, buttery)", "Chardonnay (Sonoma Coast)", "Champagne", "Franciacorta"], "California, Champagne, Lombardy", "oaked = butter; also the base of most fine sparkling"],
+  ["Syrah", ["Syrah", "Paso Robles Rhône blend"], "California", "not the same as Petite Sirah"],
+  ["Petite Sirah", ["Petite Sirah"], "California", "its own grape, inkier than Syrah"],
+  ["Zinfandel = Primitivo", ["Zinfandel", "Primitivo"], "California & Puglia", "same grape, two names"],
+  ["Garnacha = Grenache", ["Garnacha", "Priorat", "Paso Robles Rhône blend", "Rosé"], "Spain & California", "Priorat is Garnacha + Cariñena"],
+  ["Monastrell = Mourvèdre", ["Monastrell", "Paso Robles Rhône blend"], "Jumilla, Spain & Paso", "same grape, two names"],
+  ["Barbera", ["Barbera"], "Piedmont", "high acid, low tannin"],
+  ["Dolcetto", ["Dolcetto"], "Piedmont", "softer acid, some tannin"],
+  ["Montepulciano", ["Montepulciano d'Abruzzo"], "Abruzzo", "a grape, not the Tuscan town"],
+  ["Nero d'Avola", ["Nero d'Avola"], "Sicily", ""],
+  ["Nerello Mascalese", ["Etna Rosso"], "Sicily", ""],
+  ["Aglianico", ["Aglianico / Taurasi"], "Campania", ""],
+  ["Mencía", ["Mencía"], "Bierzo, Spain", ""],
+  ["Pinot Grigio", ["Pinot Grigio"], "Friuli / Veneto", ""],
+  ["Friulano", ["Friulano"], "Friuli", ""],
+  ["Garganega", ["Soave"], "Veneto", "the grape in Soave"],
+  ["Cortese", ["Gavi"], "Piedmont", "the grape in Gavi"],
+  ["Vermentino", ["Vermentino"], "Sardinia / Liguria", ""],
+  ["Verdicchio", ["Verdicchio"], "Marche", ""],
+  ["Fiano / Greco", ["Fiano / Greco"], "Campania", ""],
+  ["Muscat", ["Zibibbo", "Moscato d'Asti"], "Sicily & Piedmont", "dry in Sicily, sweet and fizzy in Asti"],
+  ["Albariño", ["Albariño"], "Galicia", ""],
+  ["Verdejo", ["Verdejo"], "Rueda", ""],
+  ["Godello", ["Godello"], "Galicia", ""],
+  ["Hondarrabi Zuri", ["Txakoli"], "Basque Country", "the grape in Txakoli"],
+  ["Viura", ["Viura"], "Rioja", "white Rioja"],
+  ["Grenache Blanc", ["Grenache Blanc"], "Catalonia", ""],
+  ["Sauvignon Blanc", ["Sauvignon Blanc"], "California", ""],
+  ["Glera", ["Prosecco"], "Veneto", "the grape in Prosecco"],
+  ["Xarel·lo, Macabeu, Parellada", ["Cava"], "Catalonia", "the Cava trio"],
+];
+
+function wineRow(grape, wines, note, arrows) {
+  const row = el("div", "grape");
+  row.appendChild(el("div", "gn", esc(grape)));
+  const chips = el("div", "chips");
+  wines.forEach((n, i) => {
+    const w = byName[n]; const chip = el("button", "chip wine", esc(n));
+    chip.onclick = () => {
+      const open = row.querySelector(".peek");
+      if (open) { const same = open.dataset.n === n; open.remove(); if (same) return; }
+      const struct = w.t === "red" ? `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity, ${lbl(LVL_L, w.tan)} tannin` : `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity`;
+      const p = el("div", "peek", `<b>${esc(w.n)}</b> · ${esc(w.g)} · ${esc(w.r)}. Tastes like ${esc(w.taste)}. ${esc(struct[0].toUpperCase() + struct.slice(1))}.`);
+      p.dataset.n = n; row.appendChild(p);
+    };
+    chips.appendChild(chip);
+    if (arrows && wines.length > 1 && i < wines.length - 1) chips.appendChild(el("span", "arrow", "→"));
+  });
+  row.appendChild(chips);
+  if (note) row.appendChild(el("div", "note", esc(note)));
+  return row;
+}
+
+function quizRow() {
+  const r = el("div", "row");
+  [["grape", "Quiz grapes"], ["region", "Quiz regions"], ["both", "Both"]].forEach(([k, t], i) => {
+    const b = el("button", i === 2 ? "btn ghost" : "btn", t); b.onclick = () => mapQuiz({ n: 0, right: 0, streak: 0, kind: k }); r.appendChild(b);
+  });
+  return r;
+}
+
 function showMap() {
   keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer · Map"; foot.hidden = true;
   main.innerHTML = "";
   main.appendChild(el("h1", null, "The map"));
   main.appendChild(tabs("map"));
-  main.appendChild(el("p", "lede", "Where it's from and what grape it is. This is the part a test actually checks. Tap a wine to see its taste."));
-  const r = el("div", "row"); const q = el("button", "btn", "Quiz me on this"); q.onclick = () => mapQuiz({ n: 0, right: 0, streak: 0 }); r.appendChild(q); main.appendChild(r);
-  let lastC = null, lastR = null, regionBox = null;
-  MAP.forEach(([c, reg, grape, wines, note]) => {
-    if (c !== lastC) { main.appendChild(el("h2", "country", esc(c))); lastC = c; lastR = null; }
-    if (reg !== lastR) { regionBox = el("div", "region"); regionBox.appendChild(el("div", "rn", esc(reg))); main.appendChild(regionBox); lastR = reg; }
-    const row = el("div", "grape");
-    row.appendChild(el("div", "gn", esc(grape)));
-    const chips = el("div", "chips");
-    wines.forEach((n, i) => {
-      const w = byName[n]; const chip = el("button", "chip wine", esc(n));
-      chip.onclick = () => {
-        const open = row.querySelector(".peek");
-        if (open) { const same = open.dataset.n === n; open.remove(); if (same) return; }
-        const struct = w.t === "red" ? `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity, ${lbl(LVL_L, w.tan)} tannin` : `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity`;
-        const p = el("div", "peek", `<b>${esc(w.n)}</b> tastes like ${esc(w.taste)}. ${esc(struct[0].toUpperCase() + struct.slice(1))}.`);
-        p.dataset.n = n; row.appendChild(p);
-      };
-      chips.appendChild(chip);
-      if (wines.length > 1 && i < wines.length - 1) chips.appendChild(el("span", "arrow", "→"));
+  prog.mapView = prog.mapView || "grape";
+  const v = el("div", "seg two"); v.style.marginTop = "14px";
+  [["grape", "By grape"], ["region", "By region"]].forEach(([k, t]) => { const b = el("button", prog.mapView === k ? "on" : "", t); b.onclick = () => { prog.mapView = k; save(); showMap(); }; v.appendChild(b); });
+  main.appendChild(v);
+  main.appendChild(el("p", "lede", prog.mapView === "grape"
+    ? "Grape first: which wines are the same grape wearing different names. Tap a wine for region and taste."
+    : "Country, then region, then grape, then the wines. Tap a wine to see its taste."));
+  main.appendChild(quizRow());
+  if (prog.mapView === "grape") {
+    const box = el("div", "region"); box.style.marginTop = "22px";
+    GRAPES.forEach(([g, wines, where, note]) => box.appendChild(wineRow(g, wines, [where, note].filter(Boolean).join(" · "), wines.length > 1 && /one grape|named by town|light → /.test(note))));
+    main.appendChild(box);
+  } else {
+    let lastC = null, lastR = null, regionBox = null;
+    MAP.forEach(([c, reg, grape, wines, note]) => {
+      if (c !== lastC) { main.appendChild(el("h2", "country", esc(c))); lastC = c; lastR = null; }
+      if (reg !== lastR) { regionBox = el("div", "region"); regionBox.appendChild(el("div", "rn", esc(reg))); main.appendChild(regionBox); lastR = reg; }
+      regionBox.appendChild(wineRow(grape, wines, note, true));
     });
-    row.appendChild(chips);
-    if (note) row.appendChild(el("div", "note", esc(note)));
-    regionBox.appendChild(row);
-  });
-  const r2 = el("div", "row"); const q2 = el("button", "btn", "Quiz me on this"); q2.onclick = () => mapQuiz({ n: 0, right: 0, streak: 0 }); r2.appendChild(q2); main.appendChild(r2);
+  }
+  main.appendChild(quizRow());
 }
 
 // Map quiz: "What grape is X?" or "Where is X from?", four options, runs until you stop.
@@ -511,12 +578,12 @@ function mapQuiz(run) {
   keyHandler = null; back.hidden = false; dots.hidden = true; foot.hidden = true;
   back.textContent = "← Map"; back.onclick = () => { back.textContent = "← Levels"; showMap(); };
   const w = W[Math.floor(Math.random() * W.length)];
-  const askGrape = Math.random() < 0.5;
+  const askGrape = run.kind === "grape" ? true : run.kind === "region" ? false : Math.random() < 0.5;
   const field = askGrape ? "g" : "r";
   const answer = w[field];
   const others = shuffle([...new Set(W.map(x => x[field]))].filter(v => v !== answer)).slice(0, 3);
   const opts = shuffle([answer, ...others]);
-  crumb.textContent = `Map quiz · ${run.right}/${run.n}${run.streak >= 3 ? ` · ${run.streak} in a row` : ""}`;
+  crumb.textContent = `${run.kind === "grape" ? "Grapes" : run.kind === "region" ? "Regions" : "Map"} quiz · ${run.right}/${run.n}${run.streak >= 3 ? ` · ${run.streak} in a row` : ""}`;
   main.innerHTML = "";
   main.appendChild(el("p", "prompt", askGrape ? "What grape is it?" : "Where is it from?"));
   main.appendChild(el("div", "q", `<div class="big">${esc(w.n)}</div>`));
