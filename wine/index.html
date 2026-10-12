@@ -106,6 +106,14 @@
   .field label { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 5px; }
   .seg.two { grid-template-columns: repeat(2, 1fr); }
+  .seg.four { grid-template-columns: repeat(4, 1fr); }
+  .seg.four button { padding-inline: 2px; font-size: 15px; }
+  .style { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 12px; }
+  .style .sn { font-family: var(--display); font-size: 22px; line-height: 1.15; }
+  .style .say { color: var(--gold); font-size: 15px; margin-top: 4px; font-style: italic; }
+  .style .prof { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .style .pitch { margin-top: 8px; font-size: 15px; }
+  .style .chips { margin-top: 10px; }
   .lv .ez { color: var(--muted); letter-spacing: 0; }
   .seg button { border: 0; border-radius: 8px; background: none; color: var(--muted); font: 500 16px var(--body); padding: 12px 6px; cursor: pointer; }
   .seg button.on { background: var(--raised); color: var(--fg); }
@@ -167,7 +175,7 @@
     <div class="dots" id="dots" hidden></div>
   </header>
   <main id="main"></main>
-  <footer id="foot">60 wines &middot; 12 levels &middot; map &middot; wildcard &middot; progress saves on this device</footer>
+  <footer id="foot">60 wines &middot; 12 levels &middot; map &middot; wildcard &middot; styles &middot; progress saves on this device</footer>
 </div>
 
 <script>
@@ -369,8 +377,8 @@ const MAP = [
 const byName = Object.fromEntries(W.map(w => [w.n, w]));
 
 function tabs(cur) {
-  const t = el("div", "seg tabs");
-  [["levels", "Levels", showLevels], ["map", "Map", showMap], ["wild", "Wildcard", showWild]].forEach(([v, s, fn]) => {
+  const t = el("div", "seg four tabs");
+  [["levels", "Levels", showLevels], ["map", "Map", showMap], ["wild", "Wildcard", showWild], ["styles", "Styles", showStyles]].forEach(([v, s, fn]) => {
     const b = el("button", cur === v ? "on" : "", s);
     b.onclick = fn;
     t.appendChild(b);
@@ -443,6 +451,153 @@ function wildQuestion(pool, last) {
     }
   }
   return { w, text, answer, options: shuffle([answer, ...options]), explain };
+}
+
+
+// ---------- Styles: perceptual buckets, the way a guest actually asks ----------
+// [id, name, what the guest says, profile line, the pitch you say back, [wine names]]
+const STYLES = [
+  ["r1", "Light & silky reds", "“I usually drink Pinot.” “Something lighter.” “Nothing heavy.”",
+    "Light body · low tannin · high acid · red fruit: cherry, strawberry, earth",
+    "Light, silky, red cherry and earth. Drinks easy, goes with almost anything.",
+    ["Pinot Noir (Oregon / Sonoma Coast)", "Pinot Noir (Russian River / Santa Maria)", "Etna Rosso", "Valpolicella", "Mencía"]],
+  ["r2", "Smooth & easy reds", "“Something smooth.” “Not too dry.” “I like Merlot.” “Easy to drink.”",
+    "Medium body · low tannin · soft · ripe plum, cherry, a little chocolate",
+    "Medium, soft, juicy plum and cherry. The crowd-pleaser.",
+    ["Merlot", "Barbera", "Dolcetto", "Montepulciano d'Abruzzo", "Garnacha", "Rioja"]],
+  ["r3", "Savory & tart reds", "“Something Italian.” “Food wine.” “What goes with the pasta?”",
+    "Medium body · medium tannin · high acid · tart cherry, herbs, dried flowers",
+    "Medium, bright acid, tart cherry and herbs. Built for food, especially tomato and meat.",
+    ["Chianti", "Vino Nobile di Montepulciano", "Langhe Nebbiolo", "Barbaresco", "Ripasso"]],
+  ["r4", "Big & structured reds", "“I like Cab.” “Something bold.” “A big red.” “Dry.”",
+    "Full body · high tannin · black fruit, cedar, leather, dark chocolate",
+    "Full, firm tannin, black fruit and cedar. Wants a steak or an hour in the decanter.",
+    ["Napa Cabernet Sauvignon", "Red Blend / Meritage", "Petite Sirah", "Ribera del Duero", "Toro", "Barolo", "Brunello di Montalcino", "Super Tuscan", "Aglianico / Taurasi"]],
+  ["r5", "Big & jammy reds", "“I like Zin.” “Fruity but big.” “Something rich.” “Smooth but bold.”",
+    "Full body · medium tannin · ripe, jammy dark fruit, pepper, spice",
+    "Full and ripe, jammy blackberry and spice, soft tannin. Big without being harsh.",
+    ["Zinfandel", "Primitivo", "Syrah", "Paso Robles Rhône blend", "Priorat", "Monastrell", "Nero d'Avola", "Amarone"]],
+  ["w1", "Crisp & citrusy whites", "“Something crisp.” “I like Sauvignon Blanc.” “Dry white.” “Refreshing.”",
+    "Light body · high acid · no oak · lemon, lime, green apple, salt",
+    "Light, crisp, citrus and minerals. Cold, clean, refreshing.",
+    ["Sauvignon Blanc", "Pinot Grigio", "Soave", "Vermentino", "Gavi", "Verdicchio", "Txakoli", "Albariño", "Verdejo", "Rosé"]],
+  ["w2", "Round & textured whites", "“Something with more body.” “Not too tart.” “Unoaked Chardonnay.” “Something different.”",
+    "Medium body · medium acid · little or no oak · stone fruit, nuts, flowers, wax",
+    "Medium weight, rounder, stone fruit and nuts. More texture than a crisp white, no butter.",
+    ["Friulano", "Fiano / Greco", "Godello", "Viura", "Grenache Blanc", "Chardonnay (Sonoma Coast)", "Zibibbo"]],
+  ["w3", "Rich & buttery whites", "“I like buttery Chardonnay.” “Something rich.” “Oaky.”",
+    "Full body · medium acid · oak · butter, vanilla, toast, baked apple",
+    "Full, round, butter and vanilla. Classic Napa Chardonnay.",
+    ["Chardonnay (Napa, buttery)"]],
+  ["s1", "Dry, toasty bubbles", "“Champagne.” “Something dry and sparkling.” “Brut.”",
+    "Light to medium · high acid · bottle-fermented · toast, brioche, green apple, fine bubbles",
+    "Dry, fine bubbles, toast and green apple. Champagne or its Italian and Spanish cousins.",
+    ["Champagne", "Franciacorta", "Cava"]],
+  ["s2", "Soft, fruity bubbles", "“Prosecco.” “Something light and fun.” “A little sweet.” “Brunch.”",
+    "Light · soft bubbles · pear, peach, flowers · off-dry to sweet",
+    "Light, soft bubbles, pear and peach. Prosecco is dry-ish, Moscato is sweet and low alcohol.",
+    ["Prosecco", "Moscato d'Asti"]],
+  ["x1", "Nutty, dry & salty", "“What’s sherry like?” “Something with the olives.” “An aperitif.”",
+    "Fortified · bone dry · salty almond → hazelnut → walnut as they get heavier",
+    "Dry, nutty, salty. Fino is light and briny, Amontillado nuttier, Oloroso heavy and dark.",
+    ["Fino / Manzanilla", "Amontillado", "Oloroso"]],
+  ["x2", "Sweet & sticky", "“Dessert wine.” “Something sweet.” “With the chocolate.”",
+    "Fortified · very sweet · raisin, molasses, toffee",
+    "Thick, sweet, raisin and toffee. Pour it over vanilla ice cream.",
+    ["Pedro Ximénez"]],
+];
+const styleOf = Object.fromEntries(STYLES.flatMap(s => s[5].map(n => [n, s])));
+
+function showStyles() {
+  keyHandler = null; back.hidden = true; dots.hidden = true; crumb.textContent = "Wine Trainer · Styles"; foot.hidden = true;
+  main.innerHTML = "";
+  main.appendChild(el("h1", null, "Styles"));
+  main.appendChild(tabs("styles"));
+  main.appendChild(el("p", "lede", "Grouped the way a guest asks for them. Each style has what they say, the profile, and the one sentence you say back. Tap a wine for its own line."));
+  const r = el("div", "row"); const q = el("button", "btn", "Quiz: guest asks, you pour"); q.onclick = () => styleQ({ n: 0, right: 0, streak: 0, last: null }); r.appendChild(q); main.appendChild(r);
+  const groups = [["Reds", /^r/], ["Whites & rosé", /^w/], ["Bubbles", /^s/], ["Sherry", /^x/]];
+  groups.forEach(([g, re]) => {
+    main.appendChild(el("h2", "country", g));
+    STYLES.filter(s => re.test(s[0])).forEach(([id, name, say, prof, pitch, wines]) => {
+      const box = el("div", "style");
+      box.appendChild(el("div", "sn", esc(name)));
+      box.appendChild(el("div", "say", esc(say)));
+      box.appendChild(el("div", "prof", esc(prof)));
+      box.appendChild(el("div", "pitch", "You say: “" + esc(pitch) + "”"));
+      const chips = el("div", "chips");
+      wines.forEach(n => {
+        const w = byName[n]; const chip = el("button", "chip wine", esc(n));
+        chip.onclick = () => {
+          const open = box.querySelector(".peek");
+          if (open) { const same = open.dataset.n === n; open.remove(); if (same) return; }
+          const struct = w.t === "red" ? `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity, ${lbl(LVL_L, w.tan)} tannin` : `${lbl(BODY_L, w.body)}, ${lbl(LVL_L, w.acid)} acidity`;
+          const p = el("div", "peek", `<b>${esc(w.n)}</b> · ${esc(w.g)} · ${esc(w.r)}. Tastes like ${esc(w.taste)}. ${esc(struct[0].toUpperCase() + struct.slice(1))}.`);
+          p.dataset.n = n; box.appendChild(p);
+        };
+        chips.appendChild(chip);
+      });
+      box.appendChild(chips);
+      main.appendChild(box);
+    });
+  });
+  const r2 = el("div", "row"); const q2 = el("button", "btn", "Quiz: guest asks, you pour"); q2.onclick = () => styleQ({ n: 0, right: 0, streak: 0, last: null }); r2.appendChild(q2); main.appendChild(r2);
+}
+
+// Style quiz. Three question shapes:
+//  pour:   a guest line -> which wine fits (distractors from other styles)
+//  style:  a wine -> which style is it
+//  cousin: guest liked X -> which is the closest cousin (same style, different wine)
+function styleQuestion(last) {
+  const kinds = ["pour", "pour", "style", "cousin"];
+  const kind = kinds[Math.floor(Math.random() * kinds.length)];
+  let st; do { st = STYLES[Math.floor(Math.random() * STYLES.length)]; } while (st === last || (kind === "cousin" && st[5].length < 2));
+  const [id, name, say, prof, pitch, wines] = st;
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const otherStyles = STYLES.filter(s => s !== st);
+  const sayOne = pick(say.split("” ").map(x => x.replace(/[“”]/g, "").trim()).filter(Boolean));
+  let text, answer, options, explain;
+  if (kind === "pour") {
+    answer = pick(wines);
+    options = shuffle(otherStyles).slice(0, 3).map(s => pick(s[5]));
+    text = `A guest says: “${sayOne}” Which do you bring?`;
+  } else if (kind === "style") {
+    answer = name; options = shuffle(otherStyles.map(s => s[1])).slice(0, 3);
+    const w = pick(wines); text = `Which style is ${w}?`; explain = `${w}: ${byName[w].taste}.`;
+  } else {
+    const liked = pick(wines); answer = pick(wines.filter(n => n !== liked));
+    options = shuffle(otherStyles).slice(0, 3).map(s => pick(s[5]));
+    text = `A guest loved the ${liked} and wants something similar. Closest cousin?`;
+  }
+  explain = (explain ? explain + " " : "") + `${name}: ${prof}. You say: “${pitch}”`;
+  return { st, text, answer, options: shuffle([answer, ...options]), explain };
+}
+
+function styleQ(run) {
+  keyHandler = null; back.hidden = false; dots.hidden = true; foot.hidden = true;
+  back.textContent = "← Styles"; back.onclick = () => { back.textContent = "← Levels"; showStyles(); };
+  const q = styleQuestion(run.last); run.last = q.st;
+  crumb.textContent = `Styles quiz · ${run.right}/${run.n}${run.streak >= 3 ? ` · ${run.streak} in a row` : ""}`;
+  main.innerHTML = "";
+  main.appendChild(el("p", "prompt", "At the table"));
+  main.appendChild(el("div", "q", `<div class="big">${esc(q.text)}</div>`));
+  const stack = el("div", "stack"); let done = false;
+  const btns = q.options.map((o, i) => {
+    const b = el("button", "choice", `<span class="k">${i + 1}</span><span>${esc(o)}</span>`);
+    b.onclick = () => {
+      if (done) return; done = true; run.n++;
+      const ok = o === q.answer; if (ok) { run.right++; run.streak++; } else run.streak = 0;
+      btns.forEach(x => { x.disabled = true; if (x.dataset.o === q.answer) x.classList.add("good"); });
+      if (!ok) b.classList.add("bad");
+      main.appendChild(el("div", "verdict " + (ok ? "good" : "bad"), `<div class="t ${ok ? "good" : "bad"}">${ok ? "Yes." : "No."}</div>${esc(q.explain)}`));
+      const r = el("div", "row"); const next = el("button", "btn", "Next"); next.onclick = () => styleQ(run);
+      const stop = el("button", "btn quiet", `Stop · ${run.right}/${run.n}`); stop.onclick = () => { back.textContent = "← Levels"; showStyles(); };
+      r.appendChild(next); r.appendChild(stop); main.appendChild(r); next.focus();
+      keyHandler = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); next.click(); } };
+    };
+    b.dataset.o = o; stack.appendChild(b); return b;
+  });
+  main.appendChild(stack);
+  keyHandler = e => { const i = "1234".indexOf(e.key); if (i >= 0 && btns[i] && !done) btns[i].click(); };
 }
 
 function wildQ(run) {
